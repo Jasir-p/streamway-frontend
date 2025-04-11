@@ -24,6 +24,7 @@ import RoleDetails from "./components/tenant/modules/rbac/RoleDetails";
 import TaskManagement from "./components/tenant/modules/dashboard/Task/TaskView";
 import WebEnquirerComponent from "./components/tenant/modules/dashboard/Leads/WebEnquery";
 import ContactView from "./components/tenant/modules/customer/contact";
+import LeadDetailPage from "./components/tenant/modules/dashboard/Leads/LeadOverview";
 
 
 
@@ -63,6 +64,7 @@ function App() {
             <Route path="/setting/team/teams/:team_id" element={<ProtectedRoute><TeamDetailView /></ProtectedRoute>} />
             <Route path="/setting/lead_form" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
             <Route path="/dashboard/sale/leads" element={<ProtectedRoute><MondayStyleLeadsTable /></ProtectedRoute>} />
+            <Route path="/dashboard/sale/leads_id" element={<ProtectedRoute><LeadDetailPage/></ProtectedRoute>}/>
             <Route path="/dashboard/sale/enquiry" element={<ProtectedRoute><WebEnquirerComponent /></ProtectedRoute>} />
             <Route path = "/dashboard/activity/task" element={<ProtectedRoute><TaskManagement/></ProtectedRoute>} />
             <Route path="/dashboard/profile/password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />

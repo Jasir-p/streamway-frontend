@@ -14,6 +14,7 @@ import companyDetailsSliceReducer from "./slice/CompanyDetails";
 import tenantSliceReducer from "./slice/projectadmin/CompanySlice.jsx";
 import leadsSliceReducer from "./slice/leadsSlice";
 import enquirySliceReducer from "./slice/EnquirySlice";
+import contactSliceReducer from "./slice/contactSlice";
 
 
 const persistConfigAuth = {
@@ -58,6 +59,7 @@ const store = configureStore({
     tenants:tenantSliceReducer,
     leads:leadsSliceReducer,
     enquiry:enquirySliceReducer,
+    contacts:contactSliceReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, X, MoreHorizontal, Filter, ChevronDown, Phone, Mail, Edit, Trash, User, Plus, UserPlus, Download, Star, StarOff, ArrowUpDown, Eye } from 'lucide-react';
 import DashboardLayout from '../../dashboard/DashbordLayout';
+import { fetchContacts } from '../../../../redux/slice/contactSlice';
+import { useDispatch,useSelector } from 'react-redux';
+import userprofile from "../../../../assets/user-profile.webp";
 
 const ContactView = () => {
   // Sample contact data
-  const [contacts, setContacts] = useState([
+  const [contactss, setContacts] = useState([
     { id: 1, name: 'John', email: 'john.smith@example.com', phone: '(555) 123-4567', status: 'Active', favorite: true, lastContact: '2 days ago', company: 'Acme Inc.' },
     { id: 2, name: 'Sarah Johnson', email: 'sarah.j@example.com', phone: '(555) 987-6543', status: 'Inactive', favorite: false, lastContact: '1 week ago', company: 'TechCorp' },
     { id: 3, name: 'Michael Brown', email: 'michael.b@example.com', phone: '(555) 456-7890', status: 'Active', favorite: false, lastContact: 'Today', company: 'Global Solutions' },
@@ -12,6 +15,10 @@ const ContactView = () => {
     { id: 5, name: 'David Miller', email: 'david.m@example.com', phone: '(555) 345-6789', status: 'Active', favorite: false, lastContact: 'Yesterday', company: 'Atlas Group' },
   ]);
 
+  //redux
+  const dispatch = useDispatch();
+  const {contacts, error, next, previous, loading} = useSelector(state => state.contacts);
+  console.log(contacts)
   // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -20,11 +27,23 @@ const ContactView = () => {
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
   const [selectedContacts, setSelectedContacts] = useState([]);
+
   
   // Delete contact handler
+  const handleNext = () => {
+    console.log(next)
+    dispatch(fetchContacts(next));
+    };
+    const handlePrevious = () => {
+      dispatch(fetchContacts(previous));
+      };
+
   const handleDelete = (id) => {
     setContacts(contacts.filter(contact => contact.id !== id));
   };
+  useEffect(()=>{
+    dispatch(fetchContacts());
+  },[])
 
   // Toggle favorite status
   const toggleFavorite = (id) => {
@@ -72,10 +91,9 @@ const ContactView = () => {
     const matchesSearch = 
       contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.phone.includes(searchTerm) ||
-      contact.company.toLowerCase().includes(searchTerm.toLowerCase());
+      contact.phone_number.includes(searchTerm)
     
-    const matchesStatus = statusFilter === 'All' || contact.status === statusFilter;
+    const matchesStatus = statusFilter === 'All' || contact.status === statusFilter.toLowerCase();
     
     return matchesSearch && matchesStatus;
   });
@@ -217,17 +235,7 @@ const ContactView = () => {
                   </button>
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Info</th>
-                <th className="px-4 py-3">
-                  <button 
-                    className="flex items-center text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    onClick={() => handleSort('company')}
-                  >
-                    Company
-                    {sortBy === 'company' && (
-                      <ArrowUpDown size={14} className="ml-1 text-gray-400" />
-                    )}
-                  </button>
-                </th>
+                
                 <th className="px-4 py-3">
                   <button 
                     className="flex items-center text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -239,6 +247,7 @@ const ContactView = () => {
                     )}
                   </button>
                 </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contact</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -284,13 +293,11 @@ const ContactView = () => {
                         </div>
                         <div className="flex items-center text-sm text-gray-500">
                           <Phone size={14} className="mr-2 text-gray-400" />
-                          {contact.phone}
+                          {contact.phone_number}
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {contact.company}
-                    </td>
+                    
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         contact.status === 'Active' ? 'bg-green-100 text-green-800' :
@@ -305,6 +312,23 @@ const ContactView = () => {
                         {contact.status}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                     <div className="flex items-center">
+                                            <div className="flex items-center space-x-3">
+                                              <img
+                                                src={userprofile}
+                                                alt="User"
+                                                className="w-8 h-8 rounded-full"
+                                              />
+                                              <div className="text-sm font-medium text-gray-900">
+                                                {contact.lead?.employee?.name}
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                  {contact.lead?.employee?.role?.name}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                      </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                       {contact.lastContact}
                     </td>
@@ -372,10 +396,10 @@ const ContactView = () => {
             Showing <span className="font-medium">{filteredContacts.length}</span> of <span className="font-medium">{contacts.length}</span> contacts
           </div>
           <div className="flex items-center space-x-2">
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50" disabled>
+            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50" onClick={handlePrevious}>
               Previous
             </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50" onClick={handleNext}>
               Next
             </button>
           </div>
