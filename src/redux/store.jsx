@@ -4,7 +4,7 @@ import permissionReducer from "./slice/PermissionSlice";
 import tenantEmailReducer from "./slice/TenantEmailSlice";
 import userListReducer from "./slice/UsersSlice";
 import EmployeeReducer from "./slice/EmployeeSlice";
-import authrizReducer from "./slice/authrizeSlice";
+import authrizeSliceReducer from "./slice/authrizeSlice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import  teamsSliceReducer from "./slice/TeamSlice";
@@ -38,7 +38,7 @@ const persistConfigProfile = {
 
 
 
-const persistedAuth = persistReducer(persistConfigAuth, authrizReducer);
+const persistedAuth = persistReducer(persistConfigAuth, authrizeSliceReducer);
 const persistedEmployee = persistReducer(persistConfigEmployee, EmployeeReducer);
 const persistedTenantEmail = persistReducer(persistConfigTenantEmail, tenantEmailReducer);
 const persistedProfile = persistReducer(persistConfigProfile, ProfileReducer);

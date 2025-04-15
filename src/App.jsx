@@ -64,7 +64,7 @@ function App() {
             <Route path="/setting/team/teams/:team_id" element={<ProtectedRoute><TeamDetailView /></ProtectedRoute>} />
             <Route path="/setting/lead_form" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
             <Route path="/dashboard/sale/leads" element={<ProtectedRoute><MondayStyleLeadsTable /></ProtectedRoute>} />
-            <Route path="/dashboard/sale/leads_id" element={<ProtectedRoute><LeadDetailPage/></ProtectedRoute>}/>
+            <Route path="/dashboard/sale/leads/:lead_id/" element={<ProtectedRoute><LeadDetailPage/></ProtectedRoute>}/>
             <Route path="/dashboard/sale/enquiry" element={<ProtectedRoute><WebEnquirerComponent /></ProtectedRoute>} />
             <Route path = "/dashboard/activity/task" element={<ProtectedRoute><TaskManagement/></ProtectedRoute>} />
             <Route path="/dashboard/profile/password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
