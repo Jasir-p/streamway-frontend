@@ -30,9 +30,11 @@ export default function LeadDetailPage() {
       setLead(lead)
     };
   
-    fetchLead(); // 🔥 call the function
+    fetchLead(); 
   }, [lead_id]);
 
+  const customeField = leads?.custome_fields
+  console.log(customeField);
   
   const lead = {
     id: '1234',
@@ -183,7 +185,7 @@ export default function LeadDetailPage() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
                 <div>
                   <DetailItem label="Email" value={leads?.email} />
                   <DetailItem label="Phone" value={leads?.phone_number} />
@@ -194,6 +196,15 @@ export default function LeadDetailPage() {
                   <DetailItem label="Lead Owner" value={leads?.employee?.name} />
                   <DetailItem label="Created Date" value={leads?.created_at.split('T')[0]} />
                 </div>
+                
+                {
+                  leads?.custome_fields &&
+                  Object.entries(leads.custome_fields).map(([key, value]) => (
+                    <DetailItem key={key} label={key} value={value} />
+                  ))
+                }
+                
+                
               </div>
             </div>
           </div>

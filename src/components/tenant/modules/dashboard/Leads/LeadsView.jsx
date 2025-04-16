@@ -8,6 +8,8 @@ import userprofile from "../../../../../assets/user-profile.webp";
 import formatTimeAgo from '../../../../utils/formatTimeAgo';
 import { useNavigate } from 'react-router-dom';
 import { useHasPermission } from '../../../../utils/PermissionCheck';
+import ConversionPermissionPopup from './ConvertPopup';
+import StatusDropdown from '../../../../common/StatusComponent';
 
 
 const MondayStyleLeadsTable = () => {
@@ -20,6 +22,7 @@ const MondayStyleLeadsTable = () => {
   const [search, setSearch] = useState("");
   const [change, setChange] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
+  const [status, setStatus] = useState(false);
   
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -160,6 +163,22 @@ const MondayStyleLeadsTable = () => {
               <span className="ml-2 bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">{leads.length}</span>
             </div>
             <div className="flex items-center space-x-3">
+              {selectedLeads.length>0  && (
+                <button className="bg-gray-300 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition p-5" onClick={()=>setStatus(prev=>!prev)}>
+                <span className="flex items-center">
+                  Status Update
+                </span>
+              </button>
+
+              )}
+              {status &&(
+              <StatusDropdown
+              type="lead"
+              leads = {selectedLeads}
+
+              />
+
+            )}
               <button 
                 className={`${showFilters ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'} px-3 py-2 rounded-md text-sm font-medium transition flex items-center`}
                 onClick={toggleFilters}
@@ -190,6 +209,7 @@ const MondayStyleLeadsTable = () => {
 
               
             </div>
+            
           </div>
 
 

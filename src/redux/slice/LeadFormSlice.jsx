@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
+import { data } from "react-router-dom";
 
 
 
@@ -29,6 +31,18 @@ export const addField = createAsyncThunk ( 'field/addField', async (data,{reject
                     return rejectWithValue(error.message)
                     }
                     });
+export const deleteField = createAsyncThunk ( 'field/deleteField', async (id,{rejectWithValue})=> {
+   
+    try{
+        const response = await subdomainInterceptors.delete("/api/formfield/",
+            {data:  { "field_id": id }}
+        )
+        return response.data
+    }
+    catch (error){
+        return rejectWithValue(error.message)
+        }
+    })
 
 const fieldSlice = createSlice({
     name: 'fields',
@@ -55,7 +69,7 @@ const fieldSlice = createSlice({
                             state.loading = true
                             })
                             .addCase(addField.fulfilled, (state, action) => {
-                                state.field.push(action.payload)
+                                state.field = Array.isArray(action.payload)? action.payload : []
                                 state.loading = false
                                 })
                                 .addCase(addField.rejected, (state, action) => {
