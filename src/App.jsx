@@ -25,6 +25,11 @@ import TaskManagement from "./components/tenant/modules/dashboard/Task/TaskView"
 import WebEnquirerComponent from "./components/tenant/modules/dashboard/Leads/WebEnquery";
 import ContactView from "./components/tenant/modules/customer/contact";
 import LeadDetailPage from "./components/tenant/modules/dashboard/Leads/LeadOverview";
+<<<<<<< Updated upstream
+=======
+import EnquireyForm from "./components/tenant/modules/dashboard/Leads/EnqueryForm";
+import AccountList from "./components/tenant/modules/customer/AccountsView";
+>>>>>>> Stashed changes
 
 
 
@@ -70,6 +75,12 @@ function App() {
             <Route path="/dashboard/profile/password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
             <Route path="/dashboard/profile/personal" element={<ProtectedRoute><Personal /></ProtectedRoute>} />
             <Route path="/dashboard/customer/contacts" element={<ProtectedRoute><ContactView/></ProtectedRoute>} />
+<<<<<<< Updated upstream
+=======
+            <Route path = "/Streamway/form/" element={<ProtectedRoute><EnquireyForm/></ProtectedRoute>}/>
+            <Route path="/dashboard/customer/accounts" element={<ProtectedRoute><AccountList/></ProtectedRoute>}/>
+            
+>>>>>>> Stashed changes
             <Route path="/signin" element={<LoginEmoloye />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

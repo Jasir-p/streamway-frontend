@@ -45,14 +45,14 @@ const ContactView = () => {
     dispatch(fetchContacts());
   },[])
 
-  // Toggle favorite status
+
   const toggleFavorite = (id) => {
     setContacts(contacts.map(contact => 
       contact.id === id ? {...contact, favorite: !contact.favorite} : contact
     ));
   };
 
-  // Select/deselect contact
+
   const toggleSelectContact = (id) => {
     if (selectedContacts.includes(id)) {
       setSelectedContacts(selectedContacts.filter(contactId => contactId !== id));
