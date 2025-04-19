@@ -11,8 +11,12 @@ import { useHasPermission } from '../../../../utils/PermissionCheck';
 import ConversionPermissionPopup from './ConvertPopup';
 import StatusDropdown from '../../../../common/StatusComponent';
 
+import StatusUpdateConfirmation from './StatusUpdate';
+
+
 
 const MondayStyleLeadsTable = () => {
+  const [showStatusPopup, setShowStatusPopup] = useState(false);
   const role = useSelector((state) => state.auth.role);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -23,6 +27,9 @@ const MondayStyleLeadsTable = () => {
   const [change, setChange] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
   const [status, setStatus] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("New");
+  console.log((selectedStatus));
+  
   
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -52,6 +59,18 @@ const MondayStyleLeadsTable = () => {
   const uniqueLocations = [...new Set(leads.map(lead => lead.location))];
   const uniqueAssignees = [...new Set(leads.map(lead => lead.employee?.name))].filter(Boolean);
 
+  const updateLeadStatus = (success) => {
+    if (success) {
+
+      setSelectedLeads([]);
+
+      setChange(!change);
+    }
+
+    setShowStatusPopup(false);
+  };
+    
+
   useEffect(() => {
     role === "owner" ? dispatch(fetchLeadsOwner()) : dispatch(fetchLeadsEmployee(userId),
     )
@@ -69,15 +88,13 @@ const MondayStyleLeadsTable = () => {
     );
   };
   
-  const handleSelectAllChange = (event) => {
-    setSelectedLeads(event.target.checked ? leads.map((lead) => lead.lead_id) : []);
-  };
+  
 
   const getStatusColor = (status) => {
     const statusColors = {
       'new': 'bg-blue-500',
       'contacted': 'bg-yellow-500',
-      'Meeting Scheduled': 'bg-purple-500',
+      'follow_up': 'bg-purple-500',
       'Qualified': 'bg-green-500',
       'Negotiation': 'bg-orange-500',
       'converted': 'bg-emerald-500',
@@ -145,12 +162,17 @@ const MondayStyleLeadsTable = () => {
     
 
     const matchesLocation = !filters.location || lead.location === filters.location;
+    // const isNotConverted = lead.status.toLowerCase() !== "converted";
     
-    return matchesSearch && matchesStatus && matchesSource && matchesAssignee && matchesLocation;
+    return matchesSearch && matchesStatus && matchesSource && matchesAssignee && matchesLocation ;
+    
   });
 
 
   const activeFilterCount = Object.values(filters).filter(value => value !== '').length;
+  const handleSelectAllChange = (event) => {
+    setSelectedLeads(event.target.checked ? filteredLeads.map((lead) => lead.lead_id) : []);
+  };
 
   return (
     <DashboardLayout>
@@ -163,22 +185,33 @@ const MondayStyleLeadsTable = () => {
               <span className="ml-2 bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">{leads.length}</span>
             </div>
             <div className="flex items-center space-x-3">
-              {selectedLeads.length>0  && (
-                <button className="bg-gray-300 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition p-5" onClick={()=>setStatus(prev=>!prev)}>
-                <span className="flex items-center">
-                  Status Update
-                </span>
-              </button>
+            
 
-              )}
-              {status &&(
-              <StatusDropdown
-              type="lead"
-              leads = {selectedLeads}
 
-              />
+{selectedLeads.length > 0 && (
+  <button 
+    className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition"
+    onClick={() => setShowStatusPopup(true)}
+  >
+    <span className="flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+      </svg>
+      Status Update
+    </span>
+  </button>
+)}
 
-            )}
+{showStatusPopup && (
+  <StatusUpdateConfirmation 
+    selectedLeads={selectedLeads}
+    onUpdateComplete={updateLeadStatus}
+    onCancel={() => setShowStatusPopup(false)}
+  />
+)}
+
+              
+              
               <button 
                 className={`${showFilters ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'} px-3 py-2 rounded-md text-sm font-medium transition flex items-center`}
                 onClick={toggleFilters}

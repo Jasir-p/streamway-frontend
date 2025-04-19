@@ -56,7 +56,7 @@ function Sidebar() {
       title: "Customer",
       items: [
         { icon: UserCircle, text: 'Contacts', path:"/dashboard/customer/contacts" },
-        { icon: Users, text: 'Accounts' },
+        { icon: Users, text: 'Accounts', path:"/dashboard/customer/accounts" },
         { icon: FileText, text: 'Contracts' }
       ]
     },
@@ -78,6 +78,7 @@ function Sidebar() {
   ];
 
   return (
+    
     <div className="sticky top-0 w-64 h-screen bg-gradient-to-b from-indigo-900 via-blue-800 to-blue-700 flex flex-col shadow-lg">
 
       {/* Logo */}
