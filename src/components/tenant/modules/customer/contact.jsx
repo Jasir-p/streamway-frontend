@@ -269,7 +269,7 @@ const ContactView = () => {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0 mr-3 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center font-medium">
-                          {contact.name.split(' ').map(n => n[0]).join('')}
+                          {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         </div>
                         <div className="font-medium text-gray-900 flex items-center">
                           {contact.name}

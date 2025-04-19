@@ -6,36 +6,31 @@ import { fetchLeadsEmployee, fetchLeadsOwner } from '../../../../../redux/slice/
 import ExactToolbar from '../../../../common/ToolBar';
 import userprofile from "../../../../../assets/user-profile.webp";
 import formatTimeAgo from '../../../../utils/formatTimeAgo';
-<<<<<<< Updated upstream
-=======
+
 import { useNavigate } from 'react-router-dom';
 import { useHasPermission } from '../../../../utils/PermissionCheck';
 import ConversionPermissionPopup from './ConvertPopup';
 import StatusDropdown from '../../../../common/StatusComponent';
-
 import StatusUpdateConfirmation from './StatusUpdate';
 
-
->>>>>>> Stashed changes
 
 const MondayStyleLeadsTable = () => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
   const role = useSelector((state) => state.auth.role);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { leads, loading, error, next, previous } = useSelector((state) => state.leads);
   const [selectedLeads, setSelectedLeads] = useState([]);
   const userId = useSelector((state) => state.profile.id);
   const [search, setSearch] = useState("");
   const [change, setChange] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
-<<<<<<< Updated upstream
-=======
   const [status, setStatus] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("New");
   console.log((selectedStatus));
-  
->>>>>>> Stashed changes
-  
+
+  const [status, setStatus] = useState(false);
+
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -45,6 +40,19 @@ const MondayStyleLeadsTable = () => {
     location: ''
   });
 
+  const hasAddLeadPermission = useHasPermission('add_leads');
+  const canAddLead = hasAddLeadPermission || role === "owner";
+  const hasEditLeadsPermission = useHasPermission("edit_leads");
+  const canEditLead = selectedLeads?.length > 0 && (hasEditLeadsPermission || role === "owner");
+  
+  const hasDeleteLeads = useHasPermission("delete_leads");
+  const canDeleteLead = hasDeleteLeads|| role === "owner";
+  const hasViewLeadsPermission = useHasPermission("view_leads");
+ 
+  const canViewLead = hasViewLeadsPermission || role === "owner";
+
+
+  
 
   const uniqueStatuses = [...new Set(leads.map(lead => lead.status))];
   const uniqueSources = [...new Set(leads.map(lead => lead.source))];
@@ -89,7 +97,7 @@ const MondayStyleLeadsTable = () => {
       'follow_up': 'bg-purple-500',
       'Qualified': 'bg-green-500',
       'Negotiation': 'bg-orange-500',
-      'Closed Won': 'bg-emerald-500',
+      'converted': 'bg-emerald-500',
       'Closed Lost': 'bg-red-500'
     };
     return statusColors[status] || 'bg-gray-500';
@@ -129,6 +137,12 @@ const MondayStyleLeadsTable = () => {
     });
   };
 
+  const handleLeadOverView = (lead) => {
+    navigate (`/dashboard/sale/leads/${lead.lead_id}/`);
+    };
+
+  
+  
 
   const filteredLeads = leads.filter(lead => {
 
@@ -162,7 +176,7 @@ const MondayStyleLeadsTable = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-100 min-h-screen font-sans">
+      <div className=" min-h-screen font-sans">
         {/* Header */}
         <header className="bg-white border-b border-gray-200">
           <div className="flex items-center justify-between px-6 py-4">
@@ -171,11 +185,6 @@ const MondayStyleLeadsTable = () => {
               <span className="ml-2 bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">{leads.length}</span>
             </div>
             <div className="flex items-center space-x-3">
-<<<<<<< Updated upstream
-=======
-            
-
-
 {selectedLeads.length > 0 && (
   <button 
     className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition"
@@ -200,7 +209,23 @@ const MondayStyleLeadsTable = () => {
 
               
               
->>>>>>> Stashed changes
+              {selectedLeads.length>0  && (
+                <button className="bg-gray-300 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition p-5" onClick={()=>setStatus(prev=>!prev)}>
+                <span className="flex items-center">
+                  Status Update
+                </span>
+              </button>
+
+              )}
+              {status &&(
+              <StatusDropdown
+              type="lead"
+              leads = {selectedLeads}
+
+              />
+
+            )}
+
               <button 
                 className={`${showFilters ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'} px-3 py-2 rounded-md text-sm font-medium transition flex items-center`}
                 onClick={toggleFilters}
@@ -223,10 +248,15 @@ const MondayStyleLeadsTable = () => {
                   Sort
                 </span>
               </button>
-              <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition">
-                + Add Lead
-              </button>
+              {canAddLead && (
+                <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition">
+                  + Add Lead
+                </button>
+              )}
+
+              
             </div>
+            
           </div>
 
 
@@ -310,7 +340,7 @@ const MondayStyleLeadsTable = () => {
           )}
 
           <div className="flex items-center px-6 py-3 bg-gray-50 border-t border-b border-gray-200">
-            {selectedLeads?.length > 0 ? (
+            {canEditLead? (
               <ExactToolbar count={selectedLeads.length} leads={selectedLeads} onUpdate={handleChnage} onClose={() => setShowToolbar(false)}/>
             ) : (
               <>
@@ -400,9 +430,15 @@ const MondayStyleLeadsTable = () => {
                         onChange={() => handleCheckboxChange(lead.lead_id)}
                       />
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
+                      <button onClick={()=> handleLeadOverView(lead)}>
                       <div className="font-medium text-gray-900">{lead.name}</div>
+                      </button>
+                      
                     </td>
+                    
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{lead.email}</div>
                       <div className="text-sm text-gray-500">{lead.phone_number}</div>
