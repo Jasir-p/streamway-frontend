@@ -2,22 +2,26 @@ import React, { useState, useEffect } from 'react';
 import SettingsLayout from '../../settings/Settings';
 import PreviewForm from './Preview';
 import { useSelector, useDispatch } from 'react-redux';
-import { addField, fetchFields } from '../../../../redux/slice/LeadFormSlice';
+import { addField, fetchFields, deleteField } from '../../../../redux/slice/LeadFormSlice';
+import { Pencil, Trash2 } from 'lucide-react';
 
-// Form Builder component with preview
+
 const FormBuilder = () => {
   const [activeTab, setActiveTab] = useState('builder');
   const [formTitle, setFormTitle] = useState('Lead Generation Form');
+  const [editingFieldId, setEditingFieldId] = useState(null);
+  const [changeTracker, setChangeTracker] = useState(false);
   const dispatch = useDispatch();
   const { field, loading, error } = useSelector((state) => state.fields);
 
+
   useEffect(() => {
     dispatch(fetchFields());
-  }, [dispatch]);
+  }, [dispatch, changeTracker]);
 
   // Initial state for form configuration
   const [formConfig, setFormConfig] = useState({
-    field: field?.formfields || [], // Default to an empty array if field is undefined
+    field: field?.formfields || [],
     formStyle: {
       containerClass: ''
     },
@@ -27,8 +31,8 @@ const FormBuilder = () => {
     }
   });
 
+
   useEffect(() => {
-    // Update formConfig when fields are fetched
     if (field?.formfields) {
       setFormConfig((prevConfig) => ({
         ...prevConfig,
@@ -37,9 +41,7 @@ const FormBuilder = () => {
     }
   }, [field]);
 
-  console.log(formConfig.field);
 
-  // Field types available for adding
   const availableFieldTypes = [
     { value: 'text', label: 'Text Input' },
     { value: 'email', label: 'Email Input' },
@@ -50,7 +52,7 @@ const FormBuilder = () => {
     { value: 'checkbox', label: 'Checkbox' }
   ];
 
-  // New field template
+
   const [newField, setNewField] = useState({
     field_name: '',
     field_type: 'text',
@@ -58,19 +60,71 @@ const FormBuilder = () => {
     options: [{ value: 'option1', label: 'Option 1' }]
   });
 
-  const handleAddField = () => {
+  const handleAddField = async () => {
     if (!newField.field_name) return;
 
     const updatedOptions = newField.field_type === 'select' ? newField.options : [];
 
-    dispatch(addField({
-      field_name: newField.field_name,
-      field_type: newField.field_type,
-      is_required: newField.is_required,
-      options: updatedOptions
-    }));
+    try {
+      if (editingFieldId) {
 
-    // Reset the form for the new field after dispatch
+        await dispatch(updateField({
+          id: editingFieldId,
+          field_name: newField.field_name,
+          field_type: newField.field_type,
+          is_required: newField.is_required,
+          options: updatedOptions
+        })).unwrap();
+        setEditingFieldId(null);
+      } else {
+        // Add new field
+        await dispatch(addField({
+          field_name: newField.field_name,
+          field_type: newField.field_type,
+          is_required: newField.is_required,
+          options: updatedOptions
+        })).unwrap();
+      }
+      
+      
+
+      setChangeTracker(true);
+
+
+      setNewField({
+        field_name: '',
+        field_type: 'text',
+        is_required: false,
+        options: [{ value: 'option1', label: 'Option 1' }]
+      });
+    } catch (error) {
+      console.error("Field operation failed:", error);
+    }
+  };
+
+  const handleEditField = (fieldToEdit) => {
+    setEditingFieldId(fieldToEdit.id);
+    setNewField({
+      field_name: fieldToEdit.field_name,
+      field_type: fieldToEdit.field_type,
+      is_required: fieldToEdit.is_required,
+      options: fieldToEdit.options || [{ value: 'option1', label: 'Option 1' }]
+    });
+  };
+
+  const handleDeleteField = async (fieldId) => {
+    if (window.confirm('Are you sure you want to delete this field?')) {
+      try {
+        await dispatch(deleteField(fieldId)).unwrap();
+        setChangeTracker(prev => !prev);
+      } catch (error) {
+        console.error("Delete failed:", error);
+      }
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingFieldId(null);
     setNewField({
       field_name: '',
       field_type: 'text',
@@ -79,7 +133,7 @@ const FormBuilder = () => {
     });
   };
 
-  // Add option to dropdown/select field
+
   const handleAddOption = () => {
     const updatedOptions = [
       ...newField.options,
@@ -92,7 +146,7 @@ const FormBuilder = () => {
     });
   };
 
-  // Update option in dropdown/select field
+
   const handleUpdateOption = (index, key, value) => {
     const updatedOptions = [...newField.options];
     updatedOptions[index] = {
@@ -106,7 +160,7 @@ const FormBuilder = () => {
     });
   };
 
-  // Remove option from dropdown/select field
+
   const handleRemoveOption = (index) => {
     setNewField({
       ...newField,
@@ -114,7 +168,7 @@ const FormBuilder = () => {
     });
   };
 
-  // Handle updating button text
+
   const handleButtonTextChange = (text) => {
     setFormConfig({
       ...formConfig,
@@ -175,9 +229,53 @@ const FormBuilder = () => {
                 </div>
               </div>
 
+              {/* Field list with edit/delete options */}
+              <div className="bg-white p-4 rounded-lg shadow-md">
+                <h2 className="text-lg font-medium mb-3">Custom Form Fields</h2>
+                {loading ? (
+                  <p className="text-gray-500 text-sm">Loading fields...</p>
+                ) : error ? (
+                  <p className="text-red-500 text-sm">Error loading fields: {error}</p>
+                ) : formConfig.field && formConfig.field.length > 0 ? (
+                  <div className="space-y-3">
+                    {formConfig.field.map((fieldItem) => (
+                      <div key={fieldItem.id} className="flex items-center justify-between p-2 border rounded-md hover:bg-gray-50">
+                        <div>
+                          <span className="font-medium">{fieldItem.field_name}</span>
+                          <span className="ml-2 text-sm text-gray-500">({fieldItem.field_type})</span>
+                          {fieldItem.is_required && <span className="ml-2 text-xs text-red-500">*Required</span>}
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => handleEditField(fieldItem)}
+                            className="p-1 text-blue-600 hover:bg-blue-100 rounded-md"
+                            aria-label="Edit field"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteField(fieldItem.id)}
+                            className="p-1 text-red-600 hover:bg-red-100 rounded-md"
+                            aria-label="Delete field"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No custom fields added yet.</p>
+                )}
+              </div>
+
               {/* New field form */}
               <div className="bg-white p-4 rounded-lg shadow-md">
-                <h2 className="text-lg font-medium mb-3">Add New Field</h2>
+                <h2 className="text-lg font-medium mb-3">
+                  {editingFieldId ? 'Edit Field' : 'Add New Field'}
+                </h2>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Field Label</label>
@@ -242,9 +340,10 @@ const FormBuilder = () => {
                           <button
                             type="button"
                             onClick={() => handleRemoveOption(index)}
-                            className="text-red-500"
+                            className="text-red-500 hover:bg-red-100 p-1 rounded-md"
+                            aria-label="Remove option"
                           >
-                            Remove
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       ))}
@@ -259,13 +358,25 @@ const FormBuilder = () => {
                     </div>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={handleAddField}
-                    className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md"
-                  >
-                    Add Field
-                  </button>
+                  <div className="flex space-x-2 mt-4">
+                    <button
+                      type="button"
+                      onClick={handleAddField}
+                      className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                    >
+                      {editingFieldId ? 'Update Field' : 'Add Field'}
+                    </button>
+
+                    {editingFieldId && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

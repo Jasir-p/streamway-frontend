@@ -4,7 +4,7 @@ import permissionReducer from "./slice/PermissionSlice";
 import tenantEmailReducer from "./slice/TenantEmailSlice";
 import userListReducer from "./slice/UsersSlice";
 import EmployeeReducer from "./slice/EmployeeSlice";
-import authrizReducer from "./slice/authrizeSlice";
+import authrizeSliceReducer from "./slice/authrizeSlice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import  teamsSliceReducer from "./slice/TeamSlice";
@@ -15,6 +15,7 @@ import tenantSliceReducer from "./slice/projectadmin/CompanySlice.jsx";
 import leadsSliceReducer from "./slice/leadsSlice";
 import enquirySliceReducer from "./slice/EnquirySlice";
 import contactSliceReducer from "./slice/contactSlice";
+import accountsReducer from "./slice/AccountsSlice";
 
 
 const persistConfigAuth = {
@@ -38,7 +39,7 @@ const persistConfigProfile = {
 
 
 
-const persistedAuth = persistReducer(persistConfigAuth, authrizReducer);
+const persistedAuth = persistReducer(persistConfigAuth, authrizeSliceReducer);
 const persistedEmployee = persistReducer(persistConfigEmployee, EmployeeReducer);
 const persistedTenantEmail = persistReducer(persistConfigTenantEmail, tenantEmailReducer);
 const persistedProfile = persistReducer(persistConfigProfile, ProfileReducer);
@@ -59,7 +60,8 @@ const store = configureStore({
     tenants:tenantSliceReducer,
     leads:leadsSliceReducer,
     enquiry:enquirySliceReducer,
-    contacts:contactSliceReducer
+    contacts:contactSliceReducer,
+    accounts:accountsReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

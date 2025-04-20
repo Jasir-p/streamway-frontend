@@ -7,16 +7,28 @@ import ExactToolbar from '../../../../common/ToolBar';
 import userprofile from "../../../../../assets/user-profile.webp";
 import formatTimeAgo from '../../../../utils/formatTimeAgo';
 
+import { useNavigate } from 'react-router-dom';
+import { useHasPermission } from '../../../../utils/PermissionCheck';
+import ConversionPermissionPopup from './ConvertPopup';
+import StatusDropdown from '../../../../common/StatusComponent';
+import StatusUpdateConfirmation from './StatusUpdate';
+
 const MondayStyleLeadsTable = () => {
+  const [showStatusPopup, setShowStatusPopup] = useState(false);
   const role = useSelector((state) => state.auth.role);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { leads, loading, error, next, previous } = useSelector((state) => state.leads);
   const [selectedLeads, setSelectedLeads] = useState([]);
   const userId = useSelector((state) => state.profile.id);
   const [search, setSearch] = useState("");
   const [change, setChange] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
-  
+  const [selectedStatus, setSelectedStatus] = useState("New");
+  console.log((selectedStatus));
+
+  const [status, setStatus] = useState(false);
+
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -26,12 +38,30 @@ const MondayStyleLeadsTable = () => {
     location: ''
   });
 
+  const hasAddLeadPermission = useHasPermission('add_leads');
+  const canAddLead = hasAddLeadPermission || role === "owner";
+  const hasEditLeadsPermission = useHasPermission("edit_leads");
+  const canEditLead = selectedLeads?.length > 0 && (hasEditLeadsPermission || role === "owner");
+  
+  const hasDeleteLeads = useHasPermission("delete_leads");
+  const canDeleteLead = hasDeleteLeads|| role === "owner";
+  const hasViewLeadsPermission = useHasPermission("view_leads");
+ 
+  const canViewLead = hasViewLeadsPermission || role === "owner";
 
   const uniqueStatuses = [...new Set(leads.map(lead => lead.status))];
   const uniqueSources = [...new Set(leads.map(lead => lead.source))];
   const uniqueLocations = [...new Set(leads.map(lead => lead.location))];
   const uniqueAssignees = [...new Set(leads.map(lead => lead.employee?.name))].filter(Boolean);
 
+  const updateLeadStatus = (success) => {
+    if (success) {
+      setSelectedLeads([]);
+      setChange(!change);
+    }
+    setShowStatusPopup(false);
+  };
+    
   useEffect(() => {
     role === "owner" ? dispatch(fetchLeadsOwner()) : dispatch(fetchLeadsEmployee(userId),
     )
@@ -49,18 +79,14 @@ const MondayStyleLeadsTable = () => {
     );
   };
   
-  const handleSelectAllChange = (event) => {
-    setSelectedLeads(event.target.checked ? leads.map((lead) => lead.lead_id) : []);
-  };
-
   const getStatusColor = (status) => {
     const statusColors = {
       'new': 'bg-blue-500',
       'contacted': 'bg-yellow-500',
-      'Meeting Scheduled': 'bg-purple-500',
+      'follow_up': 'bg-purple-500',
       'Qualified': 'bg-green-500',
       'Negotiation': 'bg-orange-500',
-      'Closed Won': 'bg-emerald-500',
+      'converted': 'bg-emerald-500',
       'Closed Lost': 'bg-red-500'
     };
     return statusColors[status] || 'bg-gray-500';
@@ -100,35 +126,36 @@ const MondayStyleLeadsTable = () => {
     });
   };
 
+  const handleLeadOverView = (lead) => {
+    navigate (`/dashboard/sale/leads/${lead.lead_id}/`);
+    };
 
   const filteredLeads = leads.filter(lead => {
-
     const matchesSearch = 
       lead.name.toLowerCase().includes(search.toLowerCase()) ||
       lead.email.toLowerCase().includes(search.toLowerCase()) ||
       lead.phone_number.includes(search);
     
-
     const matchesStatus = !filters.status || lead.status === filters.status;
     
-
     const matchesSource = !filters.source || lead.source === filters.source;
     
-
     const matchesAssignee = !filters.assigned_to || lead.employee?.name === filters.assigned_to;
     
-
     const matchesLocation = !filters.location || lead.location === filters.location;
+    // const isNotConverted = lead.status.toLowerCase() !== "converted";
     
-    return matchesSearch && matchesStatus && matchesSource && matchesAssignee && matchesLocation;
+    return matchesSearch && matchesStatus && matchesSource && matchesAssignee && matchesLocation ;
   });
 
-
   const activeFilterCount = Object.values(filters).filter(value => value !== '').length;
+  const handleSelectAllChange = (event) => {
+    setSelectedLeads(event.target.checked ? filteredLeads.map((lead) => lead.lead_id) : []);
+  };
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-100 min-h-screen font-sans">
+      <div className=" min-h-screen font-sans">
         {/* Header */}
         <header className="bg-white border-b border-gray-200">
           <div className="flex items-center justify-between px-6 py-4">
@@ -137,6 +164,36 @@ const MondayStyleLeadsTable = () => {
               <span className="ml-2 bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">{leads.length}</span>
             </div>
             <div className="flex items-center space-x-3">
+              {selectedLeads.length > 0 && (
+                <button 
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition"
+                  onClick={() => setShowStatusPopup(true)}
+                >
+                  <span className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Status Update
+                  </span>
+                </button>
+              )}
+
+              {showStatusPopup && (
+                <StatusUpdateConfirmation 
+                  selectedLeads={selectedLeads}
+                  onUpdateComplete={updateLeadStatus}
+                  onCancel={() => setShowStatusPopup(false)}
+                />
+              )}
+              
+              {selectedLeads.length>0  && (
+                <button className="bg-gray-300 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition p-5" onClick={()=>setStatus(prev=>!prev)}>
+                <span className="flex items-center">
+                  Status Update
+                </span>
+              </button>
+            )}
+
               <button 
                 className={`${showFilters ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'} px-3 py-2 rounded-md text-sm font-medium transition flex items-center`}
                 onClick={toggleFilters}
@@ -159,12 +216,13 @@ const MondayStyleLeadsTable = () => {
                   Sort
                 </span>
               </button>
-              <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition">
-                + Add Lead
-              </button>
+              {canAddLead && (
+                <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition">
+                  + Add Lead
+                </button>
+              )}
             </div>
           </div>
-
 
           {showFilters && (
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
@@ -246,7 +304,7 @@ const MondayStyleLeadsTable = () => {
           )}
 
           <div className="flex items-center px-6 py-3 bg-gray-50 border-t border-b border-gray-200">
-            {selectedLeads?.length > 0 ? (
+            {canEditLead? (
               <ExactToolbar count={selectedLeads.length} leads={selectedLeads} onUpdate={handleChnage} onClose={() => setShowToolbar(false)}/>
             ) : (
               <>
@@ -336,9 +394,15 @@ const MondayStyleLeadsTable = () => {
                         onChange={() => handleCheckboxChange(lead.lead_id)}
                       />
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
+                      <button onClick={()=> handleLeadOverView(lead)}>
                       <div className="font-medium text-gray-900">{lead.name}</div>
+                      </button>
+                      
                     </td>
+                    
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{lead.email}</div>
                       <div className="text-sm text-gray-500">{lead.phone_number}</div>

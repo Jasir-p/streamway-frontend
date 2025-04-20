@@ -1,10 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Clock, Mail, Phone, Globe, FileText, ChevronRight, Edit, Trash, Check, Calendar, DollarSign, Users } from 'lucide-react';
 import DashboardLayout from '../../../dashboard/DashbordLayout';
+import { useParams } from 'react-router-dom';
+import subdomainInterceptors from '../../../../../Intreceptors/getSubdomainInterceptors';
+
+const fetchLeadById = async (lead_id) => {
+    try {
+        const response = await subdomainInterceptors.get("api/lead-overview/",
+            {params:{lead_id}}
+        )
+        console.log(response.data)
+        return response.data;
+    }
+    catch (error) {
+        console.error(error);
+    }
+}
+    
 
 export default function LeadDetailPage() {
   const [activeTab, setActiveTab] = useState('activities');
+  const [leads, setLead] = useState(null);
+  const {lead_id} = useParams()
+  console.log(lead_id);
+  useEffect(() => {
+    const fetchLead = async () => {
+      const lead = await fetchLeadById(lead_id);
+      console.log(lead);
+      setLead(lead)
+    };
+  
+    fetchLead(); 
+  }, [lead_id]);
 
+  const customeField = leads?.custome_fields
+  console.log(customeField);
+  
   const lead = {
     id: '1234',
     firstName: 'John',
@@ -145,8 +176,8 @@ export default function LeadDetailPage() {
                     {lead.avatar}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-800">{lead.firstName} {lead.lastName}</h2>
-                    <p className="text-gray-600">{lead.position} at {lead.company}</p>
+                    <h2 className="text-xl font-bold text-gray-800">{leads?.name}</h2>
+                    <p className="text-gray-600">{lead.position} at {lead?.company}</p>
                   </div>
                 </div>
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
@@ -154,17 +185,26 @@ export default function LeadDetailPage() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
                 <div>
-                  <DetailItem label="Email" value={lead.email} />
-                  <DetailItem label="Phone" value={lead.phone} />
+                  <DetailItem label="Email" value={leads?.email} />
+                  <DetailItem label="Phone" value={leads?.phone_number} />
                   <DetailItem label="Company" value={lead.company} />
                 </div>
                 <div>
                   <DetailItem label="Lead Source" value={lead.source} />
-                  <DetailItem label="Lead Owner" value={lead.owner} />
-                  <DetailItem label="Created Date" value={lead.created} />
+                  <DetailItem label="Lead Owner" value={leads?.employee?.name} />
+                  <DetailItem label="Created Date" value={leads?.created_at.split('T')[0]} />
                 </div>
+                
+                {
+                  leads?.custome_fields &&
+                  Object.entries(leads.custome_fields).map(([key, value]) => (
+                    <DetailItem key={key} label={key} value={value} />
+                  ))
+                }
+                
+                
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation,matchPath } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, matchPath } from "react-router-dom";
 import { SubdomainProvider } from "./Subdomain";
 import LandingPage from "./pages/tenant/LandingPage";
 import LoginPage from "./pages/tenant/auth/LoginPage";
@@ -25,30 +25,28 @@ import TaskManagement from "./components/tenant/modules/dashboard/Task/TaskView"
 import WebEnquirerComponent from "./components/tenant/modules/dashboard/Leads/WebEnquery";
 import ContactView from "./components/tenant/modules/customer/contact";
 import LeadDetailPage from "./components/tenant/modules/dashboard/Leads/LeadOverview";
-
-
+import EnquireyForm from "./components/tenant/modules/dashboard/Leads/EnqueryForm";
+import AccountList from "./components/tenant/modules/customer/AccountsView";
 
 function App() {
   const location = useLocation();
 
-  // Define routes that do not require SubdomainProvider
   const noSubdomainRoutes = [
     "/login",
-    
     "/otp",
     "/",
     "/admin/dashboard",
     "/admin/tenants",
     "/admin/tenants/:tenant_id"
   ];
-  
 
   const shouldUseSubdomainProvider = !noSubdomainRoutes.some(route => {
-    if (!route.includes(':')) {
+    if (!route.includes(":")) {
       return location.pathname === route;
     }
-    return matchPath({ path: route }, location.pathname) !== null; 
+    return matchPath({ path: route }, location.pathname) !== null;
   });
+
   return (
     <ToastProvider>
       {shouldUseSubdomainProvider ? (
@@ -57,35 +55,36 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/setting" element={<ProtectedRoute><SettingsLayout /></ProtectedRoute>} />
             <Route path="/setting/security" element={<ProtectedRoute><Security /></ProtectedRoute>} />
-            <Route path ="/setting/security/role/:role_id/" element={<ProtectedRoute><RoleDetails/></ProtectedRoute>}/>
+            <Route path="/setting/security/role/:role_id/" element={<ProtectedRoute><RoleDetails /></ProtectedRoute>} />
             <Route path="/setting/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
             <Route path="/setting/genaral" element={<ProtectedRoute><Genaral /></ProtectedRoute>} />
             <Route path="/setting/team" element={<ProtectedRoute><TeamManagement /></ProtectedRoute>} />
             <Route path="/setting/team/teams/:team_id" element={<ProtectedRoute><TeamDetailView /></ProtectedRoute>} />
             <Route path="/setting/lead_form" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
             <Route path="/dashboard/sale/leads" element={<ProtectedRoute><MondayStyleLeadsTable /></ProtectedRoute>} />
-            <Route path="/dashboard/sale/leads_id" element={<ProtectedRoute><LeadDetailPage/></ProtectedRoute>}/>
+            <Route path="/dashboard/sale/leads/:lead_id/" element={<ProtectedRoute><LeadDetailPage /></ProtectedRoute>} />
             <Route path="/dashboard/sale/enquiry" element={<ProtectedRoute><WebEnquirerComponent /></ProtectedRoute>} />
-            <Route path = "/dashboard/activity/task" element={<ProtectedRoute><TaskManagement/></ProtectedRoute>} />
+            <Route path="/dashboard/activity/task" element={<ProtectedRoute><TaskManagement /></ProtectedRoute>} />
             <Route path="/dashboard/profile/password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
             <Route path="/dashboard/profile/personal" element={<ProtectedRoute><Personal /></ProtectedRoute>} />
-            <Route path="/dashboard/customer/contacts" element={<ProtectedRoute><ContactView/></ProtectedRoute>} />
+            <Route path="/dashboard/customer/contacts" element={<ProtectedRoute><ContactView /></ProtectedRoute>} />
+            <Route path="/Streamway/form/" element={<ProtectedRoute><EnquireyForm /></ProtectedRoute>} />
+            <Route path="/dashboard/customer/accounts" element={<ProtectedRoute><AccountList /></ProtectedRoute>} />
+
             <Route path="/signin" element={<LoginEmoloye />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </SubdomainProvider>
       ) : (
         <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/otp" element={<OtpPage />} />
-           
-            <Route path="/admin/dashboard" element={<CRMAdminDashboard />} />
-            <Route path="/admin/tenants" element={<Tenants />} />
-            <Route path="/admin/tenants/:tenant_id" element={<TenantsDetail />} />
-            {/* Catchall route should be last */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/otp" element={<OtpPage />} />
+          <Route path="/admin/dashboard" element={<CRMAdminDashboard />} />
+          <Route path="/admin/tenants" element={<Tenants />} />
+          <Route path="/admin/tenants/:tenant_id" element={<TenantsDetail />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       )}
     </ToastProvider>
   );
