@@ -6,25 +6,24 @@ export default function ConversionOptionsPopup({ selectedLeads, onClose, onConve
   const [isLoading, setIsLoading] = useState(false);
   const [convertToContact, setConvertToContact] = useState(false);
   const [convertToCustomer, setConvertToCustomer] = useState(false);
-  
+
   const handleCancel = () => {
     onClose();
   };
-  
+
   const handleConfirm = async () => {
     if (selectedLeads.length === 0) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       if (convertToContact || convertToCustomer) {
-
         const response = await subdomainInterceptors.post('/api/lead_conversion/', {
           lead: selectedLeads,
           convert_to_contact: convertToContact,
           convert_to_customer: convertToCustomer
         });
-        
+
         if (response.status === 200) {
           onConversionComplete(true);
         } else {
@@ -32,8 +31,7 @@ export default function ConversionOptionsPopup({ selectedLeads, onClose, onConve
           onConversionComplete(false);
         }
       } else {
-        // If nothing selected, just close
-        onClose();
+        onClose(); // Nothing selected
       }
     } catch (error) {
       console.error('Error converting leads:', error);
@@ -42,7 +40,7 @@ export default function ConversionOptionsPopup({ selectedLeads, onClose, onConve
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg p-4 max-w-md w-full">
@@ -50,9 +48,9 @@ export default function ConversionOptionsPopup({ selectedLeads, onClose, onConve
           <CheckCircle className="text-green-500 mr-2" size={20} />
           <h3 className="text-lg font-medium">Status Updated Successfully</h3>
         </div>
-        
+
         <p className="text-sm text-gray-600 mb-3">Would you like to convert this lead?</p>
-        
+
         <div className="space-y-2 mb-4">
           <div className="flex items-center">
             <input
@@ -64,7 +62,7 @@ export default function ConversionOptionsPopup({ selectedLeads, onClose, onConve
             />
             <label htmlFor="convertToContact" className="text-gray-700 text-sm">Convert to Contact</label>
           </div>
-          
+
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -76,16 +74,16 @@ export default function ConversionOptionsPopup({ selectedLeads, onClose, onConve
             <label htmlFor="convertToCustomer" className="text-gray-700 text-sm">Convert to Customer</label>
           </div>
         </div>
-        
+
         <div className="flex justify-end space-x-2">
-          <button 
+          <button
             onClick={handleCancel}
             disabled={isLoading}
             className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-100"
           >
             Cancel
           </button>
-          <button 
+          <button
             onClick={handleConfirm}
             disabled={isLoading}
             className="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700"
