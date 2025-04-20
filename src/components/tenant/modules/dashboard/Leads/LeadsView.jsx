@@ -24,7 +24,6 @@ const MondayStyleLeadsTable = () => {
   const [search, setSearch] = useState("");
   const [change, setChange] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
-  const [status, setStatus] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("New");
   console.log((selectedStatus));
 
@@ -186,37 +185,15 @@ const MondayStyleLeadsTable = () => {
                   onCancel={() => setShowStatusPopup(false)}
                 />
               )}
-
+              
               {selectedLeads.length>0  && (
                 <button className="bg-gray-300 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition p-5" onClick={()=>setStatus(prev=>!prev)}>
                 <span className="flex items-center">
                   Status Update
                 </span>
               </button>
-              )}
+            )}
 
-              {selectedLeads.length > 0 && (
-                <button 
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition"
-                  onClick={() => setShowStatusPopup(true)}
-                >
-                  <span className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Status Update
-                  </span>
-                </button>
-              )}
-
-              {showStatusPopup && (
-                <StatusUpdateConfirmation 
-                  selectedLeads={selectedLeads}
-                  onUpdateComplete={updateLeadStatus}
-                  onCancel={() => setShowStatusPopup(false)}
-                />
-              )}
-              
               <button 
                 className={`${showFilters ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'} px-3 py-2 rounded-md text-sm font-medium transition flex items-center`}
                 onClick={toggleFilters}
@@ -244,12 +221,8 @@ const MondayStyleLeadsTable = () => {
                   + Add Lead
                 </button>
               )}
-
-              
             </div>
-            
           </div>
-
 
           {showFilters && (
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
