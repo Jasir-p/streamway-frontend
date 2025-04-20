@@ -28,7 +28,7 @@ import LeadDetailPage from "./components/tenant/modules/dashboard/Leads/LeadOver
 import EnquireyForm from "./components/tenant/modules/dashboard/Leads/EnqueryForm";
 import AccountList from "./components/tenant/modules/customer/AccountsView";
 
-import EnquireyForm from "./components/tenant/modules/dashboard/Leads/EnqueryForm";
+
 
 
 
@@ -79,8 +79,7 @@ function App() {
             <Route path="/dashboard/customer/accounts" element={<ProtectedRoute><AccountList/></ProtectedRoute>}/>
             
 
-            <Route path = "/Streamway/form/" element={<ProtectedRoute><EnquireyForm/></ProtectedRoute>}/>
-            
+
 
             <Route path="/signin" element={<LoginEmoloye />} />
             <Route path="*" element={<Navigate to="/" replace />} />
