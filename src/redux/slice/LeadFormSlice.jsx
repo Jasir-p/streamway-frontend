@@ -31,6 +31,18 @@ export const addField = createAsyncThunk ( 'field/addField', async (data,{reject
                     return rejectWithValue(error.message)
                     }
                     });
+
+export const updateField = createAsyncThunk ( 'field/updateField', async (data, { rejectWithValue }) => {
+    try{
+        const response = await subdomainInterceptors.put("/api/formfield/",data)
+        return response.data
+    }catch(error){
+        return  rejectWithValue(error.message);
+
+    }
+})
+
+
 export const deleteField = createAsyncThunk ( 'field/deleteField', async (id,{rejectWithValue})=> {
    
     try{

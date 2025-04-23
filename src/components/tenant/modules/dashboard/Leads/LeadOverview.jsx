@@ -53,6 +53,8 @@ export default function LeadDetailPage() {
     companySize: '51-200',
     industry: 'Manufacturing'
   };
+  console.log(leads?.status);
+  
 
   const activities = [
     {
@@ -329,28 +331,19 @@ export default function LeadDetailPage() {
               {/* Edit Tab */}
               {activeTab === 'edit' && (
                 <div>
-                  <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <form className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        First Name
+                         Name
                       </label>
                       <input
                         type="text"
                         className="w-full p-2 border border-gray-300 rounded-md"
-                        defaultValue={lead.firstName}
+                        defaultValue={leads.name}
                       />
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                        defaultValue={lead.lastName}
-                      />
-                    </div>
+                    
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -359,7 +352,7 @@ export default function LeadDetailPage() {
                       <input
                         type="email"
                         className="w-full p-2 border border-gray-300 rounded-md"
-                        defaultValue={lead.email}
+                        defaultValue={leads.email}
                       />
                     </div>
                     
@@ -370,7 +363,7 @@ export default function LeadDetailPage() {
                       <input
                         type="tel"
                         className="w-full p-2 border border-gray-300 rounded-md"
-                        defaultValue={lead.phone}
+                        defaultValue={leads.phone_number}
                       />
                     </div>
                     
@@ -400,12 +393,16 @@ export default function LeadDetailPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Lead Status
                       </label>
-                      <select className="w-full p-2 border border-gray-300 rounded-md bg-white">
-                        <option>New</option>
-                        <option>Contacted</option>
-                        <option selected>Qualified</option>
-                        <option>Proposal</option>
-                        <option>Negotiation</option>
+                      <select className="w-full p-2 border border-gray-300 rounded-md bg-white"
+                      value ={leads.status || ""}
+                      
+                      >
+                          
+                          <option value="New">New</option>
+                          <option value="Contacted">Contacted</option>
+                          <option value="Qualified">Qualified</option>
+                          <option value="Proposal">Proposal</option>
+                          <option value="Negotiation">Negotiation</option>
                       </select>
                     </div>
                     

@@ -17,7 +17,7 @@ export default function AddUserModal({ isOpen, onClose,changes }) {
 
   const dispatch = useDispatch();
   
-  // Fetch roles only if not available in state
+
   useEffect(() => {
     if (roles.length === 0) {
       dispatch(fetchRoles());
@@ -26,7 +26,7 @@ export default function AddUserModal({ isOpen, onClose,changes }) {
 
   const { roles } = useSelector((state) => state.roles);
 
-  // Function to flatten hierarchical roles
+
   const getAllRoles = (roles) => {
     let result = [];
     roles.forEach((role) => {
@@ -38,7 +38,7 @@ export default function AddUserModal({ isOpen, onClose,changes }) {
     return result;
   };
 
-  // Use useMemo to prevent re-renders
+
   const allRoles = useMemo(() => getAllRoles(roles), [roles]);
 
   console.log(allRoles);
