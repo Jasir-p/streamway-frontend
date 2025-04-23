@@ -1,20 +1,142 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { AddTask } from '@mui/icons-material';
+import { useSelector, useDispatch } from 'react-redux';
+import { getUser } from '../../../../../Intreceptors/LeadsApi';
+import { addTask } from '../../../../../redux/slice/TaskSlice';
+import { fetchLeadsEmployee, fetchLeadsOwner } from '../../../../../redux/slice/leadsSlice';
 
 const TaskForm = () => {
+  const role = useSelector((state) => state.auth.role);
+  const userId = useSelector((state) => state.profile.id);
+  const [employee, setEmployee] = useState([]);
+  const { leads, next, previous } = useSelector((state) => state.leads);
+  const dispatch = useDispatch();
+  const teams = [
+    { id: 1, name: 'Sales Team', memberCount: 8 },
+    { id: 2, name: 'Marketing Team', memberCount: 5 },
+    { id: 3, name: 'Support Team', memberCount: 12 },
+    { id: 4, name: 'Development Team', memberCount: 10 }
+  ];
+  
+  // Mock leads, contacts, and accounts data
+  const contacts = [
+    { id: 'CO123456', name: 'David Wilson (CO123456)' },
+    { id: 'CO123457', name: 'Emma Davis (CO123457)' },
+    { id: 'CO123458', name: 'Robert Miller (CO123458)' }
+  ];
+  
+  const accounts = [
+    { id: 'AC987654', name: 'Acme Corporation (AC987654)' },
+    { id: 'AC987655', name: 'Global Industries (AC987655)' },
+    { id: 'AC987656', name: 'Tech Solutions (AC987656)' }
+  ];
+  
+  // Add states for pagination pages
+  const [leadsPage, setLeadsPage] = useState(1);
+  const [contactsPage, setContactsPage] = useState(1);
+  const [accountsPage, setAccountsPage] = useState(1);
+  
+  // States to store paginated data
+  const [paginatedContacts, setPaginatedContacts] = useState(contacts);
+  const [paginatedAccounts, setPaginatedAccounts] = useState(accounts);
+  const [attachment, setAttachment] = useState(null);
+
+  useEffect(() => {
+    const fetchUserAndLeads = async () => {
+      const user = await getUser(role === 'owner' ? role : userId);
+      setEmployee(user);
+  
+      if (role === 'owner') {
+        dispatch(fetchLeadsOwner());
+      } else {
+        dispatch(fetchLeadsEmployee(userId));
+      }
+    };
+  
+    fetchUserAndLeads();
+  }, [role, userId, dispatch, leadsPage]);
+  
+  // Add effects to fetch paginated data for contacts and accounts
+  useEffect(() => {
+    // In a real app, you'd fetch contacts with the page parameter
+    // For now, we'll use mock data
+    fetchPaginatedContacts(contactsPage);
+  }, [contactsPage]);
+  
+  useEffect(() => {
+    // In a real app, you'd fetch accounts with the page parameter
+    // For now, we'll use mock data
+    fetchPaginatedAccounts(accountsPage);
+  }, [accountsPage]);
+  
+  // Mock functions to simulate API calls for paginated data
+  const fetchPaginatedContacts = (page) => {
+    // Simulate API pagination - in real app this would be an API call
+    console.log(`Fetching contacts page ${page}`);
+    setPaginatedContacts(contacts);
+  };
+  
+  const fetchPaginatedAccounts = (page) => {
+    // Simulate API pagination - in real app this would be an API call
+    console.log(`Fetching accounts page ${page}`);
+    setPaginatedAccounts(accounts);
+  };
+  
+  // Pagination handler functions
+  const handleNextLeads = () => {
+    if (role === 'owner') {
+      dispatch(fetchLeadsOwner(next));
+    } else {
+      dispatch(fetchLeadsEmployee(userId,next));
+    }
+  
+  };
+  
+  const handlePrevLeads = () => {
+    if (previous) {
+      if (role === 'owner') {
+        dispatch(fetchLeadsOwner(previous));
+      } else {
+        dispatch(fetchLeadsEmployee(userId,previous));
+      }
+    }
+  };
+  
+  const handleNextContacts = () => {
+    setContactsPage(prev => prev + 1);
+  };
+  
+  const handlePrevContacts = () => {
+    if (contactsPage > 1) {
+      setContactsPage(prev => prev - 1);
+    }
+  };
+  
+  const handleNextAccounts = () => {
+    setAccountsPage(prev => prev + 1);
+  };
+  
+  const handlePrevAccounts = () => {
+    if (accountsPage > 1) {
+      setAccountsPage(prev => prev - 1);
+    }
+  };
+  
+  // Updated formData state to match the JSON structure provided
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'medium',
+    priority: 'MEDIUM', // Updated to match the JSON case format
     dueDate: '',
     assignTo: 'individual',
-    assignee: '',
-    team: '',
-    status: 'not_started',
-    relatedTo: '',
-    relatedItem: '',
-    estimatedHours: '',
-    subtasks: [],
-    attachments: [],
+    assigned_to_employee: '',
+    assigned_to_team: null,
+    lead: null,
+    contact: null,
+    account: null,
+    status: 'TODO', 
+    subtasks: [],// Updated to match the JSON format
+    attachment: [],
     tags: []
   });
   
@@ -23,29 +145,17 @@ const TaskForm = () => {
   const [tagInput, setTagInput] = useState('');
   
   // Mock data that would normally come from your API
-  const teamMembers = [
-    { id: 1, name: 'John Doe', role: 'Sales Manager' },
-    { id: 2, name: 'Jane Smith', role: 'Marketing Specialist' },
-    { id: 3, name: 'Mike Johnson', role: 'Account Executive' },
-    { id: 4, name: 'Sarah Williams', role: 'Customer Support' }
-  ];
-  
-  const teams = [
-    { id: 1, name: 'Sales Team', memberCount: 8 },
-    { id: 2, name: 'Marketing Team', memberCount: 5 },
-    { id: 3, name: 'Support Team', memberCount: 12 },
-    { id: 4, name: 'Development Team', memberCount: 10 }
-  ];
+
   
   const validateForm = () => {
     const newErrors = {};
     if (!formData.title.trim()) newErrors.title = 'Task title is required';
     if (!formData.dueDate) newErrors.dueDate = 'Due date is required';
     
-    if (formData.assignTo === 'individual' && !formData.assignee) {
-      newErrors.assignee = 'Please select a team member';
-    } else if (formData.assignTo === 'team' && !formData.team) {
-      newErrors.team = 'Please select a team';
+    if (formData.assignTo === 'individual' && !formData.assigned_to_employee) {
+      newErrors.assigned_to_employee = 'Please select a team member';
+    } else if (formData.assignTo === 'team' && !formData.assigned_to_team) {
+      newErrors.assigned_to_team = 'Please select a team';
     }
     
     setErrors(newErrors);
@@ -107,28 +217,55 @@ const TaskForm = () => {
     }));
   };
   
+  const handleModuleChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Reset all module values
+    const updatedFormData = {
+      ...formData,
+      lead: null,
+      contact: null,
+      account: null
+    };
+    
+    // Set only the selected module value
+    updatedFormData[name] = value;
+    setFormData(updatedFormData);
+  };
+  
   const handleSubmit = (e) => {
     e.preventDefault();
+    const formDataobj = new FormData();
+      formDataobj.append('attachment', attachment); // ⬅️ actual File object
+      formDataobj.append('lead', formData.lead);
+      formDataobj.append('title', formData.title);
+      formDataobj.append('priority', formData.priority);
+      formDataobj.append('status', formData.status);
+      formDataobj.append('description', formData.description);
+      formDataobj.append('dueDate', formData.dueDate);
+      formDataobj.append('assignTo', formData.assignTo);
+      formDataobj.append('assigned_to_employee', formData.assigned_to_employee);
+
     
     if (validateForm()) {
-      // Here you would typically send the data to your API
-      console.log('Form submitted:', formData);
+      console.log('Form submitted:', formDataobj);
+      const response = dispatch(addTask(formDataobj));
       
-      // Clear the form
+      // Reset form to initial state
       setFormData({
         title: '',
         description: '',
-        priority: 'medium',
+        priority: 'MEDIUM',
         dueDate: '',
         assignTo: 'individual',
-        assignee: '',
-        team: '',
-        status: 'not_started',
-        relatedTo: '',
-        relatedItem: '',
-        estimatedHours: '',
+        assigned_to_employee: '',
+        assigned_to_team: null,
+        lead: null,
+        contact: null,
+        account: null,
+        status: 'TODO',
         subtasks: [],
-        attachments: [],
+        attachment: [],
         tags: []
       });
       
@@ -148,16 +285,44 @@ const TaskForm = () => {
     
     setFormData(prev => ({
       ...prev,
-      attachments: [...prev.attachments, ...fileData]
+      attachment: [...prev.attachment, ...fileData]
     }));
   };
   
   const removeAttachment = (id) => {
     setFormData(prev => ({
       ...prev,
-      attachments: prev.attachments.filter(file => file.id !== id)
+      attachment: prev.attachment.filter(file => file.id !== id)
     }));
   };
+
+
+  const PaginationArrows = ({ onPrev, onNext, hasPrev, hasNext }) => (
+    <div className="flex items-center">
+      <button
+        type="button"
+        onClick={onPrev}
+        disabled={!hasPrev}
+        className={`p-1 rounded ${!hasPrev ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'}`}
+        aria-label="Previous page"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path fillRule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={onNext}
+        disabled={!hasNext}
+        className={`p-1 rounded ${!hasNext ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'}`}
+        aria-label="Next page"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+        </svg>
+      </button>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
@@ -205,10 +370,10 @@ const TaskForm = () => {
               onChange={handleChange}
               className="w-full p-2 border border-gray-300 rounded-md"
             >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="urgent">Urgent</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+              <option value="URGENT">Urgent</option>
             </select>
           </div>
           
@@ -221,11 +386,11 @@ const TaskForm = () => {
               onChange={handleChange}
               className="w-full p-2 border border-gray-300 rounded-md"
             >
-              <option value="not_started">Not Started</option>
-              <option value="in_progress">In Progress</option>
-              <option value="under_review">Under Review</option>
-              <option value="completed">Completed</option>
-              <option value="blocked">Blocked</option>
+              <option value="TODO">To Do</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="UNDER_REVIEW">Under Review</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="BLOCKED">Blocked</option>
             </select>
           </div>
           
@@ -240,21 +405,6 @@ const TaskForm = () => {
               className={`w-full p-2 border rounded-md ${errors.dueDate ? 'border-red-500' : 'border-gray-300'}`}
             />
             {errors.dueDate && <p className="mt-1 text-sm text-red-500">{errors.dueDate}</p>}
-          </div>
-          
-          <div>
-            <label htmlFor="estimatedHours" className="block text-sm font-medium text-gray-700 mb-1">Estimated Hours</label>
-            <input
-              type="number"
-              id="estimatedHours"
-              name="estimatedHours"
-              value={formData.estimatedHours}
-              onChange={handleChange}
-              min="0"
-              step="0.5"
-              className="w-full p-2 border border-gray-300 rounded-md"
-              placeholder="0.0"
-            />
           </div>
         </div>
         
@@ -285,32 +435,32 @@ const TaskForm = () => {
             
             {formData.assignTo === 'individual' ? (
               <div>
-                <label htmlFor="assignee" className="block text-sm font-medium text-gray-700 mb-1">Select Team Member*</label>
+                <label htmlFor="assigned_to_employee" className="block text-sm font-medium text-gray-700 mb-1">Select Team Member*</label>
                 <select
-                  id="assignee"
-                  name="assignee"
-                  value={formData.assignee}
+                  id="assigned_to_employee"
+                  name="assigned_to_employee"
+                  value={formData.assigned_to_employee}
                   onChange={handleChange}
-                  className={`w-full p-2 border rounded-md ${errors.assignee ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`w-full p-2 border rounded-md ${errors.assigned_to_employee ? 'border-red-500' : 'border-gray-300'}`}
                 >
                   <option value="">Select a team member</option>
-                  {teamMembers.map(member => (
+                  {employee.map(member => (
                     <option key={member.id} value={member.id}>
-                      {member.name} ({member.role})
+                      {member.name} ({member.role.name})
                     </option>
                   ))}
                 </select>
-                {errors.assignee && <p className="mt-1 text-sm text-red-500">{errors.assignee}</p>}
+                {errors.assigned_to_employee && <p className="mt-1 text-sm text-red-500">{errors.assigned_to_employee}</p>}
               </div>
             ) : (
               <div>
-                <label htmlFor="team" className="block text-sm font-medium text-gray-700 mb-1">Select Team*</label>
+                <label htmlFor="assigned_to_team" className="block text-sm font-medium text-gray-700 mb-1">Select Team*</label>
                 <select
-                  id="team"
-                  name="team"
-                  value={formData.team}
+                  id="assigned_to_team"
+                  name="assigned_to_team"
+                  value={formData.assigned_to_team || ''}
                   onChange={handleChange}
-                  className={`w-full p-2 border rounded-md ${errors.team ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`w-full p-2 border rounded-md ${errors.assigned_to_team ? 'border-red-500' : 'border-gray-300'}`}
                 >
                   <option value="">Select a team</option>
                   {teams.map(team => (
@@ -319,49 +469,115 @@ const TaskForm = () => {
                     </option>
                   ))}
                 </select>
-                {errors.team && <p className="mt-1 text-sm text-red-500">{errors.team}</p>}
+                {errors.assigned_to_team && <p className="mt-1 text-sm text-red-500">{errors.assigned_to_team}</p>}
               </div>
             )}
           </div>
         </div>
         
-        {/* Related To Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="relatedTo" className="block text-sm font-medium text-gray-700 mb-1">Related To</label>
-            <select
-              id="relatedTo"
-              name="relatedTo"
-              value={formData.relatedTo}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            >
-              <option value="">None</option>
-              <option value="contact">Contact</option>
-              <option value="deal">Deal</option>
-              <option value="project">Project</option>
-            </select>
+        {/* Related To Section - Updated with Lead, Contact, Account options and pagination arrows */}
+        <div className="p-4 bg-gray-50 rounded-md">
+          <h3 className="font-medium text-gray-800 mb-4">Related To</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="lead" className="block text-sm font-medium text-gray-700">Lead</label>
+                <PaginationArrows 
+                  onPrev={handlePrevLeads} 
+                  onNext={handleNextLeads} 
+                  hasPrev={previous} 
+                  hasNext={next}
+                />
+              </div>
+              <select
+                id="lead"
+                name="lead"
+                value={formData.lead || ''}
+                onChange={handleModuleChange}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                disabled={formData.contact || formData.account}
+              >
+                <option value="">Select a lead</option>
+                {leads.map(lead => (
+                  <option key={lead.lead_id} value={lead.lead_id}>
+                    {lead.name}({lead.lead_id})
+                  </option>
+                ))}
+              </select>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Page {leadsPage}</span>
+                {leads.length === 0 && <span>No data</span>}
+              </div>
+            </div>
+            
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="contact" className="block text-sm font-medium text-gray-700">Contact</label>
+                <PaginationArrows 
+                  onPrev={handlePrevContacts} 
+                  onNext={handleNextContacts} 
+                  hasPrev={contactsPage > 1} 
+                  hasNext={true} // Mock pagination control - in real app this would be dynamically determined
+                />
+              </div>
+              <select
+                id="contact"
+                name="contact"
+                value={formData.contact || ''}
+                onChange={handleModuleChange}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                disabled={formData.lead || formData.account}
+              >
+                <option value="">Select a contact</option>
+                {paginatedContacts.map(contact => (
+                  <option key={contact.id} value={contact.id}>
+                    {contact.name}
+                  </option>
+                ))}
+              </select>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Page {contactsPage}</span>
+                {paginatedContacts.length === 0 && <span>No data</span>}
+              </div>
+            </div>
+            
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="account" className="block text-sm font-medium text-gray-700">Account</label>
+                <PaginationArrows 
+                  onPrev={handlePrevAccounts} 
+                  onNext={handleNextAccounts} 
+                  hasPrev={accountsPage > 1} 
+                  hasNext={true} // Mock pagination control - in real app this would be dynamically determined
+                />
+              </div>
+              <select
+                id="account"
+                name="account"
+                value={formData.account || ''}
+                onChange={handleModuleChange}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                disabled={formData.lead || formData.contact}
+              >
+                <option value="">Select an account</option>
+                {paginatedAccounts.map(account => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </select>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Page {accountsPage}</span>
+                {paginatedAccounts.length === 0 && <span>No data</span>}
+              </div>
+            </div>
           </div>
           
-          {formData.relatedTo && (
-            <div>
-              <label htmlFor="relatedItem" className="block text-sm font-medium text-gray-700 mb-1">
-                Select {formData.relatedTo.charAt(0).toUpperCase() + formData.relatedTo.slice(1)}
-              </label>
-              <select
-                id="relatedItem"
-                name="relatedItem"
-                value={formData.relatedItem}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="">Select...</option>
-                <option value="1">Sample {formData.relatedTo} 1</option>
-                <option value="2">Sample {formData.relatedTo} 2</option>
-                <option value="3">Sample {formData.relatedTo} 3</option>
-              </select>
-            </div>
-          )}
+          {/* Help text */}
+          <p className="text-sm text-gray-500 italic">
+            Note: A task can only be related to one item. Selecting a new item will clear the previous selection.
+          </p>
         </div>
         
         {/* Subtasks */}
@@ -434,18 +650,18 @@ const TaskForm = () => {
               type="file"
               className="sr-only"
               multiple
-              onChange={handleFileChange}
+              onChange={(e) => setAttachment(e.target.files[0])}
             />
             <span className="ml-3 text-sm text-gray-500">
-              {formData.attachments.length} file(s) attached
+              {formData.attachment.length} file(s) attached
             </span>
           </div>
           
           <ul className="space-y-2 max-h-32 overflow-y-auto">
-            {formData.attachments.length === 0 ? (
+            {formData.attachment.length === 0 ? (
               <li className="text-gray-500 text-sm">No files attached</li>
             ) : (
-              formData.attachments.map(file => (
+              formData.attachment.map(file => (
                 <li key={file.id} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200 text-sm">
                   <div className="flex items-center">
                     <svg className="h-4 w-4 text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
