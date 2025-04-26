@@ -37,6 +37,17 @@ export const addLeads = createAsyncThunk('leads/ leadsAdd', async (data, { rejec
             }
             })
 
+export const editLead = createAsyncThunk('leads/leadsEdit', async(data,{rejectWithValue})=>{
+    console.log("get")
+    try{
+        const response = await subdomainInterceptors.patch("/api/leads/", data)
+        return response.data
+    }
+    catch(error){
+        return  rejectWithValue(error.message);
+    }
+})
+
 
 const initialState = {
     leads: [],
@@ -85,7 +96,20 @@ const leadsSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
                 })
+                .addCase(editLead.fulfilled, (state, action) => {
+                    const updatedLead = action.payload;
+                    const index = state.leads.findIndex(lead => lead.id === updatedLead.id);
+                    if (index !== -1) {
+                        state.leads[index] = updatedLead;
+                    }
+                    state.loading = false;
+                })
+                .addCase(editLead.rejected, (state, action) => {
+                    state.loading = false;
+                    state.error = action.payload;
+                });
                                 }
                             })
+            
 
 export default leadsSlice.reducer;

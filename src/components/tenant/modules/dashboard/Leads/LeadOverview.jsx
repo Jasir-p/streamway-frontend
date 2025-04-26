@@ -3,6 +3,8 @@ import { Clock, Mail, Phone, Globe, FileText, ChevronRight, Edit, Trash, Check, 
 import DashboardLayout from '../../../dashboard/DashbordLayout';
 import { useParams } from 'react-router-dom';
 import subdomainInterceptors from '../../../../../Intreceptors/getSubdomainInterceptors';
+import { editLead } from '../../../../../redux/slice/leadsSlice';
+import { useDispatch } from 'react-redux';
 
 const fetchLeadById = async (lead_id) => {
     try {
@@ -22,6 +24,15 @@ export default function LeadDetailPage() {
   const [activeTab, setActiveTab] = useState('activities');
   const [leads, setLead] = useState(null);
   const {lead_id} = useParams()
+  const dispatch = useDispatch()
+  const [leadData, setLeadData] = useState({
+    name: "",
+    email: "",
+    phone_number: "",
+    status: "",
+    custome_fields: {},
+  });
+
   console.log(lead_id);
   useEffect(() => {
     const fetchLead = async () => {
@@ -31,30 +42,42 @@ export default function LeadDetailPage() {
     };
   
     fetchLead(); 
-  }, [lead_id]);
-
+  }, [lead_id,dispatch]);
+  useEffect(() => {
+    if (leads) {
+      setLeadData({
+        name: leads.name || "",
+        email: leads.email || "",
+        phone_number: leads.phone_number || "",
+        status: leads.status || "",
+        custome_fields: { ...leads.custome_fields },
+      });
+    }
+  }, [leads]);
   const customeField = leads?.custome_fields
-  console.log(customeField);
-  
-  const lead = {
-    id: '1234',
-    firstName: 'John',
-    lastName: 'Doe',
-    avatar: 'JD',
-    email: 'john.doe@acmeinc.com',
-    phone: '(555) 123-4567',
-    company: 'Acme Inc.',
-    position: 'Marketing Director',
-    status: 'Qualified Lead',
-    source: 'Website Form',
-    owner: 'Sarah Johnson',
-    created: 'April 5, 2025',
-    revenue: '$5,000,000',
-    companySize: '51-200',
-    industry: 'Manufacturing'
-  };
-  console.log(leads?.status);
-  
+
+   
+  const handleChange =(e)=>{
+    const {name,value}= e.target
+    if (name.startsWith("custom_")) {
+      const key = name.replace("custom_", "");
+      setLeadData((prev) => ({
+        ...prev,
+        custome_fields: {
+          ...prev.custome_fields,
+          [key]: value,
+        },
+      }));
+    }
+      else {
+        setLeadData((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
+      }
+    };
+
+
 
   const activities = [
     {
@@ -143,6 +166,19 @@ export default function LeadDetailPage() {
         return <Clock size={16} className="text-gray-500" />;
     }
   };
+  const handleEdit = ()=>{
+    
+
+    const updatedata = {
+      ...leadData,
+      lead_id:leads.lead_id
+    }
+
+    dispatch(editLead(updatedata))
+
+    
+
+  }
 
   return (
     <DashboardLayout>
@@ -175,15 +211,15 @@ export default function LeadDetailPage() {
               <div className="flex justify-between items-start">
                 <div className="flex items-center">
                   <div className="w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center text-xl font-bold mr-4">
-                    {lead.avatar}
+                    {leads?.avatar}
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-gray-800">{leads?.name}</h2>
-                    <p className="text-gray-600">{lead.position} at {lead?.company}</p>
+                    <p className="text-gray-600">{leads?.position} at {leads?.company}</p>
                   </div>
                 </div>
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                  {lead.status}
+                  {leads?.status}
                 </span>
               </div>
 
@@ -191,10 +227,10 @@ export default function LeadDetailPage() {
                 <div>
                   <DetailItem label="Email" value={leads?.email} />
                   <DetailItem label="Phone" value={leads?.phone_number} />
-                  <DetailItem label="Company" value={lead.company} />
+
                 </div>
                 <div>
-                  <DetailItem label="Lead Source" value={lead.source} />
+                  <DetailItem label="Lead Source" value={leads?.status} />
                   <DetailItem label="Lead Owner" value={leads?.employee?.name} />
                   <DetailItem label="Created Date" value={leads?.created_at.split('T')[0]} />
                 </div>
@@ -331,15 +367,17 @@ export default function LeadDetailPage() {
               {/* Edit Tab */}
               {activeTab === 'edit' && (
                 <div>
-                  <form className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <form className="grid grid-cols-1 md:grid-cols-3 gap-4" onSubmit={handleEdit}>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                          Name
                       </label>
                       <input
                         type="text"
+                        name="name"
+                        onChange={handleChange}
                         className="w-full p-2 border border-gray-300 rounded-md"
-                        defaultValue={leads.name}
+                        defaultValue={leadData.name}
                       />
                     </div>
                     
@@ -351,8 +389,10 @@ export default function LeadDetailPage() {
                       </label>
                       <input
                         type="email"
+                        name="email"
+                        onChange={handleChange}
                         className="w-full p-2 border border-gray-300 rounded-md"
-                        defaultValue={leads.email}
+                        defaultValue={leadData.email}
                       />
                     </div>
                     
@@ -362,75 +402,52 @@ export default function LeadDetailPage() {
                       </label>
                       <input
                         type="tel"
+                        name="phone_number"
+                        onChange={handleChange}
                         className="w-full p-2 border border-gray-300 rounded-md"
                         defaultValue={leads.phone_number}
                       />
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Company
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                        defaultValue={lead.company}
-                      />
-                    </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Job Title
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                        defaultValue={lead.position}
-                      />
-                    </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Lead Status
                       </label>
                       <select className="w-full p-2 border border-gray-300 rounded-md bg-white"
-                      value ={leads.status || ""}
+                       name="status"
+                       onChange={handleChange}
+                      value ={leadData.status || ""}
                       
                       >
                           
-                          <option value="New">New</option>
-                          <option value="Contacted">Contacted</option>
-                          <option value="Qualified">Qualified</option>
+                          <option value="new">New</option>
+                          <option value="contacted">Contacted</option>
+                          <option value="qualified">Qualified</option>
                           <option value="Proposal">Proposal</option>
                           <option value="Negotiation">Negotiation</option>
                       </select>
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Lead Source
-                      </label>
-                      <select className="w-full p-2 border border-gray-300 rounded-md bg-white">
-                        <option>Cold Call</option>
-                        <option>Referral</option>
-                        <option>Trade Show</option>
-                        <option selected>Website Form</option>
-                        <option>Social Media</option>
-                      </select>
-                    </div>
                     
-                    <div>
+                
+                    {leadData.custome_fields && Object.entries(leadData.custome_fields).map(([key, value]) => (
+                      <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Annual Revenue
+                        {key}
                       </label>
                       <input
                         type="text"
+                        name={`custom_${key}`}
+                        onChange={handleChange}
                         className="w-full p-2 border border-gray-300 rounded-md"
-                        defaultValue={lead.revenue}
+                        defaultValue={value}
                       />
-                    </div>
+                    </div>))}
                     
-                    <div>
+                    
+                    {/* <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Industry
                       </label>
@@ -442,7 +459,7 @@ export default function LeadDetailPage() {
                         <option>Retail</option>
                         <option>Education</option>
                       </select>
-                    </div>
+                    </div> */}
                     
                     <div className="md:col-span-2 flex justify-end space-x-2 mt-4">
                       <button
