@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 
 export const fetchTeams = createAsyncThunk('teams/FetchTeams', async (_,{rejectWithValue}) => {
     try {
@@ -39,6 +40,29 @@ export const addTeam = createAsyncThunk('teams/AddTeam',async(data,{rejectWithVa
             
                 
 })
+export const updateTeam = createAsyncThunk('teams/Updateteam', async(data,{rejectWithValue})=>{
+    console.log(data)
+    try{
+        const response = await subdomainInterceptors.put('/team/',data)
+        console.log("check",response)
+        return response.data
+        
+    }catch(error){
+        return rejectWithValue(error.response?.data || "Failed to Remove team")
+    }
+})
+export const deleteTeam = createAsyncThunk('teams/DeleteTeam', async(team_id,{rejectWithValue})=>{
+    console.log(team_id);
+    
+    try {
+        const response = await subdomainInterceptors.delete('/team/',{data:{"team_id":team_id}})
+        return team_id
+    }
+     catch(error){
+        return  rejectWithValue(error.response?.data || "Failed to Remove team")
+
+     }
+})
 
 const teamsSlice = createSlice({
     name: 'teams',
@@ -64,21 +88,43 @@ const teamsSlice = createSlice({
                         state.error = action.payload
                         state.loading = false
                         })
-                        .addCase(addTeam.pending, (state) => {
+                    .addCase(addTeam.pending, (state) => {
                             state.status = 'loading'
                             state.loading = true
-                            })
-                            .addCase(addTeam.fulfilled, (state, action) => {
+                        })
+                    .addCase(addTeam.fulfilled, (state, action) => {
                                 state.status = 'succeeded'
                                 state.teams.push(action.payload)
                                 state.loading = false
-                                })
-                                .addCase(addTeam.rejected, (state, action) => {
+                        })
+                    .addCase(addTeam.rejected, (state, action) => {
                                     state.status = 'failed'
                                     state.error = action.payload
                                     state.loading = false
-                                    })
-                                    
+                        })
+                    .addCase(deleteTeam.fulfilled,(state,action)=>{
+                                    state.teams = state.teams.filter(team=>team.id!==action.payload)
+                        })
+                    .addCase(updateTeam.pending,(state)=>{
+                        state.status ="loading"
+                        state.loading=true
+                    })
+                    .addCase(updateTeam.fulfilled, (state,action)=>{
+                        
+                        state.loading=false
+                        state.teams
+                        const updatedTeam =action.payload
+                        const index = state.teams.findIndex(team => team.id === updatedTeam.id);
+                        if (index !== -1) {
+                            state.teams[index] = updatedTeam;
+                        }
+                    })
+                    .addCase(updateTeam.rejected, (state,action)=>{
+                        state.status = 'failed';
+                        state.loading=false
+                        state.error = action.payload
+
+                    })        
                         }
                         })
     

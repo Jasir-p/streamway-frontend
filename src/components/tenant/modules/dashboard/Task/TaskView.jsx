@@ -140,7 +140,7 @@ const TaskManagement = () => {
 
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
-        {priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase()}
+        {priority?.charAt(0).toUpperCase() + priority.slice(1).toLowerCase()}
       </span>
     );
   };
@@ -192,7 +192,7 @@ const TaskManagement = () => {
                 className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-medium border-2 border-white"
                 title={`Assigned to: ${assignee.name}`}
               >
-                {assignee.name.charAt(0)}
+                {assignee?.name.charAt(0)}
               </div>
             ))}
           </div>
@@ -288,9 +288,7 @@ const TaskManagement = () => {
             ...movedTask,
             status: getStatusFromColumnId(targetColumnId)
           };
-          
-          // Here you would also make an API call to update the task status
-          // e.g., dispatch(updateTaskStatus(taskId, updatedTask.status));
+
           
           return {
             ...column,

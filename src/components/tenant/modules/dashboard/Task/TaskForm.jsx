@@ -17,8 +17,7 @@ const TaskForm = () => {
     { id: 3, name: 'Support Team', memberCount: 12 },
     { id: 4, name: 'Development Team', memberCount: 10 }
   ];
-  
-  // Mock leads, contacts, and accounts data
+
   const contacts = [
     { id: 'CO123456', name: 'David Wilson (CO123456)' },
     { id: 'CO123457', name: 'Emma Davis (CO123457)' },
@@ -56,28 +55,23 @@ const TaskForm = () => {
     fetchUserAndLeads();
   }, [role, userId, dispatch, leadsPage]);
   
-  // Add effects to fetch paginated data for contacts and accounts
+
   useEffect(() => {
-    // In a real app, you'd fetch contacts with the page parameter
-    // For now, we'll use mock data
     fetchPaginatedContacts(contactsPage);
   }, [contactsPage]);
   
   useEffect(() => {
-    // In a real app, you'd fetch accounts with the page parameter
-    // For now, we'll use mock data
+
     fetchPaginatedAccounts(accountsPage);
   }, [accountsPage]);
-  
-  // Mock functions to simulate API calls for paginated data
+
   const fetchPaginatedContacts = (page) => {
-    // Simulate API pagination - in real app this would be an API call
     console.log(`Fetching contacts page ${page}`);
     setPaginatedContacts(contacts);
   };
   
   const fetchPaginatedAccounts = (page) => {
-    // Simulate API pagination - in real app this would be an API call
+
     console.log(`Fetching accounts page ${page}`);
     setPaginatedAccounts(accounts);
   };

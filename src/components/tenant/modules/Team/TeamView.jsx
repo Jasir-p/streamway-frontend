@@ -8,17 +8,22 @@ import {
   CheckCircle2, 
   XCircle,
   UserPlus,
-  Briefcase
+  Briefcase,
+  Trash2Icon,
+  Trash2
+  
 } from 'lucide-react';
 import SettingsLayout from '../../settings/Settings';
 import { useDispatch, useSelector } from 'react-redux';
-import { addTeam, fetchTeams } from '../../../../redux/slice/TeamSlice';
+import { addTeam, fetchTeams,deleteTeam } from '../../../../redux/slice/TeamSlice';
 import { useForm } from 'react-hook-form';
 import userprofile from "../../../../assets/user-profile.webp";
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../common/Navbar';
 import TeamForm from './TeamForm';
 import { addRole } from '../../../../redux/slice/roleSlice';
+import { addMember } from './TeamDetailView';
+
 
 
 
@@ -45,6 +50,7 @@ const TeamManagement = () => {
     team?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     team?.team_lead?.name?.toLowerCase().includes(searchTerm.toLowerCase())
 );
+const horizontalClick = () => setIsModalOpen(true);
 
 const onSubmit = async (data) => {
   console.log(data);
@@ -79,6 +85,16 @@ const handleClickView = (team_id)=>{
     setTimeout(()=>{
         navigate(`/setting/team/teams/${team_id}`)
     },500)
+
+}
+const handleDelete = (team_id)=>{
+  try{
+    const response = dispatch(deleteTeam(team_id))
+    
+  }catch(error){
+    console.log(error)
+  }
+  
 
 }
 
@@ -146,8 +162,8 @@ return (
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        <button className="text-gray-500 hover:text-blue-600">
-          <MoreHorizontal />
+        <button className="text-red-500 hover:text-blue-600" onClick={()=>handleDelete(team.id)}>
+          <Trash2 />
         </button>
       </div>
     </div>

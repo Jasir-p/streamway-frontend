@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, FileText, Activity, Plus, X } from 'lucide-react';
+import { Users, FileText, Activity, Plus, X, Edit, Save } from 'lucide-react';
 import SettingsLayout from '../../settings/Settings';
 import Navbar from '../../../common/Navbar';
 import { useParams } from 'react-router-dom';
@@ -8,6 +8,8 @@ import { useForm } from 'react-hook-form';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchUsers } from "../../../../redux/slice/UsersSlice";
 import { useToast } from '../../../common/ToastNotification';
+import TeamForm from './TeamForm';
+import { updateTeam } from '../../../../redux/slice/TeamSlice';
 
 
 const fetchTeamById = async (team_id) => {
@@ -29,7 +31,7 @@ const fetchTeamById = async (team_id) => {
   }
 };
 
-const addMember = async (team_id, user_id) => {
+export const addMember = async (team_id, user_id) => {
   const subdomain = localStorage.getItem("subdomain");
   const token = localStorage.getItem("access_token");
   const data = {
@@ -57,16 +59,17 @@ const TeamDetailView = () => {
   const { team_id } = useParams();
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
-  const { users, error } = useSelector((state) => state.users);
+  const { register: registerEdit, handleSubmit: handleSubmitEdit, reset: resetEdit, formState: { errors: editErrors } } = useForm();
+  const { users, error,status } = useSelector((state) => state.users);
   const dispatch = useDispatch();
-  const { showSuccess, showError, showInfo, showWarning } = useToast();
+  const { showSuccess, showError } = useToast();
   
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
 
-  // Placeholder data for stats if not available from API
   const defaultStats = {
     completion_rate: 0,
     tasks_completed: 0,
@@ -110,22 +113,49 @@ const TeamDetailView = () => {
       }
     } catch (error) {
       console.error("Error adding member:", error);
-
       console.log("Full error response:", error.response?.data);
-
       const errorMessage =
         error.response?.data?.employee?.[0] || 
         error.response?.data?.error ||         
         "Failed to add member";             
-  
       showError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
-  
-  
 
+  const onEditSubmit = async (team_data) => {
+    setLoading(true);
+    const data ={team_id:team.id,...team_data}
+    console.log(data)
+    try {
+      const result = await dispatch(updateTeam(data));
+      console.log(updateTeam.fulfilled.match(result))
+      
+      if (updateTeam.fulfilled.match(result)) {
+        console.log("haiiii");
+        
+        await fetchTeam();
+        setIsEditModalOpen(false);
+        resetEdit();
+        showSuccess("Team updated successfully!");
+      } else {
+        const errorMessage = result.data?.error || "Failed to update team. Please try again.";
+        showError(errorMessage);
+      }
+    } catch (error) {
+      console.error("Error updating team:", error);
+      const errorMessage = error.response?.data?.error || "Failed to update team";
+      showError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openEditModal = () => {
+    resetEdit(team);
+    setIsEditModalOpen(true);
+  };
 
   const activities = [
     {
@@ -157,9 +187,9 @@ const TeamDetailView = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active':
+      case true:
         return 'bg-green-100 text-green-800';
-      case 'Inactive':
+      case false:
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -195,9 +225,18 @@ const TeamDetailView = () => {
         <div className="flex flex-col sm:flex-row sm:space-x-6">
           <div className="w-full sm:w-3/4">
             <div className="bg-white rounded-lg shadow-md">
-              <div className="p-6">
-                <h1 className="text-2xl font-bold text-gray-900">{team.name || 'Team Name'}</h1>
-                <p className="text-sm text-gray-600">Updated on {team.updated_at ? new Date(team.updated_at).toLocaleDateString() : 'N/A'}</p>
+              <div className="p-6 flex justify-between items-center">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">{team.name || 'Team Name'}</h1>
+                  <p className="text-sm text-gray-600">Updated on {team.updated_at ? new Date(team.updated_at).toLocaleDateString() : 'N/A'}</p>
+                </div>
+                <button 
+                  onClick={openEditModal}
+                  className="flex items-center space-x-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-200"
+                >
+                  <Edit className="w-4 h-4" />
+                  <span>Edit Team</span>
+                </button>
               </div>
               <div className="p-6">
                 <div className="flex justify-between items-center">
@@ -206,6 +245,30 @@ const TeamDetailView = () => {
                     <p className="text-sm text-gray-600">Completion Rate: {team.completion_rate || defaultStats.completion_rate}%</p>
                   </div>
                 </div>
+
+                {/* Team Lead Section */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-800">Team Lead</h3>
+                  {team.team_lead ? (
+                    <div className="flex items-center space-x-3 mt-2">
+                      <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                        {team.team_lead.avatar ? (
+                          <img src={team.team_lead.avatar} alt={team.team_lead.name} className="h-full w-full object-cover rounded-full" />
+                        ) : (
+                          <span className="text-lg font-semibold">{team.team_lead.name ? team.team_lead.name.split(' ').map((n) => n[0]).join('') : 'TL'}</span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-md font-medium text-gray-900">{team.team_lead.name || 'Unknown'}</p>
+                        <p className="text-sm text-gray-500">{team.team_lead.role?.name || 'No role'}</p>
+                        <p className="text-sm text-gray-500">{team.team_lead.email || 'No email'}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 mt-2">No team lead assigned</p>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-2 gap-4 mt-6">
                   <div className="text-center">
                     <p className="text-lg font-bold text-gray-900">{team.tasks_completed || defaultStats.tasks_completed}</p>
@@ -222,7 +285,7 @@ const TeamDetailView = () => {
 
           <div className="w-full sm:w-1/4 mt-6 sm:mt-0">
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <button className="flex text-sm items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 ml-20" onClick={() => setIsModalOpen(true)}>
+              <button className="flex text-sm items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 w-full justify-center" onClick={() => setIsModalOpen(true)}>
                 <Plus className="w-5 h-5" />
                 <span>Add Member</span>
               </button>
@@ -240,7 +303,7 @@ const TeamDetailView = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">{member.name || 'Unknown'}</p>
-                        <p className="text-xs text-gray-500">{member.role || 'No position'}</p>
+                        <p className="text-xs text-gray-500">{member.role.name || 'No position'}</p>
                         <span className={`mt-1 inline-block text-xs px-2 py-1 rounded-full ${getStatusColor(member.status)}`}>
                           {member.status || 'Unknown'}
                         </span>
@@ -254,6 +317,8 @@ const TeamDetailView = () => {
             </div>
           </div>
         </div>
+
+        {/* Add Member Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md animate-fadeIn">
@@ -276,7 +341,7 @@ const TeamDetailView = () => {
                     disabled={loading}
                   >
                     <option value="">Select Members</option>
-                    {users.map((user) => (
+                    {users.filter(user => (!team.team_lead || user.id !== team.team_lead.id)&& !members.some(member=>member.id ===user.id)).map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.name} ({user.role?.name || "No Role"})
                       </option>
@@ -309,6 +374,16 @@ const TeamDetailView = () => {
           </div>
         )}
 
+        {/* Edit Team Modal */}
+        {isEditModalOpen &&(
+          <TeamForm
+          isOpen={isEditModalOpen}
+          onClose={()=>setIsModalOpen(false)}
+          onSubmit={onEditSubmit}
+          team={team}
+          type='edit'
+          />
+        )}
         <div className="mt-8">
           <div className="flex space-x-4">
             <button
@@ -338,16 +413,46 @@ const TeamDetailView = () => {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-semibold text-gray-900">Overview</h3>
                 <p className="mt-4 text-gray-600">This is an overview of your team's performance, tasks, and achievements. You can check the most recent team activities in this section.</p>
+                
+                {team.description && (
+                  <div className="mt-4">
+                    <h4 className="text-lg font-medium text-gray-800">Team Description</h4>
+                    <p className="mt-2 text-gray-600">{team.description}</p>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'members' && (
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-semibold text-gray-900">Team Members</h3>
-                <ul className="mt-4 space-y-4">
+                
+                {/* Team Lead Display */}
+                {team.team_lead && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-700">Team Lead</h4>
+                    <div className="flex items-center mt-2 space-x-3">
+                      <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                        {team.team_lead.avatar ? (
+                          <img src={team.team_lead.avatar} alt={team.team_lead.name} className="h-full w-full object-cover rounded-full" />
+                        ) : (
+                          <span className="text-lg font-semibold">{team.team_lead.name.split(' ').map((n) => n[0]).join('')}</span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-md font-medium text-gray-900">{team.team_lead.name}</p>
+                        <p className="text-sm text-gray-600">{team.team_lead.role?.name || "No Role"}</p>
+                        <p className="text-sm text-gray-500">{team.team_lead.email || "No email"}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <h4 className="font-medium text-gray-700 mt-6 mb-2">Team Members</h4>
+                <ul className="space-y-4">
                   {members && members.length > 0 ? (
                     members.map((member) => (
-                      <li key={member.id} className="flex items-center space-x-3">
+                      <li key={member.id} className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg">
                         <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-white">
                           {member.avatar ? (
                             <img src={member.avatar} alt={member.name} className="h-full w-full object-cover rounded-full" />
@@ -355,11 +460,11 @@ const TeamDetailView = () => {
                             <span>{member.name ? member.name.split(' ').map((n) => n[0]).join('') : 'U'}</span>
                           )}
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">{member.name || 'Unknown'}</p>
-                          <p className="text-xs text-gray-500">{member.position || 'No position'}</p>
-                          <span className={`mt-1 inline-block text-xs px-2 py-1 rounded-full ${getStatusColor(member.status)}`}>
-                            {member.status || 'Unknown'}
+                          <p className="text-xs text-gray-500">{member.role?.name || 'No position'}</p>
+                          <span className={`mt-1 inline-block text-xs px-2 py-1 rounded-full ${getStatusColor(member.is_active)}`}>
+                            {member.is_active?'active': 'inactive'}
                           </span>
                         </div>
                       </li>

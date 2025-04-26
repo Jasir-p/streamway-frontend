@@ -17,7 +17,7 @@ const ToolbarButton = ({ Icon, label, onClick, isActive, disabled }) => (
   </div>
 );
 
-const UserDropdown = ({ isOpen, onSelect, onClose }) => {
+export const UserDropdown = ({ isOpen, onSelect, onClose }) => {
   const dropdownRef = useRef(null);
   const role = useSelector((state) => state.auth.role);
   const profile = useSelector((state) => state.profile);

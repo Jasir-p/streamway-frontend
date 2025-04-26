@@ -1,9 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { Search, X, MoreHorizontal, Filter, ChevronDown, Phone, Mail, Edit, Trash, User, Plus, UserPlus, Download, Star, StarOff, ArrowUpDown, Eye } from 'lucide-react';
+import React, { useEffect, useState,useRef } from 'react';
+import { Search, X, MoreHorizontal, Filter, ChevronDown, Phone, Mail, Edit, Trash, User, Plus, UserPlus, Download, Star, StarOff, ArrowUpDown, Eye,MoreVertical,AlertTriangle } from 'lucide-react';
 import DashboardLayout from '../../dashboard/DashbordLayout';
-import { fetchContacts } from '../../../../redux/slice/contactSlice';
+import { fetchContacts,deleteContacts } from '../../../../redux/slice/contactSlice';
 import { useDispatch,useSelector } from 'react-redux';
 import userprofile from "../../../../assets/user-profile.webp";
+import ContactForm from './ContactForm';
+import { UserDropdown } from '../../../common/ToolBar';
+import { assignToContact } from '../../../../Intreceptors/CustomerApi';
+
+
+ 
 
 const ContactView = () => {
   // Sample contact data
@@ -27,9 +33,36 @@ const ContactView = () => {
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
   const [selectedContacts, setSelectedContacts] = useState([]);
-
+  const [isModal, setIsModal]= useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [isuserDropdown,setUserDropdown]= useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [actionToConfirm, setActionToConfirm] = useState(null);
+  const [assignedTo, setAssignedTo]= useState()
+  const userId = useSelector((state) => state.profile.id);
+    const role = useSelector((state) => state.auth.role);
+  console.log(isModal);
+  const confirmationRef = useRef(null);
+  const actionConfigs = {
+    mass_email: {
+      title: "Send Mass Email",
+      message: "Are you sure you want to send an email to the selected contacts?",
+      icon: <Mail size={18} className="text-blue-500" />
+    },
+    assign: {
+      title: "Assign Contacts",
+      message: "Are you sure you want to reassign the selected contacts?",
+      icon: <UserPlus size={18} className="text-green-500" />
+    },
+    delete: {
+      title: "Delete Contacts",
+      message: "Are you sure you want to delete the selected contacts? This action cannot be undone.",
+      icon: <Trash size={18} className="text-red-500" />
+    }
+  };
   
-  // Delete contact handler
+
+
   const handleNext = () => {
     console.log(next)
     dispatch(fetchContacts(next));
@@ -38,12 +71,9 @@ const ContactView = () => {
       dispatch(fetchContacts(previous));
       };
 
-  const handleDelete = (id) => {
-    setContacts(contacts.filter(contact => contact.id !== id));
-  };
   useEffect(()=>{
     dispatch(fetchContacts());
-  },[])
+  },[dispatch,selectedContacts])
 
 
   const toggleFavorite = (id) => {
@@ -61,7 +91,7 @@ const ContactView = () => {
     }
   };
 
-  // Select all contacts
+
   const toggleSelectAll = () => {
     if (selectedContacts.length === filteredContacts.length) {
       setSelectedContacts([]);
@@ -70,15 +100,55 @@ const ContactView = () => {
     }
   };
 
-  // Handle bulk actions
-  const handleBulkAction = (action) => {
-    if (action === 'delete') {
-      setContacts(contacts.filter(contact => !selectedContacts.includes(contact.id)));
-      setSelectedContacts([]);
+  const handleActionClick = (action) => {
+    setActionToConfirm(action);
+    
+    if (action === 'assign') {
+      setUserDropdown(true);
+      
+    } else {
+      setShowConfirmation(true);
     }
+    
+    setDropdownOpen(false);
+  };
+  
+
+  const handleConfirm = () => {
+    handleBulkAction(actionToConfirm);
+    setShowConfirmation(false);
+    setActionToConfirm(null);
   };
 
-  // Sort contacts
+  const handleCancel = () => {
+    setShowConfirmation(false);
+    setActionToConfirm(null);
+  };
+const handleBulkAction = (action) => {
+  if (action === 'delete') {
+    dispatch(deleteContacts(selectedContacts));
+    setSelectedContacts([]);
+  }
+  if (action === 'assign') {
+    const data = {'assigned_to':assignedTo,
+      'assigned_by':role ==="owner"? null:userId,
+      'contact_id':selectedContacts
+      }
+  console.log(data);
+  
+    assignToContact(data)
+
+    
+  }
+};
+  const SelectedUser = (user) => {
+    setAssignedTo(user.id)
+    setUserDropdown(false);
+
+    setShowConfirmation(true);
+
+  }
+
   const handleSort = (field) => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -87,26 +157,26 @@ const ContactView = () => {
       setSortOrder('asc');
     }
   };
+  console.log(selectedContacts);
   let filteredContacts = contacts.filter(contact => {
-    const matchesSearch = 
-      contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.phone_number.includes(searchTerm)
-    
-    const matchesStatus = statusFilter === 'All' || contact.status === statusFilter.toLowerCase();
-    
+    const matchesSearch =
+      (contact?.name || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
+      (contact?.email || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
+      (contact?.phone_number || '').includes(searchTerm || '');
+  
+    const matchesStatus = statusFilter === 'All' || (contact?.status || '').toLowerCase() === statusFilter.toLowerCase();
+  
     return matchesSearch && matchesStatus;
   });
-
   filteredContacts = [...filteredContacts].sort((a, b) => {
-    let valueA = a[sortBy];
-    let valueB = b[sortBy];
-
+    let valueA = a?.[sortBy] ?? '';
+    let valueB = b?.[sortBy] ?? '';
+  
     if (typeof valueA === 'string') {
       valueA = valueA.toLowerCase();
       valueB = valueB.toLowerCase();
     }
-    
+  
     if (sortOrder === 'asc') {
       return valueA > valueB ? 1 : -1;
     } else {
@@ -126,21 +196,111 @@ const ContactView = () => {
           </div>
           <div className="flex items-center gap-2">
             {selectedContacts.length > 0 && (
-              <div className="flex items-center gap-2 mr-2">
-                <span className="text-sm text-gray-600">{selectedContacts.length} selected</span>
-                <button 
-                  onClick={() => handleBulkAction('delete')}
-                  className="bg-red-50 text-red-600 hover:bg-red-100 p-2 rounded"
-                >
-                  <Trash size={16} />
-                </button>
-              </div>
+              <div className="flex items-center gap-2 mr-2 relative">
+              <span className="text-sm text-gray-600">{selectedContacts.length} selected</span>
+            
+              <button 
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="bg-gray-100 text-gray-600 hover:bg-gray-200 p-2 rounded"
+              >
+                <MoreVertical size={18} />
+              </button>
+            
+              {dropdownOpen && (
+                      <div className="absolute top-10 right-0 bg-white rounded shadow-md w-40 z-10">
+                        <button 
+                          onClick={() => handleActionClick('mass_email')}
+                          className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
+                        >
+                          <Mail size={14} className="mr-2" /> Mass Email
+                        </button>
+                        <button 
+                          onClick={() => handleActionClick('assign')}
+                          className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
+                        >
+                          <UserPlus size={14} className="mr-2" /> Assign
+                        </button>
+                        <button 
+                          onClick={() => handleActionClick('delete')}
+                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                        >
+                          <Trash size={14} className="mr-2" /> Delete
+                        </button>
+                      </div>
+                    )}
+
+
+                    {isuserDropdown && (
+                      <UserDropdown 
+                        isOpen={isuserDropdown} 
+                        onSelect={SelectedUser} 
+                        onClose={() => setUserDropdown(false)} 
+                      />
+                    )}
+            </div>
             )}
+            {showConfirmation && actionToConfirm && (
+        <div className="fixed inset-0 bg-opacity-30 flex items-center justify-center z-50">
+          <div 
+            ref={confirmationRef}
+            className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 overflow-hidden"
+          >
+            <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b">
+              <div className="flex items-center">
+                {actionConfigs[actionToConfirm].icon}
+                <h3 className="ml-2 text-lg font-medium text-gray-900">
+                  {actionConfigs[actionToConfirm].title}
+                </h3>
+              </div>
+              <button 
+                onClick={handleCancel}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="px-4 py-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 mt-0.5">
+                  <AlertTriangle size={20} className="text-amber-500" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-gray-700">
+                    {actionConfigs[actionToConfirm].message}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-3 border-t">
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm ${
+                  actionToConfirm === 'delete' 
+                    ? 'bg-red-600 hover:bg-red-700' 
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+            
             <button className="border border-gray-300 text-gray-600 px-4 py-2 rounded hover:bg-gray-50 flex items-center gap-2">
               <Download size={16} />
               Export
             </button>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+            onClick={()=>setIsModal(true)}>
               <UserPlus size={16} />
               Add Contact
             </button>
@@ -207,6 +367,9 @@ const ContactView = () => {
             </div>
           </div>
         </div>
+        {isModal &&(
+          <ContactForm isOpen={isModal} onClose={() => setIsModal(false)}/>
+        )}
         
         {/* Contact List */}
         <div className="border border-gray-50 rounded-lg overflow-hidden shadow-sm">
@@ -269,10 +432,11 @@ const ContactView = () => {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0 mr-3 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center font-medium">
-                          {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        {contact.name ? contact.name.split(' ').map(n => n[0]).join('').toUpperCase() : ''}
+
                         </div>
                         <div className="font-medium text-gray-900 flex items-center">
-                          {contact.name}
+                          {contact?.name}
                           <button 
                             className="ml-2 text-gray-400 hover:text-yellow-500"
                             onClick={() => toggleFavorite(contact.id)}
@@ -293,7 +457,7 @@ const ContactView = () => {
                         </div>
                         <div className="flex items-center text-sm text-gray-500">
                           <Phone size={14} className="mr-2 text-gray-400" />
-                          {contact.phone_number}
+                          {contact?.phone_number}
                         </div>
                       </div>
                     </td>
@@ -309,7 +473,7 @@ const ContactView = () => {
                           contact.status === 'Inactive' ? 'bg-gray-500' :
                           'bg-blue-500'
                         }`}></span>
-                        {contact.status}
+                        {contact?.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -321,9 +485,9 @@ const ContactView = () => {
                                                 className="w-8 h-8 rounded-full"
                                               />
                                               <div className="text-sm font-medium text-gray-900">
-                                                {contact.lead?.employee?.name}
+                                                {contact.assigned_to?.name}
                                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                  {contact.lead?.employee?.role?.name}
+                                                  {contact.assigned_to?.role?.name}
                                                 </div>
                                               </div>
                                             </div>
@@ -340,37 +504,50 @@ const ContactView = () => {
                         <button className="p-1 text-indigo-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50">
                           <Edit size={18} />
                         </button>
-                        <button 
-                          className="p-1 text-red-400 hover:text-red-600 rounded-full hover:bg-red-50"
-                          onClick={() => handleDelete(contact.id)}
-                        >
-                          <Trash size={18} />
-                        </button>
+                        
                         <div className="relative">
-                          <button 
-                            className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
-                            onClick={() => setShowActionDropdown(showActionDropdown === contact.id ? null : contact.id)}
-                          >
-                            <MoreHorizontal size={18} />
-                          </button>
-                          
-                          {showActionDropdown === contact.id && (
-                            <div className="absolute right-0 mt-1 z-10 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1">
-                              <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                Add to Campaign
-                              </button>
-                              <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                Add Note
-                              </button>
-                              <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                Schedule Meeting
-                              </button>
-                              <button className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                                Delete Contact
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                            <button 
+                              className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                              onClick={() => setShowActionDropdown(showActionDropdown === contact.id ? null : contact.id)}
+                            >
+                              <MoreHorizontal size={18} />
+                            </button>
+
+                            {showActionDropdown === contact.id && (
+                              <div className="relative overflow-visible right-0 mt-2 z-20 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1">
+                                <button 
+                                  onClick={() => {
+                                    handleBulkAction('add_to_campaign', contact);
+                                    setShowActionDropdown(null);
+                                  }}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  Add to Campaign
+                                </button>
+
+                                <button 
+                                  onClick={() => {
+                                    handleBulkAction('add_note', contact);
+                                    setShowActionDropdown(null);
+                                  }}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  Add Note
+                                </button>
+
+                                <button 
+                                  onClick={() => {
+                                    handleBulkAction('schedule_meeting', contact);
+                                    setShowActionDropdown(null);
+                                  }}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  Schedule Meeting
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
                       </div>
                     </td>
                   </tr>
@@ -389,17 +566,23 @@ const ContactView = () => {
             </tbody>
           </table>
         </div>
-        
+      
         {/* Pagination */}
         <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
           <div>
             Showing <span className="font-medium">{filteredContacts.length}</span> of <span className="font-medium">{contacts.length}</span> contacts
           </div>
           <div className="flex items-center space-x-2">
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50" onClick={handlePrevious}>
+            <button    className={`px-3 py-1 border rounded-md disabled:opacity-50 
+                    ${previous ? 'bg-blue-500 text-white border-blue-500' : 'bg-white border-gray-300'}`}
+                  onClick={handlePrevious}
+                  disabled={!previous}>
               Previous
             </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50" onClick={handleNext}>
+            <button  className={`px-3 py-1 border rounded-md
+                ${next ? 'bg-blue-500 text-white border-blue-500' : 'bg-white border-gray-300'}`}
+              onClick={handleNext}
+              disabled={!next}>
               Next
             </button>
           </div>
