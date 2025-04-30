@@ -7,6 +7,7 @@ import userprofile from "../../../../assets/user-profile.webp";
 import ContactForm from './ContactForm';
 import { UserDropdown } from '../../../common/ToolBar';
 import { assignToContact } from '../../../../Intreceptors/CustomerApi';
+import { useToast } from '../../../common/ToastNotification';
 
 
  
@@ -39,6 +40,8 @@ const ContactView = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [actionToConfirm, setActionToConfirm] = useState(null);
   const [assignedTo, setAssignedTo]= useState()
+  const { showSuccess, showError } = useToast();
+  const[change,setChange]=useState(false)
   const userId = useSelector((state) => state.profile.id);
     const role = useSelector((state) => state.auth.role);
   console.log(isModal);
@@ -73,7 +76,7 @@ const ContactView = () => {
 
   useEffect(()=>{
     dispatch(fetchContacts());
-  },[dispatch,selectedContacts])
+  },[dispatch,change])
 
 
   const toggleFavorite = (id) => {
@@ -124,7 +127,7 @@ const ContactView = () => {
     setShowConfirmation(false);
     setActionToConfirm(null);
   };
-const handleBulkAction = (action) => {
+const handleBulkAction = async(action) => {
   if (action === 'delete') {
     dispatch(deleteContacts(selectedContacts));
     setSelectedContacts([]);
@@ -136,11 +139,29 @@ const handleBulkAction = (action) => {
       }
   console.log(data);
   
-    assignToContact(data)
+  try {
+    const response = await assignToContact(data);
+    console.log(response.data);
+    
+    if (response.status === 200) {
+      console.log(response.data);
+      setChange(true);
+      showSuccess(response.data?.message);
+      
+    } else {
+
+      console.error("Something went wrong:", response);
+    }
+  } catch (error) {
+    console.error(error);
+
+  }
+  setSelectedContacts([])
+};
 
     
   }
-};
+
   const SelectedUser = (user) => {
     setAssignedTo(user.id)
     setUserDropdown(false);

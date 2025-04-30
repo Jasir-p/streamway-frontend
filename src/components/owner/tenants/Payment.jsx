@@ -1,3 +1,112 @@
+// import React, { useState, useEffect } from 'react';
+
+
+// const ProductDisplay = () => (
+//   <section>
+//     <div className="product">
+//       <Logo />
+//       <div className="description">
+//         <h3>Starter plan</h3>
+//         <h5>$20.00 / month</h5>
+//       </div>
+//     </div>
+//     <form action="/create-checkout-session" method="POST">
+//       {/* Add a hidden field with the lookup_key of your Price */}
+//       <input type="hidden" name="lookup_key" value="{{PRICE_LOOKUP_KEY}}" />
+//       <button id="checkout-and-portal-button" type="submit">
+//         Checkout
+//       </button>
+//     </form>
+//   </section>
+// );
+
+// const SuccessDisplay = ({ sessionId }) => {
+//   return (
+//     <section>
+//       <div className="product Box-root">
+//         <Logo />
+//         <div className="description Box-root">
+//           <h3>Subscription to starter plan successful!</h3>
+//         </div>
+//       </div>
+//       <form action="/create-portal-session" method="POST">
+//         <input
+//           type="hidden"
+//           id="session-id"
+//           name="session_id"
+//           value={sessionId}
+//         />
+//         <button id="checkout-and-portal-button" type="submit">
+//           Manage your billing information
+//         </button>
+//       </form>
+//     </section>
+//   );
+// };
+
+// const Message = ({ message }) => (
+//   <section>
+//     <p>{message}</p>
+//   </section>
+// );
+
+// export default function Apps() {
+//   let [message, setMessage] = useState('');
+//   let [success, setSuccess] = useState(false);
+//   let [sessionId, setSessionId] = useState('');
+
+//   useEffect(() => {
+//     // Check to see if this is a redirect back from Checkout
+//     const query = new URLSearchParams(window.location.search);
+
+//     if (query.get('success')) {
+//       setSuccess(true);
+//       setSessionId(query.get('session_id'));
+//     }
+
+//     if (query.get('canceled')) {
+//       setSuccess(false);
+//       setMessage(
+//         "Order canceled -- continue to shop around and checkout when you're ready."
+//       );
+//     }
+//   }, [sessionId]);
+
+//   if (!success && message === '') {
+//     return <ProductDisplay />;
+//   } else if (success && sessionId !== '') {
+//     return <SuccessDisplay sessionId={sessionId} />;
+//   } else {
+//     return <Message message={message} />;
+//   }
+// }
+
+// const Logo = () => (
+//   <svg
+//     xmlns="http://www.w3.org/2000/svg"
+//     xmlnsXlink="http://www.w3.org/1999/xlink"
+//     width="14px"
+//     height="16px"
+//     viewBox="0 0 14 16"
+//     version="1.1"
+//   >
+//     <defs />
+//     <g id="Flow" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+//       <g
+//         id="0-Default"
+//         transform="translate(-121.000000, -40.000000)"
+//         fill="#E184DF"
+//       >
+//         <path
+//           d="M127,50 L126,50 C123.238576,50 121,47.7614237 121,45 C121,42.2385763 123.238576,40 126,40 L135,40 L135,56 L133,56 L133,42 L129,42 L129,56 L127,56 L127,50 Z M127,48 L127,42 L126,42 C124.343146,42 123,43.3431458 123,45 C123,46.6568542 124.343146,48 126,48 L127,48 Z"
+//           id="Pilcrow"
+//         />
+//       </g>
+//     </g>
+//   </svg>
+// );
+
+
 import { useState, useEffect } from "react";
 import { 
   ChevronLeft, 
@@ -11,81 +120,66 @@ import {
   XCircle, 
   Edit, 
   Save, 
-  X,
-  Users
+  X
 } from "lucide-react";
-import Layout from "../dashboard/Layout";
-import { useParams } from "react-router-dom";
-import { fetchTenantById, handleActive } from "../../../Intreceptors/TenantHandleApi";
 
-export default function TenantDetailView() {
-  const { tenant_id } = useParams();
-  
+export default function TenantDetailView({ tenantId=2 }) {
   const [tenant, setTenant] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
-  const [userCount, setUserCount] = useState(0);
   
-  useEffect(() => {
-    const fetchTenantData = async () => {
-      try {
-        setLoading(true);
-        const result = await fetchTenantById(tenant_id);
-        if (typeof result === "string") {
-          setError(result); // error message returned
-        } else {
-          setTenant(result);
-          setEditData(result); // successful response data
-          
-          // If user_count exists in the API response, use it
-          if (result.user_count !== undefined) {
-            setUserCount(result.user_count);
-          } else {
-
-            
-           
-            setUserCount(Math.floor(Math.random() * 50) + 1);
-          }
-        }
-      } catch (err) {
-        setError("Failed to load tenant data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (tenant_id) {
-      fetchTenantData();
-    }
-  }, [tenant_id]);
-
-  // Optional: Separate function to fetch user count if not included in tenant data
-  /*
-  const fetchUserCount = async (id) => {
+  // Mock function to fetch tenant data - replace with actual API call
+  const fetchTenantData = async (id) => {
     try {
-      const result = await fetchTenantUserCount(id);
-      if (typeof result === "number") {
-        setUserCount(result);
-      }
+      setLoading(true);
+      // In a real app, this would be an API call like:
+      // const response = await fetch(`/api/tenants/${id}`);
+      // const data = await response.json();
+      
+      // Using mock data for demonstration
+      const mockData = {
+        id: id,
+        name: "Acme Corporation",
+        email: "contact@acmecorp.com",
+        contact: "+1 (555) 123-4567",
+        owner_name: "John Doe",
+        created_on: "2024-04-01",
+        trial_period_days: 30,
+        updated_at: "2024-04-15T14:30:00Z",
+        is_active: true,
+        schema_name: "acme_corp"
+      };
+      
+      setTimeout(() => {
+        setTenant(mockData);
+        setEditData(mockData);
+        setLoading(false);
+      }, 500);
     } catch (err) {
-      console.error("Failed to fetch user count", err);
+      setError("Failed to load tenant data");
+      setLoading(false);
     }
   };
-  */
+
+  useEffect(() => {
+    if (tenantId) {
+      fetchTenantData(tenantId);
+    }
+  }, [tenantId]);
 
   const calculateTrialDaysRemaining = () => {
     if (!tenant) return 0;
-
-    const createdDate = new Date(tenant.created_on); // Must be a valid Date
+    
+    const createdDate = new Date(tenant.created_on);
     const trialEndDate = new Date(createdDate);
     trialEndDate.setDate(createdDate.getDate() + tenant.trial_period_days);
-
+    
     const today = new Date();
     const diffTime = trialEndDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+    
     return Math.max(0, diffDays);
   };
 
@@ -99,28 +193,15 @@ export default function TenantDetailView() {
 
   const handleToggleActive = async () => {
     try {
-      setLoading(true);
-      const response = await handleActive(tenant_id);
+      // In a real app, this would be an API call:
+      // await fetch(`/api/tenants/${tenant.id}/toggle-status`, { method: 'POST' });
       
-      if (response?.is_active !== undefined) {
-        // Update both states with the new value
-        setTenant(prev => ({
-          ...prev,
-          is_active: response.is_active
-        }));
-        
-        setEditData(prev => ({
-          ...prev,
-          is_active: response.is_active
-        }));
-      } else {
-        throw new Error("Invalid server response");
-      }
+      setTenant({
+        ...tenant,
+        is_active: !tenant.is_active
+      });
     } catch (err) {
-      console.error("Toggle active error:", err);
       setError("Failed to update tenant status");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -170,11 +251,10 @@ export default function TenantDetailView() {
   }
 
   const trialDaysRemaining = calculateTrialDaysRemaining();
-  const formattedCreatedDate = new Date(tenant.created_on).toLocaleDateString('en-GB');
-  const formattedUpdatedDate = new Date(tenant.updated_at).toLocaleDateString('en-GB');
+  const formattedCreatedDate = new Date(tenant.created_on).toLocaleDateString();
+  const formattedUpdatedDate = new Date(tenant.updated_at).toLocaleString();
 
   return (
-    <Layout>
     <div className="bg-white rounded-lg shadow">
       {/* Header */}
       <div className="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
@@ -226,12 +306,6 @@ export default function TenantDetailView() {
           <span className={tenant.is_active ? 'text-green-700' : 'text-red-700'}>
             {tenant.is_active ? 'Active' : 'Inactive'}
           </span>
-          
-          {/* User count badge */}
-          <div className="ml-4 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm inline-flex items-center">
-            <Users size={14} className="mr-1" />
-            <span>{tenant.user_count} users</span>
-          </div>
         </div>
         <button
           onClick={handleToggleActive}
@@ -240,9 +314,8 @@ export default function TenantDetailView() {
               ? 'bg-red-100 text-red-700 hover:bg-red-200' 
               : 'bg-green-100 text-green-700 hover:bg-green-200'
           }`}
-          disabled={loading}
         >
-          {loading ? 'Updating...' : tenant.is_active ? 'Deactivate' : 'Activate'}
+          {tenant.is_active ? 'Deactivate' : 'Activate'}
         </button>
       </div>
 
@@ -374,27 +447,6 @@ export default function TenantDetailView() {
           </div>
         </div>
 
-        {/* Users Information */}
-        <div className="mb-8">
-          <h2 className="text-lg font-medium text-gray-800 mb-4">Users Information</h2>
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Users size={20} className="text-blue-500 mr-2" />
-                <span className="text-gray-700 font-medium">Total Users</span>
-              </div>
-              <div className="text-2xl font-semibold text-blue-600">{userCount}</div>
-            </div>
-            
-            <div className="mt-3">
-              <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
-                View All Users
-                <ChevronLeft className="ml-1 transform rotate-180" size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Dates and Status */}
         <div>
           <h2 className="text-lg font-medium text-gray-800 mb-4">Dates & Status</h2>
@@ -437,6 +489,5 @@ export default function TenantDetailView() {
         </div>
       </div>
     </div>
-    </Layout>
   );
 }

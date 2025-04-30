@@ -4,12 +4,17 @@ import { useSelector, useDispatch } from 'react-redux';
 import { getUser } from '../../../../../Intreceptors/LeadsApi';
 import { addTask } from '../../../../../redux/slice/TaskSlice';
 import { fetchLeadsEmployee, fetchLeadsOwner } from '../../../../../redux/slice/leadsSlice';
+import { ChevronRight,ChevronLeft } from 'lucide-react';
+import { fetchContacts } from '../../../../../redux/slice/contactSlice';
 
-const TaskForm = () => {
+const TaskForm = ({onClose,task,isEditing}) => {
   const role = useSelector((state) => state.auth.role);
   const userId = useSelector((state) => state.profile.id);
   const [employee, setEmployee] = useState([]);
-  const { leads, next, previous } = useSelector((state) => state.leads);
+  const { leads, next: leadsNext, previous: leadsPrevious } = useSelector((state) => state.leads);
+  const { contacts, next: contactsNext, previous: contactsPrevious } = useSelector((state) => state.contacts);
+  console.log(task);
+  
   const dispatch = useDispatch();
   const teams = [
     { id: 1, name: 'Sales Team', memberCount: 8 },
@@ -18,7 +23,7 @@ const TaskForm = () => {
     { id: 4, name: 'Development Team', memberCount: 10 }
   ];
 
-  const contacts = [
+  const contactss = [
     { id: 'CO123456', name: 'David Wilson (CO123456)' },
     { id: 'CO123457', name: 'Emma Davis (CO123457)' },
     { id: 'CO123458', name: 'Robert Miller (CO123458)' }
@@ -39,7 +44,8 @@ const TaskForm = () => {
   const [paginatedContacts, setPaginatedContacts] = useState(contacts);
   const [paginatedAccounts, setPaginatedAccounts] = useState(accounts);
   const [attachment, setAttachment] = useState(null);
-
+  console.log(attachment);
+  
   useEffect(() => {
     const fetchUserAndLeads = async () => {
       const user = await getUser(role === 'owner' ? role : userId);
@@ -57,7 +63,7 @@ const TaskForm = () => {
   
 
   useEffect(() => {
-    fetchPaginatedContacts(contactsPage);
+    dispatch(fetchContacts())
   }, [contactsPage]);
   
   useEffect(() => {
@@ -133,17 +139,38 @@ const TaskForm = () => {
     attachment: [],
     tags: []
   });
+  useEffect(() => {
+    if (task) {
+      setFormData({
+        title: task.title || '',
+        description: task.description || '',
+        priority: task.priority || 'MEDIUM',
+        dueDate: task.dueDate || '',
+        assignTo: task.assignees?.length > 1 ? 'team' : 'individual',
+        assigned_to_employee: task.assignees?.[0] || '',
+        assigned_to_team: task.assignees?.length > 1 ? task.assignees : null,
+        lead: task.lead || null,
+        contact: task.contact || null,
+        account: task.account || null,
+        status: task.status || 'TODO',
+        subtasks: task.subtasks || [],
+        attachment: task.attachment ? [task.attachment] : [],
+        tags: task.tags || []
+      });
+    } else {
+      setFormData(formData);
+    }
+  }, [task]);
   
   const [errors, setErrors] = useState({});
   const [subtaskInput, setSubtaskInput] = useState('');
   const [tagInput, setTagInput] = useState('');
-  
-  // Mock data that would normally come from your API
 
-  
   const validateForm = () => {
     const newErrors = {};
     if (!formData.title.trim()) newErrors.title = 'Task title is required';
+    if (!formData.description || formData.description.trim().split(/\s+/).length < 30)  newErrors.description = 'Task description is required';
+    
     if (!formData.dueDate) newErrors.dueDate = 'Due date is required';
     
     if (formData.assignTo === 'individual' && !formData.assigned_to_employee) {
@@ -229,23 +256,37 @@ const TaskForm = () => {
   
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log(attachment);
+    
     const formDataobj = new FormData();
-      formDataobj.append('attachment', attachment); // ⬅️ actual File object
+    if (attachment) {
+      formDataobj.append('attachment', attachment);
+    }
+    
+    if (formData.lead !== null && formData.lead !== "") {
       formDataobj.append('lead', formData.lead);
-      formDataobj.append('title', formData.title);
-      formDataobj.append('priority', formData.priority);
-      formDataobj.append('status', formData.status);
-      formDataobj.append('description', formData.description);
-      formDataobj.append('dueDate', formData.dueDate);
-      formDataobj.append('assignTo', formData.assignTo);
-      formDataobj.append('assigned_to_employee', formData.assigned_to_employee);
+    }
+    if (formData.contact !== null && formData.contact !== "") {
+      formDataobj.append('contact', formData.contact);
+    }
+    if (formData.account !== null && formData.account !== "") {
+      formDataobj.append('account', formData.account);
+    }
+    
+    formDataobj.append('title', formData.title);
+    formDataobj.append('priority', formData.priority);
+    formDataobj.append('status', formData.status);
+    formDataobj.append('description', formData.description);
+    formDataobj.append('dueDate', formData.dueDate);
+    formDataobj.append('assignTo', formData.assignTo);
+    formDataobj.append('assigned_to_employee', formData.assigned_to_employee);
+    
 
     
     if (validateForm()) {
       console.log('Form submitted:', formDataobj);
       const response = dispatch(addTask(formDataobj));
-      
-      // Reset form to initial state
+
       setFormData({
         title: '',
         description: '',
@@ -265,29 +306,12 @@ const TaskForm = () => {
       
       // Success message or redirect would go here
       alert('Task created successfully!');
+      onClose()
     }
   };
-  
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    const fileData = files.map(file => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: file.size,
-      type: file.type
-    }));
-    
-    setFormData(prev => ({
-      ...prev,
-      attachment: [...prev.attachment, ...fileData]
-    }));
-  };
-  
+
   const removeAttachment = (id) => {
-    setFormData(prev => ({
-      ...prev,
-      attachment: prev.attachment.filter(file => file.id !== id)
-    }));
+    setAttachment(null);
   };
 
 
@@ -300,9 +324,7 @@ const TaskForm = () => {
         className={`p-1 rounded ${!hasPrev ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'}`}
         aria-label="Previous page"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-          <path fillRule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-        </svg>
+        <ChevronLeft size={16}/>
       </button>
       <button
         type="button"
@@ -311,19 +333,24 @@ const TaskForm = () => {
         className={`p-1 rounded ${!hasNext ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'}`}
         aria-label="Next page"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-          <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
-        </svg>
+        <ChevronRight size={16} />
       </button>
     </div>
   );
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Create New Task</h2>
+    
+    <div className="relative max-w-4xl w-full  bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[90vh]">
+    <div className="flex justify-between items-center mb-4">
+       <h2 className="text-2xl font-bold text-gray-800 ">Create New Task</h2>
+      <button className="text-gray-500 hover:text-gray-700" onClick={onClose}>
+                  ✕
+      </button>
+       </div>
+      
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Task Title and Description */}
+
         <div className="space-y-4">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Task Title*</label>
@@ -350,6 +377,7 @@ const TaskForm = () => {
               className="w-full p-2 border border-gray-300 rounded-md"
               placeholder="Describe the task..."
             ></textarea>
+            {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
           </div>
         </div>
         
@@ -382,7 +410,7 @@ const TaskForm = () => {
             >
               <option value="TODO">To Do</option>
               <option value="IN_PROGRESS">In Progress</option>
-              <option value="UNDER_REVIEW">Under Review</option>
+              <option value="REVIEW">Under Review</option>
               <option value="COMPLETED">Completed</option>
               <option value="BLOCKED">Blocked</option>
             </select>
@@ -480,8 +508,8 @@ const TaskForm = () => {
                 <PaginationArrows 
                   onPrev={handlePrevLeads} 
                   onNext={handleNextLeads} 
-                  hasPrev={previous} 
-                  hasNext={next}
+                  hasPrev={leadsPrevious} 
+                  hasNext={leadsNext}
                 />
               </div>
               <select
@@ -524,7 +552,7 @@ const TaskForm = () => {
                 disabled={formData.lead || formData.account}
               >
                 <option value="">Select a contact</option>
-                {paginatedContacts.map(contact => (
+                {contacts.map(contact => (
                   <option key={contact.id} value={contact.id}>
                     {contact.name}
                   </option>
@@ -647,38 +675,22 @@ const TaskForm = () => {
               onChange={(e) => setAttachment(e.target.files[0])}
             />
             <span className="ml-3 text-sm text-gray-500">
-              {formData.attachment.length} file(s) attached
+              {attachment?.name} 
             </span>
+                {attachment &&(
+                  <button
+                  type="button"
+                  onClick={() => removeAttachment(attachment.lastModified)}
+                  className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold"
+                  title="Remove file"
+                >
+                  &times;
+                </button>
+                )}     
+  
           </div>
           
-          <ul className="space-y-2 max-h-32 overflow-y-auto">
-            {formData.attachment.length === 0 ? (
-              <li className="text-gray-500 text-sm">No files attached</li>
-            ) : (
-              formData.attachment.map(file => (
-                <li key={file.id} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200 text-sm">
-                  <div className="flex items-center">
-                    <svg className="h-4 w-4 text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
-                    <span className="truncate max-w-xs">{file.name}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-xs text-gray-500 mr-2">
-                      {(file.size / 1024).toFixed(1)} KB
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeAttachment(file.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                </li>
-              ))
-            )}
-          </ul>
+         
         </div>
         
         {/* Tags */}
@@ -724,8 +736,7 @@ const TaskForm = () => {
             )}
           </div>
         </div>
-        
-        {/* Submit Buttons */}
+
         <div className="pt-4 border-t border-gray-200 flex justify-end space-x-3">
           <button
             type="button"
@@ -742,6 +753,7 @@ const TaskForm = () => {
         </div>
       </form>
     </div>
+    
   );
 };
 

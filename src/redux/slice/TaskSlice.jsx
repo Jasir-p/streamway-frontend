@@ -38,6 +38,18 @@ export const  addTask =  createAsyncThunk('task/addTask', async (taskData, {reje
     }
             })
 
+export const deleteTask = createAsyncThunk('task/deleteTask', async(task_id,{rejectWithValue})=>{
+    console.log(task_id);
+    
+    try{
+        const response = await subdomainInterceptors.delete(`/api/task-detail/${task_id}/`);
+
+        return task_id
+    }catch(error){
+        return rejectWithValue(error.response?.data?.message || error.message);
+    }
+})
+
 const initialState = {
     tasks: [],
     loading:null,
@@ -73,6 +85,19 @@ const taskSlice = createSlice({
                 state.error = action.payload;
                 state.loading = false;
                 })
+                .addCase(deleteTask.pending, (state) => {
+                    state.loading = true;
+                    state.error = null;
+                  })
+                  .addCase(deleteTask.fulfilled, (state, action) => {
+                    state.loading = false;
+                   
+                    state.tasks = state.tasks.filter(task => task.id !== action.payload);
+                  })
+                  .addCase(deleteTask.rejected, (state, action) => {
+                    state.loading = false;
+                    state.error = action.payload || 'Failed to delete task';
+                  })
                 }
                 }
             )
