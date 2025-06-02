@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../../api";
+import defaultInterceptor from "../../../Intreceptors/defaultInterceptors";
 
 
 export const fetchallTenants = createAsyncThunk(
@@ -14,6 +15,22 @@ export const fetchallTenants = createAsyncThunk(
     }
   }
 );
+export const editTenants = createAsyncThunk(
+  'tenants/editTenant',
+  async ({ tenant_id, data }, { rejectWithValue }) => {
+    console.log(data);
+    
+    try {
+      const response = await api.put("/action/", data, {
+        params: { tenant_id }
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 
 const initialState = {
   loading: false,
@@ -50,7 +67,24 @@ const tenantSlice = createSlice({
       .addCase(fetchallTenants.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(editTenants.pending,(state)=>{
+        state.loading = true
+        state.error= null
+      })
+      .addCase(editTenants.fulfilled, (state,action)=>{
+        state.loading = false
+        const updatedTenant = action.payload
+        const index = state.tenants.findIndex(t=>t.id===updatedTenant.id)
+        if (index !== -1) {
+          state.tenants[index] = updatedTenant;
+        }
+      })
+      .addCase(editTenants.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
+      
   },
 });
 

@@ -2,16 +2,27 @@ import { createAsyncThunk,createSlice } from "@reduxjs/toolkit";
 import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 import axios from "axios";
 
-export const fetchTask  = createAsyncThunk('task/fetchTask', async (_,{rejectWithValue}) => {
-    try {
-        const response = await subdomainInterceptors.get('/api/tasks/')
-        return response.data;
-    }
-    catch (error) {
-        return rejectWithValue(error.message);
+
+export const fetchTask = createAsyncThunk(
+    'task/fetchTask',
+    async (userID = null, { rejectWithValue }) => {
+        console.log(userID);
         
+      try {
+        const params = {};
+  
+        if (userID) {
+          params.assigned_to = userID; 
         }
-        })
+  
+        const response = await subdomainInterceptors.get('/api/tasks/', { params });
+        return response.data;
+      } catch (error) {
+        return rejectWithValue(error.message);
+      }
+    }
+  );
+  
 
 export const  addTask =  createAsyncThunk('task/addTask', async (taskData, {rejectWithValue}) => {
     try {
@@ -49,6 +60,32 @@ export const deleteTask = createAsyncThunk('task/deleteTask', async(task_id,{rej
         return rejectWithValue(error.response?.data?.message || error.message);
     }
 })
+export const  editTask =  createAsyncThunk('task/EditTask', async (task_id,taskData, {rejectWithValue}) => {
+    try {
+        const token = localStorage.getItem("access_token");
+        const subdomain = localStorage.getItem("subdomain");
+    
+        if (!token) return rejectWithValue("No token found, please log in again.");
+        if (!subdomain) return rejectWithValue("Subdomain not set.");
+    
+        
+    
+        const response = await axios.put(`http://${subdomain}.localhost:8000/api/tasks/`, taskData, {
+            params:{task_id},
+            
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data",
+            },
+        });
+    
+        console.log(response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error submitting task:", error.response?.data || error.message);
+        return rejectWithValue(error.response?.data || "Failed to submit task");
+    }
+            })
 
 const initialState = {
     tasks: [],

@@ -1,0 +1,766 @@
+// components/chat/ChatUI.jsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, User, Plus } from 'lucide-react';
+import DashboardLayout from '../../../dashboard/DashbordLayout';
+import { useSelector } from 'react-redux';
+import { fetchGroupMessage, GroupChatPersonal } from '../../../../../Intreceptors/ChatsApi';
+import { useWebSocket } from './WebSocketHandler';
+import MainChat from './MainChat';
+import PersonalChat from './PersonalChat';
+import GroupChat from './GroupChat';
+import { getUser } from '../../../../../Intreceptors/LeadsApi';
+
+export default function ChatUI() {
+  const [activeTab, setActiveTab] = useState('group');
+  const [activeChat, setActiveChat] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [personalChats, setPersonalChats] = useState([]);
+  const [groupChats, setGroupChats] = useState([]);
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [initialConnectionMade, setInitialConnectionMade] = useState(false);
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [connectionError, setConnectionError] = useState(null);
+  
+  const userID = useSelector((state) => state.profile.id);
+  const role = useSelector((state) => state.auth.role);
+  const subdomain = localStorage.getItem('subdomain');
+  const token = localStorage.getItem("access_token");
+
+  // Use WebSocket hook
+  const {
+    isConnected,
+    connectionStatus,
+    lastMessage,
+    currentRoomId,
+    currentType,
+    connect,
+    disconnect,
+    sendMessage,
+    reconnect,
+    addMessageHandler,
+    addConnectionHandler,
+    getConnectionStatus
+  } = useWebSocket();
+
+  // Handle incoming WebSocket messages
+  const handleMessage = useCallback((data) => {
+    console.log("📨 Received WebSocket message:", data);
+    
+    try {
+      switch(data.type) {
+        case 'chat':
+        case 'message':
+          // Handle incoming chat messages
+          if (data.message) {
+            setMessages(prev => {
+              // Avoid duplicate messages
+              const messageExists = prev.some(msg => 
+                msg.id === data.message.id || 
+                (msg.content === data.message.content && 
+                 msg.sender === data.message.sender && 
+                 Math.abs(new Date(msg.timestamp) - new Date(data.message.timestamp)) < 1000)
+              );
+              
+              if (!messageExists) {
+                return [...prev, data.message];
+              }
+              return prev;
+            });
+          }
+          break;
+          
+        case 'GROUP_CREATED':
+        case 'group_created':
+          console.log('✅ New group created:', data);
+          fetchChats(); 
+          if (data.group) {
+            console.log(`✅ Group "${data.group.room_name || data.group.name}" was created`);
+            // Optionally switch to the new group
+            setActiveChat(data.group);
+            setActiveTab('group');
+          }
+          setShowCreateGroupModal(false);
+          break;
+          
+        case 'group_updated':
+          console.log('🔄 Group updated:', data);
+          fetchChats();
+          break;
+          
+        case 'user_added':
+          console.log('👥 User added to group:', data);
+          fetchChats();
+          // Update current active chat if it's the affected group
+          if (activeChat && activeChat.id === data.group_id) {
+            fetchMessages(data.group_id);
+          }
+          break;
+          
+        case 'user_removed':
+          console.log('👤 User removed from group:', data);
+          fetchChats();
+          // Update current active chat if it's the affected group
+          if (activeChat && activeChat.id === data.group_id) {
+            fetchMessages(data.group_id);
+          }
+          break;
+          
+        case 'group_deleted':
+          console.log('🗑️ Group deleted:', data);
+          fetchChats();
+          // If the deleted group was active, clear it
+          if (activeChat && activeChat.id === data.group_id) {
+            setActiveChat(null);
+            setMessages([]);
+            // Reconnect to general chat
+            connect(null, token, subdomain, 'chat');
+          }
+          break;
+          
+        case 'error':
+          console.error('❌ WebSocket error message:', data);
+          setConnectionError(data.message || 'Unknown error occurred');
+          break;
+          
+        default:
+          console.log('❓ Unknown message type:', data.type, data);
+      }
+    } catch (error) {
+      console.error('❌ Error processing WebSocket message:', error, data);
+    }
+  }, [activeChat, token, subdomain, connect]);
+
+  // Handle connection status changes
+  const handleConnection = useCallback((event) => {
+    console.log('🔌 Connection event:', event);
+    
+    switch(event.type) {
+      case 'connected':
+        console.log('✅ WebSocket connected successfully');
+        setConnectionError(null);
+        break;
+        
+      case 'disconnected':
+        console.log('❌ WebSocket disconnected');
+        // Attempt to reconnect after a delay
+        setTimeout(() => {
+          if (token && subdomain) {
+            console.log('🔄 Attempting to reconnect...');
+            reconnect(token, subdomain);
+          }
+        }, 3000);
+        break;
+        
+      case 'error':
+        console.error('❌ WebSocket connection error:', event.error);
+        setConnectionError('Connection failed. Retrying...');
+        break;
+    }
+  }, [token, subdomain, reconnect]);
+
+  // Set up WebSocket event handlers
+  useEffect(() => {
+    const removeMessageHandler = addMessageHandler(handleMessage);
+    const removeConnectionHandler = addConnectionHandler(handleConnection);
+
+    return () => {
+      removeMessageHandler();
+      removeConnectionHandler();
+    };
+  }, [addMessageHandler, addConnectionHandler, handleMessage, handleConnection]);
+
+  // Initial WebSocket connection (without room)
+  useEffect(() => {
+    if (token && subdomain && !initialConnectionMade) {
+      console.log('🚀 Making initial WebSocket connection...');
+      connect(null, token, subdomain, 'chat');
+      setInitialConnectionMade(true);
+    }
+  }, [connect, initialConnectionMade, token, subdomain]);
+
+  // Handle active chat changes - switch rooms
+  useEffect(() => {
+    if (activeChat && isConnected && activeChat.id !== currentRoomId) {
+      console.log('🔄 Switching to chat room:', activeChat.id);
+      connect(activeChat.id, token, subdomain, 'chat');
+    }
+  }, [activeChat, isConnected, connect, currentRoomId, token, subdomain]);
+
+  // Initial data fetching
+  useEffect(() => {
+    fetchChats();
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      disconnect();
+    };
+  }, [disconnect]);
+
+  const fetchChats = async () => {
+    try {
+      console.log('📋 Fetching chats...');
+      const personal = null; // TODO: Implement personal chat fetching
+      const groups = await GroupChatPersonal(userID);
+      console.log('👥 Group chats:', groups);
+      
+      setPersonalChats(personal || []);
+      setGroupChats(groups || []);
+      
+      // Fetch available users for group management
+      const users = await getUser(role === 'owner' ? role : userID);
+      setAvailableUsers(users || []);
+      
+      // Set active chat to first group chat if available and no current active chat
+      if (groups?.length > 0 && !activeChat) {
+        const firstChat = groups[0];
+        setActiveChat(firstChat);
+        fetchMessages(firstChat.id);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching chats:', error);
+    }
+  };
+
+  const fetchMessages = async (chatId) => {
+    try {
+      console.log('📋 Fetching messages for chat:', chatId);
+      const data = await fetchGroupMessage(chatId);
+      console.log('💬 Messages:', data);
+      setMessages(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('❌ Error fetching messages:', error);
+      setMessages([]);
+    }
+  };
+
+  const handleSendMessage = useCallback((message) => {
+    const messageText = typeof message === "string" ? message.trim() : "";
+
+    if (!messageText || !activeChat) {
+      console.warn('⚠️ Cannot send message: missing text or active chat');
+      return false;
+    }
+    
+    if (!isConnected) {
+      console.warn('⚠️ Cannot send message: WebSocket not connected');
+      setConnectionError('Not connected to chat server');
+      return false;
+    }
+    
+    const messageData = {
+      type: 'chat',
+      chatId: activeChat.id,
+      roomId: activeChat.id,
+      message: messageText,
+      sender: userID,
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('📤 Sending message:', messageData);
+    const success = sendMessage(messageData);
+    
+    if (!success) {
+      setConnectionError('Failed to send message');
+    }
+    
+    return success;
+  }, [activeChat, userID, sendMessage, isConnected]);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    const chats = tab === 'personal' ? personalChats : groupChats;
+    const firstChat = chats[0];
+    
+    if (firstChat && firstChat.id !== activeChat?.id) {
+      setActiveChat(firstChat);
+      fetchMessages(firstChat.id);
+    } else if (!firstChat) {
+      setActiveChat(null);
+      setMessages([]);
+      // Connect to general chat when no specific chat is selected
+      if (isConnected && currentRoomId) {
+        connect(null, token, subdomain, 'chat');
+      }
+    }
+  };
+
+  const selectChat = (chat) => {
+    if (activeChat?.id === chat.id) return;
+    
+    console.log('🎯 Selecting chat:', chat);
+    setActiveChat(chat);
+    fetchMessages(chat.id);
+  };
+
+  // Group management functions with better error handling
+  const handleCreateGroup = useCallback(async (groupData) => {
+    try {
+      console.log('🏗️ Creating group:', groupData);
+      
+      if (!isConnected) {
+        setConnectionError('Not connected to chat server. Cannot create group.');
+        return false;
+      }
+      
+      if (!groupData.name || !groupData.name.trim()) {
+        setConnectionError('Group name is required');
+        return false;
+      }
+      
+      const sendGroupData = {
+        type: 'addgroup',
+        room_name: groupData.name.trim(),
+        participants: groupData.participants || []
+      };
+      
+      const success = sendMessage(sendGroupData);
+      
+      if (success) {
+        console.log('✅ Group creation message sent successfully');
+        setConnectionError(null);
+      } else {
+        setConnectionError('Failed to send group creation message');
+      }
+      
+      return success;
+      
+    } catch (error) {
+      console.error('❌ Error creating group:', error);
+      setConnectionError('Error creating group');
+      return false;
+    }
+  }, [isConnected, sendMessage]);
+
+  const handleDeleteGroup = useCallback(async (groupId) => {
+    try {
+      console.log('🗑️ Deleting group:', groupId);
+      
+      if (!isConnected) {
+        setConnectionError('Not connected to chat server. Cannot delete group.');
+        return false;
+      }
+      
+      const deleteGroupData = {
+        type: 'removegroup',
+        room_id: groupId
+      };
+      
+      const success = sendMessage(deleteGroupData);
+      
+      if (success) {
+        console.log('✅ Group deletion message sent successfully');
+        setConnectionError(null);
+        
+        // If the deleted group was active, clear active chat
+        if (activeChat?.id === groupId) {
+          setActiveChat(null);
+          setMessages([]);
+          // Reconnect to general WebSocket (no room)
+          connect(null, token, subdomain, 'chat');
+        }
+      } else {
+        setConnectionError('Failed to delete group');
+      }
+      
+      return success;
+      
+    } catch (error) {
+      console.error('❌ Error deleting group:', error);
+      setConnectionError('Error deleting group');
+      return false;
+    }
+  }, [isConnected, sendMessage, activeChat, connect, token, subdomain]);
+
+  const handleAddUser = useCallback(async (groupId, userId) => {
+    try {
+      console.log('👥 Adding user to group:', { groupId, userId });
+      
+      if (!isConnected) {
+        setConnectionError('Not connected to chat server. Cannot add user.');
+        return false;
+      }
+      
+      const addUserData = {
+        type: 'adduser',
+        group_id: groupId,
+        user_id: userId
+      };
+      
+      const success = sendMessage(addUserData);
+      
+      if (success) {
+        console.log('✅ Add user message sent successfully');
+        setConnectionError(null);
+      } else {
+        setConnectionError('Failed to add user to group');
+      }
+      
+      return success;
+      
+    } catch (error) {
+      console.error('❌ Error adding user to group:', error);
+      setConnectionError('Error adding user to group');
+      return false;
+    }
+  }, [isConnected, sendMessage]);
+
+  const handleRemoveUser = useCallback(async (groupId, userId) => {
+    try {
+      console.log('👤 Removing user from group:', { groupId, userId });
+      
+      if (!isConnected) {
+        setConnectionError('Not connected to chat server. Cannot remove user.');
+        return false;
+      }
+      
+      const removeUserData = {
+        type: 'removeuser',
+        group_id: groupId,
+        user_id: userId
+      };
+      
+      const success = sendMessage(removeUserData);
+      
+      if (success) {
+        console.log('✅ Remove user message sent successfully');
+        setConnectionError(null);
+      } else {
+        setConnectionError('Failed to remove user from group');
+      }
+      
+      return success;
+      
+    } catch (error) {
+      console.error('❌ Error removing user from group:', error);
+      setConnectionError('Error removing user from group');
+      return false;
+    }
+  }, [isConnected, sendMessage]);
+
+  // Utility functions
+  const formatParticipants = (participants) => {
+    if (!participants || participants.length === 0) return "No members";
+    return participants.map(p => p.name).join(', ');
+  };
+
+  const getParticipantCount = (participants) => {
+    return participants?.length || 0;
+  };
+
+  const getConnectionStatusDisplay = () => {
+    switch (connectionStatus) {
+      case 'connecting':
+        return '⏳ Connecting...';
+      case 'connected':
+        return '✅ Connected';
+      case 'disconnected':
+        return '❌ Disconnected';
+      case 'error':
+        return '⚠️ Connection Error';
+      default:
+        return '❓ Unknown';
+    }
+  };
+
+  const handleCreateGroupClick = () => {
+    if (activeTab === 'group') {
+      setShowCreateGroupModal(true);
+    }
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="flex h-screen bg-gray-100">
+        {/* Debug info - remove in production */}
+        <div className="fixed top-4 right-4 bg-white p-2 rounded shadow text-xs z-50">
+          <div>Status: {getConnectionStatusDisplay()}</div>
+          <div>Room: {currentRoomId || 'General'}</div>
+          <div>Type: {currentType || 'N/A'}</div>
+          {connectionError && (
+            <div className="text-red-600 mt-1">{connectionError}</div>
+          )}
+        </div>
+
+        {/* Error notification */}
+        {connectionError && (
+          <div className="fixed top-16 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow z-50 max-w-sm">
+            <div className="flex">
+              <div className="py-1">
+                <span className="text-sm">{connectionError}</span>
+              </div>
+              <div className="pl-3">
+                <button
+                  onClick={() => setConnectionError(null)}
+                  className="text-red-700 hover:text-red-900"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sidebar */}
+        <div className={`${sidebarOpen ? 'w-80' : 'w-16'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
+          {/* Sidebar Header */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              {sidebarOpen && (
+                <h1 className="text-xl font-semibold text-gray-800">Chats</h1>
+              )}
+              <button 
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                {sidebarOpen ? '←' : '→'}
+              </button>
+            </div>
+            
+            {sidebarOpen && (
+              <div className="mt-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Search chats..."
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Chat Tabs */}
+          {sidebarOpen && (
+            <div className="flex border-b border-gray-200">
+              <button
+                onClick={() => handleTabChange('personal')}
+                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                  activeTab === 'personal'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Personal
+              </button>
+              <button
+                onClick={() => handleTabChange('group')}
+                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                  activeTab === 'group'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Groups
+              </button>
+            </div>
+          )}
+
+          {/* Add Group Button - Shows when on group tab */}
+          {sidebarOpen && activeTab === 'group' && (
+            <div className="p-2 border-b border-gray-100">
+              <button
+                onClick={handleCreateGroupClick}
+                disabled={!isConnected}
+                className={`w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-lg transition-colors text-sm font-medium ${
+                  isConnected
+                    ? 'bg-blue-500 text-white hover:bg-blue-600'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create New Group</span>
+              </button>
+            </div>
+          )}
+
+          {/* Chat List */}
+          <div className="flex-1 overflow-y-auto">
+            {sidebarOpen ? (
+              <div className="p-2">
+                {activeTab === 'personal' ? (
+                  personalChats.length > 0 ? (
+                    personalChats.map((chat) => (
+                      <div
+                        key={chat.id}
+                        onClick={() => selectChat(chat)}
+                        className={`p-3 mb-2 rounded-lg cursor-pointer transition-colors ${
+                          activeChat?.id === chat.id
+                            ? 'bg-blue-50 border border-blue-200'
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                            <User className="w-5 h-5 text-gray-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-900 truncate">
+                              {chat.name || 'Unknown User'}
+                            </div>
+                            <div className="text-sm text-gray-500 truncate">
+                              {chat.lastMessage || 'No messages yet'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-gray-500">
+                      <User className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>No personal chats yet</p>
+                      <p className="text-xs mt-1">Start a conversation to see it here</p>
+                    </div>
+                  )
+                ) : (
+                  groupChats.length > 0 ? (
+                    groupChats.map((chat) => (
+                      <div
+                        key={chat.id}
+                        onClick={() => selectChat(chat)}
+                        className={`p-3 mb-2 rounded-lg cursor-pointer transition-colors ${
+                          activeChat?.id === chat.id
+                            ? 'bg-blue-50 border border-blue-200'
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-medium text-sm">
+                              {chat.room_name?.charAt(0)?.toUpperCase() || 'G'}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-900 truncate">
+                              {chat.room_name || 'Unnamed Group'}
+                            </div>
+                            <div className="text-sm text-gray-500 truncate">
+                              {getParticipantCount(chat.participents)} members • {formatParticipants(chat.participents)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-gray-500">
+                      <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-gray-400" />
+                      </div>
+                      <p>No group chats yet</p>
+                      <p className="text-xs mt-1">Create a group to get started</p>
+                    </div>
+                  )
+                )}
+              </div>
+            ) : (
+              // Collapsed sidebar - show minimal chat indicators
+              <div className="p-2 space-y-2">
+                {/* Add Group Button for collapsed sidebar */}
+                {activeTab === 'group' && (
+                  <button
+                    onClick={handleCreateGroupClick}
+                    disabled={!isConnected}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors mb-2 ${
+                      isConnected
+                        ? 'bg-blue-500 text-white hover:bg-blue-600'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                    title="Create New Group"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                )}
+                
+                {(activeTab === 'personal' ? personalChats : groupChats)
+                  .slice(0, 8)
+                  .map((chat) => (
+                    <div
+                      key={chat.id}
+                      onClick={() => selectChat(chat)}
+                      className={`w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors ${
+                        activeChat?.id === chat.id
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                      }`}
+                    >
+                      {activeTab === 'personal' ? (
+                        <User className="w-5 h-5" />
+                      ) : (
+                        <span className="font-medium text-sm">
+                          {chat.room_name?.charAt(0)?.toUpperCase() || 'G'}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar Footer */}
+          {sidebarOpen && (
+            <div className="p-4 border-t border-gray-200">
+              <div className="flex items-center space-x-3">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  isConnected ? 'bg-green-500' : 'bg-red-500'
+                }`}>
+                  <span className="text-white font-medium text-sm">
+                    {role?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 truncate">
+                    {role || 'User'}
+                  </div>
+                  <div className={`text-sm ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                    {isConnected ? 'Online' : 'Offline'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {activeChat ? (
+            activeTab === 'personal' ? (
+              <PersonalChat
+                chat={activeChat}
+                messages={messages}
+                onSendMessage={handleSendMessage}
+                currentUser={userID}
+                isConnected={isConnected}
+              />
+            ) : (
+              <GroupChat
+                chat={activeChat}
+                messages={messages}
+                onSendMessage={handleSendMessage}
+                currentUser={userID}
+                role={role}
+                availableUsers={availableUsers}
+                onCreateGroup={handleCreateGroup}
+                getParticipantCount={getParticipantCount}
+                onAddUser={handleAddUser}
+                onRemoveUser={handleRemoveUser}
+                onDeleteGroup={handleDeleteGroup}
+                showCreateGroupModal={showCreateGroupModal}
+                setShowCreateGroupModal={setShowCreateGroupModal}
+                isConnected={isConnected}
+              />
+            )
+          ) : (
+            <MainChat
+              onCreateGroup={handleCreateGroup}
+              availableUsers={availableUsers}
+              // isConnected={isConnected}
+            />
+          )}
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}

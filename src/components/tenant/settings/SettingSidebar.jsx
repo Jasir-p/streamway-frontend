@@ -16,11 +16,10 @@ function SettingSidebar() {
     { id: 'users', icon: Users, label: 'Users', path: "/setting/users" },
     { id: 'security', icon: Shield, label: 'Security', path: '/setting/security' },
     { id: 'connections', icon: Link2, label: 'Connections', path: "" },
-    { id: 'billing', icon: CreditCard, label: 'Billing', path: "" },
+    { id: 'billing', icon: CreditCard, label: 'Billing', path: "/setting/payment" },
     { id: 'usage', icon: BarChart2, label: 'Usage Stats', path: "" },
     { id: 'cleanup', icon: Archive, label: 'Tidy Up', path: "" },
     { id: 'lead_form', icon: LayoutGrid, label: 'Lead Form', path: "/setting/lead_form" },
-    { id: 'Team', icon: Lock, label: 'Team', path: "/setting/team" },
     { id: 'copier', icon: Copy, label: 'Cross Account Copier', path: "" }
   ];
   

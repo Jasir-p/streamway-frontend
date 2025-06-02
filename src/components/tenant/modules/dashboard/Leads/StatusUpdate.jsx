@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import subdomainInterceptors from '../../../../../Intreceptors/getSubdomainInterceptors';
+import { useHasPermission } from '../../../../utils/PermissionCheck';
 
 import ConversionOptionsPopup from './ConvertPopup';
+import { useSelector } from 'react-redux';
 
 
 export default function StatusUpdateConfirmation({ selectedLeads, onUpdateComplete, onCancel }) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("new");
   const [showConversionPopup, setShowConversionPopup] = useState(false);
+  const iscontactAdd = useHasPermission("add_contact")
+  const role = useSelector((state) => state.auth.role);
+  const isAccountAdd = useHasPermission("add_customer")
+
+  const canAddcontact = iscontactAdd || role === "owner"
+   const canAddcustomer = isAccountAdd || role === "owner"
   
   const statusOptions = [
     "new",
@@ -48,7 +56,7 @@ export default function StatusUpdateConfirmation({ selectedLeads, onUpdateComple
       if (response.status === 200) {
         console.log("halooo");
         
-        if (selectedStatus.toLowerCase() === "converted") {
+        if (selectedStatus.toLowerCase() === "converted" && (canAddcontact || canAddcustomer)) {
             setShowConversionPopup(true);
           } else {
             onUpdateComplete(true); // No popup, just complete

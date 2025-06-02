@@ -16,7 +16,8 @@ import {
   FileText,
   Search,
   Bell,
-  HelpCircle
+  HelpCircle,
+  UserCog
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -39,7 +40,7 @@ function Sidebar() {
     {
       title: "Main",
       items: [
-        { icon: LayoutDashboard, text: 'Dashboard' },
+        { icon: LayoutDashboard, text: 'Dashboard', path:"/dashboard" },
         { icon: PieChart, text: 'Analytics' }
       ]
     },
@@ -57,22 +58,23 @@ function Sidebar() {
       items: [
         { icon: UserCircle, text: 'Contacts', path:"/dashboard/customer/contacts" },
         { icon: Users, text: 'Accounts', path:"/dashboard/customer/accounts" },
-        { icon: FileText, text: 'Contracts' }
+       
       ]
     },
     {
       title: "Activities",
       items: [
         { icon: CheckSquare, text: 'Tasks', path: "/dashboard/activity/task" },
-        { icon: Calendar, text: 'Meetings' },
+        { icon: Calendar, text: 'Meetings',path:"/dashboard/activity/meetings" },
         { icon: PhoneCall, text: 'Calls' },
-        { icon: Mail, text: 'Emails' }
+        { icon: Mail, text: 'Emails', path: "/dashboard/activity/email" },
       ]
     },
     {
       title: "Teamwork",
       items: [
-        { icon: Share2, text: 'Collaboration' }
+        { icon: Share2, text: 'Collaboration', path: "/dashboard/collabration/chat" },
+        { icon: UserCog, text: 'Team', path: "/dashboard/team" },
       ]
     }
   ];

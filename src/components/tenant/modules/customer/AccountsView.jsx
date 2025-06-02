@@ -5,6 +5,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchAccounts,deleteAccounts } from '../../../../redux/slice/AccountsSlice';
 import userprofile from "../../../../assets/user-profile.webp";
 import { useNavigate } from 'react-router-dom';
+import { UserDropdown } from '../../../common/ToolBar';
+import { assignUserToAccount } from '../../../../Intreceptors/CustomerApi';
+import { useToast } from '../../../common/ToastNotification';
+import { MassMail } from '../../../../Intreceptors/MassMailapi';
+import { CategoryDropdown } from '../../../common/EmailCategory';
 
 
 
@@ -19,13 +24,21 @@ export default function AccountList() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [actionToConfirm, setActionToConfirm] = useState(null);
   const [assignedTo, setAssignedTo]= useState()
+  const[change, setChange]=useState(false)
   const confirmationRef = useRef(null);
-  
+  const role = useSelector((state) =>state.auth.role)
+  const userId = useSelector((state) =>state.profile.id)
+  const { showSuccess, showError } = useToast();
+  const [emailCategory, setEmailCategory] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('')
+
   const dispatch = useDispatch();
   const navigate = useNavigate()
   const {accounts, next, previous, loading, error} = useSelector(state => state.accounts);
+  console.log(accounts);
+  
   const actionConfigs = {
-    mail: {
+    mass_email: {
       title: "Send Mass Email",
       message: "Are you sure you want to send an email to the selected contacts?",
       icon: <MailIcon size={18} className="text-blue-500" />
@@ -44,7 +57,7 @@ export default function AccountList() {
   
   useEffect(() => {
     dispatch(fetchAccounts())
-  }, [dispatch]);
+  }, [dispatch,change]);
 
   const handleNext = () => {
     console.log(next)
@@ -54,7 +67,13 @@ export default function AccountList() {
   const handlePrevious = () => {
     dispatch(fetchAccounts(previous));
   };
-  
+  const SelectedUser = (user) => {
+    setAssignedTo(user.id)
+    setUserDropdown(false);
+
+    setShowConfirmation(true);
+
+  }
   const filteredAccounts = accounts
     .filter(account => {
       const matchesSearch = account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,7 +134,12 @@ export default function AccountList() {
     if (action === 'assign') {
       setUserDropdown(true);
       
-    } else {
+    } 
+    if(action === 'mass_email'){
+      setEmailCategory(true)
+
+    }
+    else {
       setShowConfirmation(true);
     }
     
@@ -133,14 +157,59 @@ export default function AccountList() {
   };
   console.log(selectedAccounts);
   
-  const handleBulkAction = (action)=>{
+  const handleBulkAction = async(action)=>{
     if (action === "delete"){
       dispatch(deleteAccounts(selectedAccounts))
       setSelectedAccounts([])
     }
-  }
+    if (action === 'mass_email') {
+        console.log("working");
+        
+        const data = {
+          "to_accounts" :selectedAccounts,
+          "category":selectedCategory
+        }
+        const response = MassMail(data,{userId,role,dispatch,showError,showSuccess})
+      }
+      if (action === 'assign') {
+        const data = {'assigned_to':assignedTo,
+          'assigned_by':role ==="owner"? null:userId,
+          'account_id':selectedAccounts
+          }
+      console.log(data);
+      
+      try {
+        const response = await assignUserToAccount(data);
+        console.log(response);
+        console.log(response.status)
+        
+        if (response.status === 200) {
+          ;
+          setChange(true);
+          showSuccess(response.data.message);
+
+          
+        } else {
+    
+          console.error("Something went wrong:", response);
+        }
+      } catch (error) {
+        console.error(error);
+    
+      }
+      setSelectedAccounts([])
+    };
+    }
   const handleAccountDetail = (account)=>{
     navigate(`/dashboard/customer/accounts/${account.id}/`)
+  }
+  
+  const selctMailCategory = (category)=>{
+    setEmailCategory(false)
+    console.log("halooo",category)
+    setSelectedCategory(category)
+    setShowConfirmation(true)
+
   }
   
   return (
@@ -174,7 +243,7 @@ export default function AccountList() {
                       
                       <button 
                         className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
-                        onClick={()=>handleActionClick('mail')}
+                        onClick={()=>handleActionClick('mass_email')}
                       >
                         <MailIcon size={14} className="mr-2" /> Mass Email
                       </button>
@@ -203,6 +272,20 @@ export default function AccountList() {
                     </div>
                   </div>
                 )}
+                {isuserDropdown && (
+                                      <UserDropdown 
+                                        isOpen={isuserDropdown} 
+                                        onSelect={SelectedUser} 
+                                        onClose={() => setUserDropdown(false)} 
+                                      />
+                                    )}
+
+                            {emailCategory &&(
+                                                  <CategoryDropdown
+                                                  isOpen={emailCategory}
+                                                  onSelect={selctMailCategory}
+                                                  onClose={()=>setEmailCategory(false)}/>
+                                                )}
               </div>
             )}
             {showConfirmation && actionToConfirm && (

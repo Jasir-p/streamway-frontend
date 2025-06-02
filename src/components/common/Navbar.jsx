@@ -3,6 +3,7 @@ import { Users, Sparkles, ShoppingBag, Briefcase, Search, Bell, Settings2Icon, S
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ProfileModal from '../tenant/dashboard/ProfileIcon';
+import NotificationsModal from '../tenant/modules/dashboard/notifications/Notifications';
 
 
 
@@ -11,6 +12,7 @@ const Navbar = () => {
   const navigate=useNavigate()
   const role = useSelector((state) => state.auth.role);
   const [profileOpen, setProfileOpen] = useState(false);
+  const[bellOpen, setBellOpen]=useState(false)
   const profileRef = useRef(null);
 
   return (
@@ -27,8 +29,13 @@ const Navbar = () => {
           </div>
           <div className="flex items-center space-x-4">
             <button className="p-2 hover:bg-gray-700 rounded-full">
-              <Bell className="h-5 w-5 text-white" />
+              <Bell className="h-5 w-5 text-white"  onClick={()=>setBellOpen(true)}/>
             </button>
+                   <NotificationsModal
+        isOpen={bellOpen}
+        onClose={()=>setBellOpen(false)}
+        />
+       
             {role ==="owner"&&(<button className="p-2 hover:bg-gray-700 rounded-full" onClick={()=>navigate('/setting/genaral')}>
               <Settings className="h-5 w-5 text-white" />
             </button>)}
@@ -49,6 +56,8 @@ const Navbar = () => {
           setOpen={setProfileOpen} 
           anchorRef={profileRef}
         />
+       
+       
         </div>
       </header>
     </div>

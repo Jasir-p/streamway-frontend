@@ -10,6 +10,8 @@ import { fetchUsers } from "../../../../redux/slice/UsersSlice";
 import { useToast } from '../../../common/ToastNotification';
 import TeamForm from './TeamForm';
 import { updateTeam } from '../../../../redux/slice/TeamSlice';
+import DashboardLayout from '../../dashboard/DashbordLayout';
+
 
 
 const fetchTeamById = async (team_id) => {
@@ -198,29 +200,29 @@ const TeamDetailView = () => {
 
   if (loading && !team) {
     return (
-      <SettingsLayout>
-        <Navbar />
+      <DashboardLayout>
+     
         <div className="container mx-auto p-6 flex items-center justify-center min-h-[300px]">
           <p className="text-lg">Loading team details...</p>
         </div>
-      </SettingsLayout>
+      </DashboardLayout>
     );
   }
 
   if (!team) {
     return (
-      <SettingsLayout>
-        <Navbar />
+      <DashboardLayout>
+      
         <div className="container mx-auto p-6 flex items-center justify-center min-h-[300px]">
           <p className="text-lg">No team data found. Please check the team ID and try again.</p>
         </div>
-      </SettingsLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <SettingsLayout>
-      <Navbar />
+    <DashboardLayout>
+     
       <div className="container mx-auto p-6">
         <div className="flex flex-col sm:flex-row sm:space-x-6">
           <div className="w-full sm:w-3/4">
@@ -502,7 +504,7 @@ const TeamDetailView = () => {
           </div>
         </div>
       </div>
-    </SettingsLayout>
+    </DashboardLayout>
   );
 };
 

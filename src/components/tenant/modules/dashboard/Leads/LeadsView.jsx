@@ -186,14 +186,7 @@ const MondayStyleLeadsTable = () => {
                 />
               )}
               
-              {selectedLeads.length>0  && (
-                <button className="bg-gray-300 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition p-5" onClick={()=>setStatus(prev=>!prev)}>
-                <span className="flex items-center">
-                  Status Update
-                </span>
-              </button>
-            )}
-
+              
               <button 
                 className={`${showFilters ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'} px-3 py-2 rounded-md text-sm font-medium transition flex items-center`}
                 onClick={toggleFilters}

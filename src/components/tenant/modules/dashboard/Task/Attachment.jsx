@@ -5,9 +5,12 @@ const AttachmentViewer = ({ selectedTask, onClose }) => {
   const [activeAttachment, setActiveAttachment] = useState(null);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [previewError, setPreviewError] = useState(false);
+
   
 
   const processAttachments = () => {
+    console.log(selectedTask.attachment);
+    
     if (!selectedTask.attachment) return [];
     
     if (typeof selectedTask.attachment === 'string') {
@@ -25,10 +28,10 @@ const AttachmentViewer = ({ selectedTask, onClose }) => {
             name: att.split('/').pop(),
             type: getFileType(att)
           };
-        } else if (att && att.url) {
+        } else if (att) {
           return {
             ...att,
-            type: att.type || getFileType(att.url)
+            type: att.type || getFileType(att)
           };
         }
         return null;
@@ -36,11 +39,13 @@ const AttachmentViewer = ({ selectedTask, onClose }) => {
     }
     
 
-    if (selectedTask.attachment && selectedTask.attachment.url) {
+    if (selectedTask.attachment ) {
+      console.log(selectedTask.attachment);
+      
       return [{
-        url: selectedTask.attachment.url,
+        url: selectedTask.attachment,
         name: selectedTask.attachment.name || selectedTask.attachment.url.split('/').pop(),
-        type: selectedTask.attachment.type || getFileType(selectedTask.attachment.url)
+        type: selectedTask.attachment.type || getFileType(selectedTask.attachment)
       }];
     }
     
