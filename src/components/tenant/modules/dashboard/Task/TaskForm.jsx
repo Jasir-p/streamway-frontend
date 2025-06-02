@@ -1,151 +1,64 @@
-import React, { useEffect, useState } from 'react';
-import { AddTask } from '@mui/icons-material';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { getUser } from '../../../../../Intreceptors/LeadsApi';
 import { addTask } from '../../../../../redux/slice/TaskSlice';
 import { fetchLeadsEmployee, fetchLeadsOwner } from '../../../../../redux/slice/leadsSlice';
-import { ChevronRight,ChevronLeft } from 'lucide-react';
 import { fetchContacts } from '../../../../../redux/slice/contactSlice';
+import { fetchAccounts } from '../../../../../redux/slice/AccountsSlice';
 
-const TaskForm = ({onClose,task,isEditing}) => {
-  const role = useSelector((state) => state.auth.role);
-  const userId = useSelector((state) => state.profile.id);
-  const [employee, setEmployee] = useState([]);
-  const { leads, next: leadsNext, previous: leadsPrevious } = useSelector((state) => state.leads);
-  const { contacts, next: contactsNext, previous: contactsPrevious } = useSelector((state) => state.contacts);
-  console.log(task);
-  
-  const dispatch = useDispatch();
-  const teams = [
-    { id: 1, name: 'Sales Team', memberCount: 8 },
-    { id: 2, name: 'Marketing Team', memberCount: 5 },
-    { id: 3, name: 'Support Team', memberCount: 12 },
-    { id: 4, name: 'Development Team', memberCount: 10 }
-  ];
+// Constants
+const INITIAL_FORM_DATA = {
+  title: '',
+  description: '',
+  priority: 'MEDIUM',
+  dueDate: '',
+  assignTo: 'individual',
+  assigned_to_employee: '',
+  assigned_to_team: null,
+  lead: null,
+  contact: null,
+  account: null,
+  status: 'TODO',
+  subtasks: [],
+  attachment: [],
+  tags: []
+};
 
-  const contactss = [
-    { id: 'CO123456', name: 'David Wilson (CO123456)' },
-    { id: 'CO123457', name: 'Emma Davis (CO123457)' },
-    { id: 'CO123458', name: 'Robert Miller (CO123458)' }
-  ];
-  
-  const accounts = [
-    { id: 'AC987654', name: 'Acme Corporation (AC987654)' },
-    { id: 'AC987655', name: 'Global Industries (AC987655)' },
-    { id: 'AC987656', name: 'Tech Solutions (AC987656)' }
-  ];
-  
-  // Add states for pagination pages
-  const [leadsPage, setLeadsPage] = useState(1);
-  const [contactsPage, setContactsPage] = useState(1);
-  const [accountsPage, setAccountsPage] = useState(1);
-  
-  // States to store paginated data
-  const [paginatedContacts, setPaginatedContacts] = useState(contacts);
-  const [paginatedAccounts, setPaginatedAccounts] = useState(accounts);
-  const [attachment, setAttachment] = useState(null);
-  console.log(attachment);
-  
-  useEffect(() => {
-    const fetchUserAndLeads = async () => {
-      const user = await getUser(role === 'owner' ? role : userId);
-      setEmployee(user);
-  
-      if (role === 'owner') {
-        dispatch(fetchLeadsOwner());
-      } else {
-        dispatch(fetchLeadsEmployee(userId));
-      }
-    };
-  
-    fetchUserAndLeads();
-  }, [role, userId, dispatch, leadsPage]);
-  
+const PRIORITY_OPTIONS = [
+  { value: 'LOW', label: 'Low' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'HIGH', label: 'High' },
+  { value: 'URGENT', label: 'Urgent' }
+];
 
-  useEffect(() => {
-    dispatch(fetchContacts())
-  }, [contactsPage]);
-  
-  useEffect(() => {
+const STATUS_OPTIONS = [
+  { value: 'TODO', label: 'To Do' },
+  { value: 'IN_PROGRESS', label: 'In Progress' },
+  { value: 'REVIEW', label: 'Under Review' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'BLOCKED', label: 'Blocked' }
+];
 
-    fetchPaginatedAccounts(accountsPage);
-  }, [accountsPage]);
+const TEAMS = [
+  { id: 1, name: 'Sales Team', memberCount: 8 },
+  { id: 2, name: 'Marketing Team', memberCount: 5 },
+  { id: 3, name: 'Support Team', memberCount: 12 },
+  { id: 4, name: 'Development Team', memberCount: 10 }
+];
 
-  const fetchPaginatedContacts = (page) => {
-    console.log(`Fetching contacts page ${page}`);
-    setPaginatedContacts(contacts);
-  };
-  
-  const fetchPaginatedAccounts = (page) => {
+// Custom Hooks
+const useFormState = (initialData, task) => {
+  const [formData, setFormData] = useState(initialData);
+  const [errors, setErrors] = useState({});
 
-    console.log(`Fetching accounts page ${page}`);
-    setPaginatedAccounts(accounts);
-  };
-  
-  // Pagination handler functions
-  const handleNextLeads = () => {
-    if (role === 'owner') {
-      dispatch(fetchLeadsOwner(next));
-    } else {
-      dispatch(fetchLeadsEmployee(userId,next));
-    }
-  
-  };
-  
-  const handlePrevLeads = () => {
-    if (previous) {
-      if (role === 'owner') {
-        dispatch(fetchLeadsOwner(previous));
-      } else {
-        dispatch(fetchLeadsEmployee(userId,previous));
-      }
-    }
-  };
-  
-  const handleNextContacts = () => {
-    setContactsPage(prev => prev + 1);
-  };
-  
-  const handlePrevContacts = () => {
-    if (contactsPage > 1) {
-      setContactsPage(prev => prev - 1);
-    }
-  };
-  
-  const handleNextAccounts = () => {
-    setAccountsPage(prev => prev + 1);
-  };
-  
-  const handlePrevAccounts = () => {
-    if (accountsPage > 1) {
-      setAccountsPage(prev => prev - 1);
-    }
-  };
-  
-  // Updated formData state to match the JSON structure provided
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    priority: 'MEDIUM', // Updated to match the JSON case format
-    dueDate: '',
-    assignTo: 'individual',
-    assigned_to_employee: '',
-    assigned_to_team: null,
-    lead: null,
-    contact: null,
-    account: null,
-    status: 'TODO', 
-    subtasks: [],// Updated to match the JSON format
-    attachment: [],
-    tags: []
-  });
   useEffect(() => {
     if (task) {
       setFormData({
         title: task.title || '',
         description: task.description || '',
         priority: task.priority || 'MEDIUM',
-        dueDate: task.dueDate || '',
+        dueDate: task.duedate || '',
         assignTo: task.assignees?.length > 1 ? 'team' : 'individual',
         assigned_to_employee: task.assignees?.[0] || '',
         assigned_to_team: task.assignees?.length > 1 ? task.assignees : null,
@@ -157,21 +70,244 @@ const TaskForm = ({onClose,task,isEditing}) => {
         attachment: task.attachment ? [task.attachment] : [],
         tags: task.tags || []
       });
-    } else {
-      setFormData(formData);
     }
   }, [task]);
-  
-  const [errors, setErrors] = useState({});
+
+  const updateFormData = useCallback((updates) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  const resetForm = useCallback(() => {
+    setFormData(initialData);
+    setErrors({});
+  }, [initialData]);
+
+  return { formData, setFormData, errors, setErrors, updateFormData, resetForm };
+};
+
+const usePagination = () => {
+  const [pages, setPages] = useState({
+    leads: 1,
+    contacts: 1,
+    accounts: 1
+  });
+
+  const updatePage = useCallback((type, page) => {
+    setPages(prev => ({ ...prev, [type]: page }));
+  }, []);
+
+  return { pages, updatePage };
+};
+
+// Components
+const PaginationArrows = ({ onPrev, onNext, hasPrev, hasNext }) => (
+  <div className="flex items-center">
+    <button
+      type="button"
+      onClick={onPrev}
+      disabled={!hasPrev}
+      className={`p-1 rounded ${!hasPrev ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'}`}
+      aria-label="Previous page"
+    >
+      <ChevronLeft size={16} />
+    </button>
+    <button
+      type="button"
+      onClick={onNext}
+      disabled={!hasNext}
+      className={`p-1 rounded ${!hasNext ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'}`}
+      aria-label="Next page"
+    >
+      <ChevronRight size={16} />
+    </button>
+  </div>
+);
+
+const FormField = ({ label, error, required, children }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      {label}{required && '*'}
+    </label>
+    {children}
+    {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+  </div>
+);
+
+const SelectField = ({ options, value, onChange, placeholder, error, ...props }) => (
+  <select
+    value={value}
+    onChange={onChange}
+    className={`w-full p-2 border rounded-md ${error ? 'border-red-500' : 'border-gray-300'}`}
+    {...props}
+  >
+    <option value="">{placeholder}</option>
+    {options.map(option => (
+      <option key={option.value || option.id} value={option.value || option.id}>
+        {option.label || option.name}
+      </option>
+    ))}
+  </select>
+);
+
+const TaskForm = ({ onClose, task, isEditing }) => {
+  // Redux state
+  const { role } = useSelector(state => state.auth);
+  const { id: userId } = useSelector(state => state.profile);
+  const { leads, next: leadsNext, previous: leadsPrevious } = useSelector(state => state.leads);
+  const { contacts } = useSelector(state => state.contacts);
+  const { accounts } = useSelector(state => state.accounts);
+
+  // Local state
+  const [employee, setEmployee] = useState([]);
+  const [attachment, setAttachment] = useState(null);
   const [subtaskInput, setSubtaskInput] = useState('');
   const [tagInput, setTagInput] = useState('');
 
-  const validateForm = () => {
+  // Custom hooks
+  const { formData, errors, setErrors, updateFormData, resetForm } = useFormState(INITIAL_FORM_DATA, task);
+  const { pages, updatePage } = usePagination();
+
+  const dispatch = useDispatch();
+
+  // Memoized values
+  const employeeOptions = useMemo(() => 
+    employee.map(member => ({
+      id: member.id,
+      name: `${member.name} (${member.role.name})`
+    })), [employee]
+  );
+
+  const leadsOptions = useMemo(() => 
+    leads.map(lead => ({
+      id: lead.lead_id,
+      name: `${lead.name}(${lead.lead_id})`
+    })), [leads]
+  );
+
+  // Effects
+  useEffect(() => {
+    const fetchUserAndLeads = async () => {
+      try {
+        const user = await getUser(role === 'owner' ? role : userId);
+        setEmployee(user);
+
+        if (role === 'owner') {
+          dispatch(fetchLeadsOwner());
+        } else {
+          dispatch(fetchLeadsEmployee(userId));
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserAndLeads();
+  }, [role, userId, dispatch]);
+
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch, pages.contacts]);
+
+  useEffect(() => {
+    dispatch(fetchAccounts());
+  }, [dispatch, pages.accounts]);
+
+  // Handlers
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    updateFormData({ [name]: value });
+  }, [updateFormData]);
+
+  const handleModuleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    updateFormData({
+      lead: null,
+      contact: null,
+      account: null,
+      [name]: value
+    });
+  }, [updateFormData]);
+
+  const handleSubtaskAdd = useCallback(() => {
+    if (subtaskInput.trim()) {
+      updateFormData({
+        subtasks: [...formData.subtasks, {
+          id: Date.now(),
+          text: subtaskInput.trim(),
+          completed: false
+        }]
+      });
+      setSubtaskInput('');
+    }
+  }, [subtaskInput, formData.subtasks, updateFormData]);
+
+  const handleSubtaskToggle = useCallback((id) => {
+    updateFormData({
+      subtasks: formData.subtasks.map(task => 
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    });
+  }, [formData.subtasks, updateFormData]);
+
+  const handleSubtaskRemove = useCallback((id) => {
+    updateFormData({
+      subtasks: formData.subtasks.filter(task => task.id !== id)
+    });
+  }, [formData.subtasks, updateFormData]);
+
+  const handleTagAdd = useCallback(() => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      updateFormData({
+        tags: [...formData.tags, tagInput.trim()]
+      });
+      setTagInput('');
+    }
+  }, [tagInput, formData.tags, updateFormData]);
+
+  const handleTagRemove = useCallback((tag) => {
+    updateFormData({
+      tags: formData.tags.filter(t => t !== tag)
+    });
+  }, [formData.tags, updateFormData]);
+
+  // Pagination handlers
+  const handlePagination = useCallback({
+    nextLeads: () => {
+      if (role === 'owner') {
+        dispatch(fetchLeadsOwner(leadsNext));
+      } else {
+        dispatch(fetchLeadsEmployee(userId, leadsNext));
+      }
+    },
+    prevLeads: () => {
+      if (leadsPrevious) {
+        if (role === 'owner') {
+          dispatch(fetchLeadsOwner(leadsPrevious));
+        } else {
+          dispatch(fetchLeadsEmployee(userId, leadsPrevious));
+        }
+      }
+    },
+    nextContacts: () => updatePage('contacts', pages.contacts + 1),
+    prevContacts: () => pages.contacts > 1 && updatePage('contacts', pages.contacts - 1),
+    nextAccounts: () => updatePage('accounts', pages.accounts + 1),
+    prevAccounts: () => pages.accounts > 1 && updatePage('accounts', pages.accounts - 1)
+  }, [role, userId, dispatch, leadsNext, leadsPrevious, pages, updatePage]);
+
+  const validateForm = useCallback(() => {
     const newErrors = {};
-    if (!formData.title.trim()) newErrors.title = 'Task title is required';
-    if (!formData.description || formData.description.trim().split(/\s+/).length < 30)  newErrors.description = 'Task description is required';
     
-    if (!formData.dueDate) newErrors.dueDate = 'Due date is required';
+    if (!formData.title.trim()) {
+      newErrors.title = 'Task title is required';
+    }
+    
+    if (!formData.description || formData.description.trim().split(/\s+/).length < 30) {
+      newErrors.description = 'Task description is required';
+    }
+    
+    if (!formData.dueDate) {
+      newErrors.dueDate = 'Due date is required';
+    }
     
     if (formData.assignTo === 'individual' && !formData.assigned_to_employee) {
       newErrors.assigned_to_employee = 'Please select a team member';
@@ -181,253 +317,132 @@ const TaskForm = ({onClose,task,isEditing}) => {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-  
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  
-  const handleSubtaskAdd = () => {
-    if (subtaskInput.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        subtasks: [...prev.subtasks, {
-          id: Date.now(),
-          text: subtaskInput.trim(),
-          completed: false
-        }]
-      }));
-      setSubtaskInput('');
-    }
-  };
-  
-  const handleSubtaskToggle = (id) => {
-    setFormData(prev => ({
-      ...prev,
-      subtasks: prev.subtasks.map(task => 
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    }));
-  };
-  
-  const handleSubtaskRemove = (id) => {
-    setFormData(prev => ({
-      ...prev,
-      subtasks: prev.subtasks.filter(task => task.id !== id)
-    }));
-  };
-  
-  const handleTagAdd = () => {
-    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tagInput.trim()]
-      }));
-      setTagInput('');
-    }
-  };
-  
-  const handleTagRemove = (tag) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(t => t !== tag)
-    }));
-  };
-  
-  const handleModuleChange = (e) => {
-    const { name, value } = e.target;
-    
-    // Reset all module values
-    const updatedFormData = {
-      ...formData,
-      lead: null,
-      contact: null,
-      account: null
-    };
-    
-    // Set only the selected module value
-    updatedFormData[name] = value;
-    setFormData(updatedFormData);
-  };
-  
-  const handleSubmit = (e) => {
+  }, [formData, setErrors]);
+
+  const handleSubmit = useCallback((e) => {
     e.preventDefault();
-    console.log(attachment);
     
-    const formDataobj = new FormData();
+    if (!validateForm()) return;
+
+    const formDataObj = new FormData();
+    
+    // Add file if exists
     if (attachment) {
-      formDataobj.append('attachment', attachment);
+      formDataObj.append('attachment', attachment);
     }
     
-    if (formData.lead !== null && formData.lead !== "") {
-      formDataobj.append('lead', formData.lead);
-    }
-    if (formData.contact !== null && formData.contact !== "") {
-      formDataobj.append('contact', formData.contact);
-    }
-    if (formData.account !== null && formData.account !== "") {
-      formDataobj.append('account', formData.account);
-    }
+    // Add related entities
+    ['lead', 'contact', 'account'].forEach(field => {
+      if (formData[field] !== null && formData[field] !== "") {
+        formDataObj.append(field, formData[field]);
+      }
+    });
     
-    formDataobj.append('title', formData.title);
-    formDataobj.append('priority', formData.priority);
-    formDataobj.append('status', formData.status);
-    formDataobj.append('description', formData.description);
-    formDataobj.append('dueDate', formData.dueDate);
-    formDataobj.append('assignTo', formData.assignTo);
-    formDataobj.append('assigned_to_employee', formData.assigned_to_employee);
-    
+    // Add other fields
+    const fields = ['title', 'priority', 'status', 'description', 'assignTo', 'assigned_to_employee',"dueDate"];
+    fields.forEach(field => {
+      formDataObj.append(field === 'dueDate' ? 'duedate' : field, formData[field === 'dueDate' ? 'dueDate' : field]);
+    });
 
-    
-    if (validateForm()) {
-      console.log('Form submitted:', formDataobj);
-      const response = dispatch(addTask(formDataobj));
+    if (role !== 'owner') {
 
-      setFormData({
-        title: '',
-        description: '',
-        priority: 'MEDIUM',
-        dueDate: '',
-        assignTo: 'individual',
-        assigned_to_employee: '',
-        assigned_to_team: null,
-        lead: null,
-        contact: null,
-        account: null,
-        status: 'TODO',
-        subtasks: [],
-        attachment: [],
-        tags: []
-      });
-      
-      // Success message or redirect would go here
+  formDataObj.append('assigned_by', userId);
+
+  
+  if (!isEditing) {
+    console.log('jasirppppp');
+    
+    formDataObj.append('created_by', userId);
+  }
+}
+
+
+console.log(formDataObj);
+
+   
+
+    try {
+      dispatch(addTask(formDataObj));
+      resetForm();
+      setAttachment(null);
       alert('Task created successfully!');
-      onClose()
+      onClose();
+    } catch (error) {
+      console.error('Error creating task:', error);
+      alert('Error creating task. Please try again.');
     }
-  };
-
-  const removeAttachment = (id) => {
-    setAttachment(null);
-  };
-
-
-  const PaginationArrows = ({ onPrev, onNext, hasPrev, hasNext }) => (
-    <div className="flex items-center">
-      <button
-        type="button"
-        onClick={onPrev}
-        disabled={!hasPrev}
-        className={`p-1 rounded ${!hasPrev ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'}`}
-        aria-label="Previous page"
-      >
-        <ChevronLeft size={16}/>
-      </button>
-      <button
-        type="button"
-        onClick={onNext}
-        disabled={!hasNext}
-        className={`p-1 rounded ${!hasNext ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'}`}
-        aria-label="Next page"
-      >
-        <ChevronRight size={16} />
-      </button>
-    </div>
-  );
+  }, [formData, attachment, validateForm, dispatch, resetForm, onClose]);
 
   return (
-    
-    <div className="relative max-w-4xl w-full  bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[90vh]">
-    <div className="flex justify-between items-center mb-4">
-       <h2 className="text-2xl font-bold text-gray-800 ">Create New Task</h2>
-      <button className="text-gray-500 hover:text-gray-700" onClick={onClose}>
-                  ✕
-      </button>
-       </div>
-      
+    <div className="relative max-w-4xl w-full bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[90vh]">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold text-gray-800">
+          {isEditing ? 'Edit Task' : 'Create New Task'}
+        </h2>
+        <button 
+          className="text-gray-500 hover:text-gray-700" 
+          onClick={onClose}
+          aria-label="Close"
+        >
+          ✕
+        </button>
+      </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
-
+        {/* Basic Information */}
         <div className="space-y-4">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Task Title*</label>
+          <FormField label="Task Title" required error={errors.title}>
             <input
               type="text"
-              id="title"
               name="title"
               value={formData.title}
               onChange={handleChange}
               className={`w-full p-2 border rounded-md ${errors.title ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="Enter task title"
             />
-            {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
-          </div>
+          </FormField>
           
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <FormField label="Description" error={errors.description}>
             <textarea
-              id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
               rows="3"
               className="w-full p-2 border border-gray-300 rounded-md"
               placeholder="Describe the task..."
-            ></textarea>
-            {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
-          </div>
+            />
+          </FormField>
         </div>
         
         {/* Task Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-            <select
-              id="priority"
-              name="priority"
+          <FormField label="Priority">
+            <SelectField
+              options={PRIORITY_OPTIONS}
               value={formData.priority}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            >
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-              <option value="URGENT">Urgent</option>
-            </select>
-          </div>
+              name="priority"
+            />
+          </FormField>
           
-          <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
-              id="status"
-              name="status"
+          <FormField label="Status">
+            <SelectField
+              options={STATUS_OPTIONS}
               value={formData.status}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            >
-              <option value="TODO">To Do</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="REVIEW">Under Review</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="BLOCKED">Blocked</option>
-            </select>
-          </div>
+              name="status"
+            />
+          </FormField>
           
-          <div>
-            <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-1">Due Date*</label>
+          <FormField label="Due Date" required error={errors.dueDate}>
             <input
               type="date"
-              id="dueDate"
               name="dueDate"
               value={formData.dueDate}
               onChange={handleChange}
               className={`w-full p-2 border rounded-md ${errors.dueDate ? 'border-red-500' : 'border-gray-300'}`}
             />
-            {errors.dueDate && <p className="mt-1 text-sm text-red-500">{errors.dueDate}</p>}
-          </div>
+          </FormField>
         </div>
         
         {/* Assignment Section */}
@@ -438,165 +453,91 @@ const TaskForm = ({onClose,task,isEditing}) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
               <div className="flex">
-                <button
-                  type="button"
-                  className={`px-4 py-2 rounded-l-md border ${formData.assignTo === 'individual' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-gray-300 text-gray-700'}`}
-                  onClick={() => setFormData(prev => ({ ...prev, assignTo: 'individual' }))}
-                >
-                  Individual
-                </button>
-                <button
-                  type="button"
-                  className={`px-4 py-2 rounded-r-md border-t border-r border-b ${formData.assignTo === 'team' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-gray-300 text-gray-700'}`}
-                  onClick={() => setFormData(prev => ({ ...prev, assignTo: 'team' }))}
-                >
-                  Team
-                </button>
+                {['individual', 'team'].map(type => (
+                  <button
+                    key={type}
+                    type="button"
+                    className={`px-4 py-2 border ${type === 'individual' ? 'rounded-l-md' : 'rounded-r-md border-l-0'} ${
+                      formData.assignTo === type 
+                        ? 'bg-blue-50 border-blue-500 text-blue-700' 
+                        : 'bg-white border-gray-300 text-gray-700'
+                    }`}
+                    onClick={() => updateFormData({ assignTo: type })}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </button>
+                ))}
               </div>
             </div>
             
             {formData.assignTo === 'individual' ? (
-              <div>
-                <label htmlFor="assigned_to_employee" className="block text-sm font-medium text-gray-700 mb-1">Select Team Member*</label>
-                <select
-                  id="assigned_to_employee"
-                  name="assigned_to_employee"
+              <FormField label="Select Team Member" required error={errors.assigned_to_employee}>
+                <SelectField
+                  options={employeeOptions}
                   value={formData.assigned_to_employee}
                   onChange={handleChange}
-                  className={`w-full p-2 border rounded-md ${errors.assigned_to_employee ? 'border-red-500' : 'border-gray-300'}`}
-                >
-                  <option value="">Select a team member</option>
-                  {employee.map(member => (
-                    <option key={member.id} value={member.id}>
-                      {member.name} ({member.role.name})
-                    </option>
-                  ))}
-                </select>
-                {errors.assigned_to_employee && <p className="mt-1 text-sm text-red-500">{errors.assigned_to_employee}</p>}
-              </div>
+                  name="assigned_to_employee"
+                  placeholder="Select a team member"
+                  error={errors.assigned_to_employee}
+                />
+              </FormField>
             ) : (
-              <div>
-                <label htmlFor="assigned_to_team" className="block text-sm font-medium text-gray-700 mb-1">Select Team*</label>
-                <select
-                  id="assigned_to_team"
-                  name="assigned_to_team"
+              <FormField label="Select Team" required error={errors.assigned_to_team}>
+                <SelectField
+                  options={TEAMS.map(team => ({
+                    id: team.id,
+                    name: `${team.name} (${team.memberCount} members)`
+                  }))}
                   value={formData.assigned_to_team || ''}
                   onChange={handleChange}
-                  className={`w-full p-2 border rounded-md ${errors.assigned_to_team ? 'border-red-500' : 'border-gray-300'}`}
-                >
-                  <option value="">Select a team</option>
-                  {teams.map(team => (
-                    <option key={team.id} value={team.id}>
-                      {team.name} ({team.memberCount} members)
-                    </option>
-                  ))}
-                </select>
-                {errors.assigned_to_team && <p className="mt-1 text-sm text-red-500">{errors.assigned_to_team}</p>}
-              </div>
+                  name="assigned_to_team"
+                  placeholder="Select a team"
+                  error={errors.assigned_to_team}
+                />
+              </FormField>
             )}
           </div>
         </div>
         
-        {/* Related To Section - Updated with Lead, Contact, Account options and pagination arrows */}
+        {/* Related To Section */}
         <div className="p-4 bg-gray-50 rounded-md">
           <h3 className="font-medium text-gray-800 mb-4">Related To</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label htmlFor="lead" className="block text-sm font-medium text-gray-700">Lead</label>
-                <PaginationArrows 
-                  onPrev={handlePrevLeads} 
-                  onNext={handleNextLeads} 
-                  hasPrev={leadsPrevious} 
-                  hasNext={leadsNext}
-                />
+            {[
+              { name: 'lead', label: 'Lead', options: leadsOptions, pagination: { prev: handlePagination.prevLeads, next: handlePagination.nextLeads, hasPrev: leadsPrevious, hasNext: leadsNext }, page: pages.leads },
+              { name: 'contact', label: 'Contact', options: contacts, pagination: { prev: handlePagination.prevContacts, next: handlePagination.nextContacts, hasPrev: pages.contacts > 1, hasNext: true }, page: pages.contacts },
+              { name: 'account', label: 'Account', options: accounts, pagination: { prev: handlePagination.prevAccounts, next: handlePagination.nextAccounts, hasPrev: pages.accounts > 1, hasNext: true }, page: pages.accounts }
+            ].map(({ name, label, options, pagination, page }) => (
+              <div key={name}>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">{label}</label>
+                  <PaginationArrows {...pagination} />
+                </div>
+                <select
+                  name={name}
+                  value={formData[name] || ''}
+                  onChange={handleModuleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  disabled={Object.keys(formData).some(key => 
+                    key !== name && ['lead', 'contact', 'account'].includes(key) && formData[key]
+                  )}
+                >
+                  <option value="">Select a {label.toLowerCase()}</option>
+                  {options.map(option => (
+                    <option key={option.id || option.lead_id} value={option.id || option.lead_id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>Page {page}</span>
+                  {options.length === 0 && <span>No data</span>}
+                </div>
               </div>
-              <select
-                id="lead"
-                name="lead"
-                value={formData.lead || ''}
-                onChange={handleModuleChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                disabled={formData.contact || formData.account}
-              >
-                <option value="">Select a lead</option>
-                {leads.map(lead => (
-                  <option key={lead.lead_id} value={lead.lead_id}>
-                    {lead.name}({lead.lead_id})
-                  </option>
-                ))}
-              </select>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Page {leadsPage}</span>
-                {leads.length === 0 && <span>No data</span>}
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label htmlFor="contact" className="block text-sm font-medium text-gray-700">Contact</label>
-                <PaginationArrows 
-                  onPrev={handlePrevContacts} 
-                  onNext={handleNextContacts} 
-                  hasPrev={contactsPage > 1} 
-                  hasNext={true} // Mock pagination control - in real app this would be dynamically determined
-                />
-              </div>
-              <select
-                id="contact"
-                name="contact"
-                value={formData.contact || ''}
-                onChange={handleModuleChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                disabled={formData.lead || formData.account}
-              >
-                <option value="">Select a contact</option>
-                {contacts.map(contact => (
-                  <option key={contact.id} value={contact.id}>
-                    {contact.name}
-                  </option>
-                ))}
-              </select>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Page {contactsPage}</span>
-                {paginatedContacts.length === 0 && <span>No data</span>}
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label htmlFor="account" className="block text-sm font-medium text-gray-700">Account</label>
-                <PaginationArrows 
-                  onPrev={handlePrevAccounts} 
-                  onNext={handleNextAccounts} 
-                  hasPrev={accountsPage > 1} 
-                  hasNext={true} // Mock pagination control - in real app this would be dynamically determined
-                />
-              </div>
-              <select
-                id="account"
-                name="account"
-                value={formData.account || ''}
-                onChange={handleModuleChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                disabled={formData.lead || formData.contact}
-              >
-                <option value="">Select an account</option>
-                {paginatedAccounts.map(account => (
-                  <option key={account.id} value={account.id}>
-                    {account.name}
-                  </option>
-                ))}
-              </select>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>Page {accountsPage}</span>
-                {paginatedAccounts.length === 0 && <span>No data</span>}
-              </div>
-            </div>
+            ))}
           </div>
           
-          {/* Help text */}
           <p className="text-sm text-gray-500 italic">
             Note: A task can only be related to one item. Selecting a new item will clear the previous selection.
           </p>
@@ -668,29 +609,24 @@ const TaskForm = ({onClose,task,isEditing}) => {
             </label>
             <input
               id="file-upload"
-              name="file-upload"
               type="file"
               className="sr-only"
-              multiple
               onChange={(e) => setAttachment(e.target.files[0])}
             />
-            <span className="ml-3 text-sm text-gray-500">
-              {attachment?.name} 
-            </span>
-                {attachment &&(
-                  <button
+            {attachment && (
+              <span className="ml-3 text-sm text-gray-500">
+                {attachment.name}
+                <button
                   type="button"
-                  onClick={() => removeAttachment(attachment.lastModified)}
+                  onClick={() => setAttachment(null)}
                   className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold"
                   title="Remove file"
                 >
                   &times;
                 </button>
-                )}     
-  
+              </span>
+            )}
           </div>
-          
-         
         </div>
         
         {/* Tags */}
@@ -737,9 +673,11 @@ const TaskForm = ({onClose,task,isEditing}) => {
           </div>
         </div>
 
+        {/* Form Actions */}
         <div className="pt-4 border-t border-gray-200 flex justify-end space-x-3">
           <button
             type="button"
+            onClick={onClose}
             className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             Cancel
@@ -748,12 +686,11 @@ const TaskForm = ({onClose,task,isEditing}) => {
             type="submit"
             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
           >
-            Create Task
+            {isEditing ? 'Update Task' : 'Create Task'}
           </button>
         </div>
       </form>
     </div>
-    
   );
 };
 

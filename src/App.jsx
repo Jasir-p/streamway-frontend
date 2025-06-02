@@ -1,4 +1,7 @@
 import { Routes, Route, Navigate, useLocation, matchPath } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchInVoiceStatus } from "./redux/slice/InvoiceSlice";
 import { SubdomainProvider } from "./Subdomain";
 import LandingPage from "./pages/tenant/LandingPage";
 import LoginPage from "./pages/tenant/auth/LoginPage";
@@ -28,42 +31,49 @@ import LeadDetailPage from "./components/tenant/modules/dashboard/Leads/LeadOver
 import EnquireyForm from "./components/tenant/modules/dashboard/Leads/EnqueryForm";
 import AccountList from "./components/tenant/modules/customer/AccountsView";
 import AccountDetail from "./components/tenant/modules/customer/AccountDetail";
-import Apps from "./components/owner/tenants/Payment";
-
-
+import BillingDashboard from "./components/tenant/modules/Payment/Payment";
+import PaymentForm from "./components/tenant/modules/Payment/Invoice";
+import StripeProvider from "./components/tenant/modules/Payment/StripeProvider";
+import PaymentPage from "./components/tenant/modules/Payment/PaymentPage";
+// import ChatUI from "./components/tenant/modules/dashboard/chat/collabration";
+import ChatUI from "./components/tenant/modules/dashboard/chat/MainChatUI";
+import InvoiceModal from "./components/tenant/modules/Payment/BillModal";
+import PendingRoute from "./components/tenant/routes/PendingRoute";
+import EmailManagement from "./components/tenant/modules/dashboard/email/EmailManagment";
+import MeetingApp from "./components/tenant/modules/dashboard/meetings/MeetingApp";
+import NotificationsPage from "./components/tenant/modules/dashboard/notifications/Notifications";
+import Billings from "./components/owner/tenants/Billings";
+import TenantBillingInvoices from "./components/owner/tenants/billing/BillingInvoices";
+import AdminLogin from "./components/owner/auth/AdminLogin";
 
 function App() {
   const location = useLocation();
+  const userId = useSelector((state)=>state.profile.id)
+  const dispatch = useDispatch();
+  
 
-  const noSubdomainRoutes = [
-    "/login",
-    "/otp",
-    "/",
-    "/admin/dashboard",
-    "/admin/tenants",
-    "/admin/tenants/:tenant_id"
-  ];
+  const shouldUseSubdomainProvider = !location.pathname.startsWith('/admin') && 
+                                   location.pathname !== '/' && 
+                                   location.pathname !== '/login' && 
+                                   location.pathname !== '/otp' && 
+                                   location.pathname !== '/signin';
 
-  const shouldUseSubdomainProvider = !noSubdomainRoutes.some(route => {
-    if (!route.includes(":")) {
-      return location.pathname === route;
-    }
-    return matchPath({ path: route }, location.pathname) !== null;
-  });
+  console.log('Current path:', location.pathname);
+  console.log('Should use subdomain provider:', shouldUseSubdomainProvider);
 
   return (
     <ToastProvider>
       {shouldUseSubdomainProvider ? (
         <SubdomainProvider>
           <Routes>
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><PendingRoute><Dashboard/></PendingRoute></ProtectedRoute>} />
             <Route path="/setting" element={<ProtectedRoute><SettingsLayout /></ProtectedRoute>} />
             <Route path="/setting/security" element={<ProtectedRoute><Security /></ProtectedRoute>} />
             <Route path="/setting/security/role/:role_id/" element={<ProtectedRoute><RoleDetails /></ProtectedRoute>} />
             <Route path="/setting/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
             <Route path="/setting/genaral" element={<ProtectedRoute><Genaral /></ProtectedRoute>} />
-            <Route path="/setting/team" element={<ProtectedRoute><TeamManagement /></ProtectedRoute>} />
-            <Route path="/setting/team/teams/:team_id" element={<ProtectedRoute><TeamDetailView /></ProtectedRoute>} />
+            <Route path="/dashboard/team" element={<ProtectedRoute><TeamManagement /></ProtectedRoute>} />
+            <Route path="/dashboard/team/teams/:team_id" element={<ProtectedRoute><TeamDetailView /></ProtectedRoute>} />
             <Route path="/setting/lead_form" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
             <Route path="/dashboard/sale/leads" element={<ProtectedRoute><MondayStyleLeadsTable /></ProtectedRoute>} />
             <Route path="/dashboard/sale/leads/:lead_id/" element={<ProtectedRoute><LeadDetailPage /></ProtectedRoute>} />
@@ -75,7 +85,14 @@ function App() {
             <Route path="/Streamway/form/" element={<ProtectedRoute><EnquireyForm /></ProtectedRoute>} />
             <Route path="/dashboard/customer/accounts" element={<ProtectedRoute><AccountList /></ProtectedRoute>} />
             <Route path="/dashboard/customer/accounts/:account_id/" element={<ProtectedRoute><AccountDetail /></ProtectedRoute>} />
-            <Route path="/payment" element={<ProtectedRoute><Apps/></ProtectedRoute>}/>
+            
+            <Route path="/setting/payment" element={<ProtectedRoute><StripeProvider><BillingDashboard/></StripeProvider></ProtectedRoute>}/>
+            <Route path="/setting/payment/invoice/:invoiceId/pay" element={<ProtectedRoute><StripeProvider><PaymentPage/></StripeProvider></ProtectedRoute>}></Route>
+            <Route path="/dashboard/collabration/chat" element={<ProtectedRoute><ChatUI/> </ProtectedRoute>} />
+            <Route path="/payment/modal" element={<ProtectedRoute><InvoiceModal/></ProtectedRoute>}/>
+            <Route path="/dashboard/activity/email" element={<ProtectedRoute><EmailManagement/> </ProtectedRoute>} />
+            <Route path="/dashboard/activity/meetings" element={<ProtectedRoute><MeetingApp/></ProtectedRoute>} />
+            <Route path="/dashboard/Notification" element={<ProtectedRoute><NotificationsPage/></ProtectedRoute>} />
 
             <Route path="/signin" element={<LoginEmoloye />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -89,6 +106,9 @@ function App() {
           <Route path="/admin/dashboard" element={<CRMAdminDashboard />} />
           <Route path="/admin/tenants" element={<Tenants />} />
           <Route path="/admin/tenants/:tenant_id" element={<TenantsDetail />} />
+          <Route path="/admin/billings" element={<Billings/>}/>
+          <Route path="/admin/billings/:billing_id" element={<TenantBillingInvoices/>}/>
+          <Route path="/admin/login" element={<AdminLogin/>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       )}

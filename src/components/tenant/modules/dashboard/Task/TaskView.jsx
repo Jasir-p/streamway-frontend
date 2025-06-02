@@ -69,74 +69,92 @@ const TaskManagement = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [isEditingTask, setIsEditingTask] = useState(false);
+  const role = useSelector((state)=>state.auth.role)
+  const userID = useSelector((state)=>state.profile.id)
   const [taskToEdit, setTaskToEdit] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredColumns, setFilteredColumns] = useState(initialColumns);
   const [showDetailView, setShowDetailView] = useState(false); // Add this state to control detail view visibility
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
+  const [change, setChange] = useState(false)
   console.log(showTaskForm);
-  
+  const handleChange = () => {
+    setChange(prev => !prev);
+  };
+ 
   
   const { tasks, loading, error } = useSelector(state => state.tasks);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  // Fetch tasks from API on component mount
+
   useEffect(() => {
-    dispatch(fetchTask());
-  }, [dispatch]);
-  
-  // Process tasks when they arrive from API
+    if (role && role !== "owner") {
+      dispatch(fetchTask(userID));
+    } else {
+      dispatch(fetchTask(null));
+    }
+  }, [dispatch,change,userID]);
+
   useEffect(() => {
     if (tasks && tasks.length > 0) {
-      const newColumns = [...initialColumns].map(col => ({...col, tasks: []}));
-      
-      tasks.forEach(task => {
-        const columnId = mapStatusToColumnId(task.status);
-        const columnIndex = newColumns.findIndex(col => col.id === columnId);
-        
-        if (columnIndex !== -1) {
-          const uiTask = {
-            id: task.id,
-            title: task.title,
-            description: task.description,
-            priority: task.priority || 'MEDIUM',
-            status: task.status,
-            client: task.account || 'Not assigned',
-            account: task.account,
-            account_id: task.account_id,
-            contact: task.contact,
-            contact_id: task.account_id,
-            lead: task.lead,
-            lead_id: task.lead_id,
-            assignees: task.assigned_to_employee ? [
-              { 
-                id: task.assigned_to_employee.id,
-                name: task.assigned_to_employee.name, 
-                role: task.assigned_to_employee.role 
-              }
-            ] : [],
-            dueDate: task.created_at ? task.created_at.split('T')[0] : 'Not set',
-            timeEstimate: '1h', // Default value
-            tags: [task.priority ? task.priority.toLowerCase() : 'medium'], 
-            subtasks: task.subtasks || [],
-            attachment: task.attachment,
-            created_at: task.created_at,
-            updated_at: task.updated_at,
-            assigned_by: task.assigned_by
-          };
-          
-          newColumns[columnIndex].tasks.push(uiTask);
-        }
-      });
+  const newColumns = [...initialColumns].map(col => ({ ...col, tasks: [] }));
+
+  tasks.forEach(task => {
+    const columnId = mapStatusToColumnId(task.status);
+    const columnIndex = newColumns.findIndex(col => col.id === columnId);
+
+    if (columnIndex !== -1) {
+      const uiTask = {
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        priority: task.priority || 'MEDIUM',
+        status: task.status,
+        client: task.account || 'Not assigned',
+        account: task.account,
+        account_id: task.account_id,
+        contact: task.contact,
+        contact_id: task.contact_id, // fixed from account_id
+        lead: task.lead,
+        lead_id: task.lead_id,
+        assignees: task.assigned_to_employee ? [
+          {
+            id: task.assigned_to_employee.id,
+            name: task.assigned_to_employee.name,
+            role: task.assigned_to_employee.role
+          }
+        ] : [],
+        dueDate: task.created_at ? task.created_at.split('T')[0] : 'Not set',
+        timeEstimate: '1h', // You can dynamically calculate if needed
+        tags: [task.priority ? task.priority.toLowerCase() : 'medium'],
+        subtasks: task.subtasks || [],
+        attachment: task.attachment,
+        created_by: task.created_by ? {
+          id: task.created_by.id,
+          name: task.created_by.name,
+          role: task.created_by.role
+        } : null,
+        assigned_by: task.assigned_by ? {
+          id: task.assigned_by.id,
+          name: task.assigned_by.name,
+          role: task.assigned_by.role
+        } : null,
+        created_at: task.created_at,
+        updated_at: task.updated_at,
+      };
+
+      newColumns[columnIndex].tasks.push(uiTask);
+    }
+  });
+
+
       
       setColumns(newColumns);
       setFilteredColumns(newColumns);
     }
-  }, [tasks]);
+  }, [tasks,change]);
 
-  // Apply search filter when search query changes
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredColumns(columns);
@@ -147,8 +165,8 @@ const TaskManagement = () => {
         tasks: column.tasks.filter(task => 
           task.title.toLowerCase().includes(query) ||
           (task.description && task.description.toLowerCase().includes(query)) ||
-          (task.lead && task.lead.toLowerCase().includes(query)) ||
-          (task.account && task.account.toLowerCase().includes(query)) ||
+          (task.lead && task.lead.name.toLowerCase().includes(query)) ||
+          (task.account && task.account.name.toLowerCase().includes(query)) ||
           (task.assignees && task.assignees.some(assignee => 
             assignee.name.toLowerCase().includes(query)))
         )
@@ -267,9 +285,8 @@ const TaskManagement = () => {
               <Calendar size={12} />
               <span>Created: {new Date(task.created_at).toLocaleDateString()}</span>
             </div>
-            <div className="text-xs">
-              Assigned by: #{task.assigned_by}
-            </div>
+            
+            
           </div>
         )}
       </div>
@@ -314,20 +331,19 @@ const TaskManagement = () => {
     });
   };
 
+  
+
   const handleDrop = (e, targetColumnId) => {
     e.preventDefault();
     const sourceColumnId = dragItem.current.columnId;
     const taskId = dragItem.current.taskId;
 
     if (sourceColumnId !== targetColumnId) {
-      // Find the task
+
       const sourceColumn = columns.find(col => col.id === sourceColumnId);
       const movedTask = sourceColumn.tasks.find(task => task.id === taskId);
-      
-      // Update task status based on new column
+
       const newStatus = getStatusFromColumnId(targetColumnId);
-      
-      // Optimistic UI update
       const newColumns = columns.map(column => {
         if (column.id === sourceColumnId) {
           return {
@@ -350,8 +366,7 @@ const TaskManagement = () => {
       });
 
       setColumns(newColumns);
-      
-      // Update the backend
+
       dispatch(updateTaskStatus({
         taskId: taskId,
         status: newStatus
@@ -542,7 +557,7 @@ const TaskManagement = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{task.title}</div>
                       <div className="text-sm text-gray-500">
-                        {task.lead ? `Lead: ${task.lead}` : (task.contact ? `Contact: ${task.contact.name}` : 'No assignment')}
+                        {task.lead ? `Lead: ${task.lead.lead_id}` : (task.contact ? `Contact: ${task.contact.name}` : 'No assignment')}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -651,6 +666,7 @@ const TaskManagement = () => {
                 task={selectedTask} 
                 onClose={closeTaskDetailView} 
                 onDelete={handleDeleteTask}
+                onChange ={handleChange}
               />
             </div>
           </div>

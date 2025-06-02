@@ -29,7 +29,7 @@ export const addTeam = createAsyncThunk('teams/AddTeam',async(data,{rejectWithVa
         const response = await axios.post(`http://${subdomain}.localhost:8000/team/`,data,{
             headers: { Authorization: `Bearer ${token}` },
             });
-            return response.data.message;
+            return response.data.team;
 
         }catch(error){
             console.error("Error adding team:", error.response?.data || error.message);

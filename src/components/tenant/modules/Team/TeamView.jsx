@@ -23,6 +23,7 @@ import Navbar from '../../../common/Navbar';
 import TeamForm from './TeamForm';
 import { addRole } from '../../../../redux/slice/roleSlice';
 import { addMember } from './TeamDetailView';
+import DashboardLayout from '../../dashboard/DashbordLayout';
 
 
 
@@ -83,7 +84,7 @@ const onSubmit = async (data) => {
 
 const handleClickView = (team_id)=>{
     setTimeout(()=>{
-        navigate(`/setting/team/teams/${team_id}`)
+        navigate(`/dashboard/team/teams/${team_id}`)
     },500)
 
 }
@@ -99,8 +100,8 @@ const handleDelete = (team_id)=>{
 }
 
 return (
-    <SettingsLayout>
-    <Navbar />
+    <DashboardLayout>
+
     <div className="bg-gray-100 min-h-screen p-6">
       <div className="container mx-auto">
         {/* Header Section */}
@@ -211,7 +212,7 @@ return (
         )}
       </div>
     </div>
-    </SettingsLayout>
+    </DashboardLayout>
   );
 
  

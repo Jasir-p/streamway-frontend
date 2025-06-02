@@ -8,6 +8,7 @@ import { useToast } from '../../../../common/ToastNotification';
 import formatTimeAgo from '../../../../utils/formatTimeAgo';
 import userprofile from "../../../../../assets/user-profile.webp";
 import { addLeads } from '../../../../../redux/slice/leadsSlice';
+import EnquiryDetails from './EnqueryDetail';
 
 const WebEnquirerComponent = () => {
   const dispatch = useDispatch();
@@ -23,6 +24,7 @@ const WebEnquirerComponent = () => {
   const [currentEnquiry, setCurrentEnquiry] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isEnquiryDetails, setIsEnquiryDetails] = useState(false);
 
 
   useEffect(() => {
@@ -140,7 +142,7 @@ const WebEnquirerComponent = () => {
   return (
     <DashboardLayout>
       <div className="bg-gray-50 min-h-screen p-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-[95%] mx-auto">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             {/* Header */}
             <div className="border-b border-gray-200 p-6">
@@ -166,6 +168,7 @@ const WebEnquirerComponent = () => {
                       : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   }`}
                 >
+                  <UserPlus size={16} />
                   Create Lead
                 </button>
                 
@@ -283,13 +286,21 @@ const WebEnquirerComponent = () => {
                             >
                               <Trash2 size={16} />
                             </button>
-                            <button className="text-gray-600 hover:text-gray-900 flex items-center">
+                            <button 
+                              className="text-blue-500 hover:text-blue-700 flex items-center"
+                              onClick={() => {
+                                setIsEnquiryDetails(true);
+                                setCurrentEnquiry(enquiry);
+                              }}
+                            >
                               <Eye size={16} />
                             </button>
                           </div>
                         </td>
                       </tr>
+                      
                     ))
+                    
                   ) : (
                     <tr>
                       <td colSpan={10} className="px-6 py-4 text-center text-gray-500">
@@ -321,7 +332,7 @@ const WebEnquirerComponent = () => {
         
         {/* Assign Modal */}
         {showAssignModal && (
-          <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
               <div className="p-6 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-800">Assign Lead{currentEnquiry ? '' : 's'}</h3>
@@ -379,6 +390,9 @@ const WebEnquirerComponent = () => {
           </div>
         )}
       </div>
+      {isEnquiryDetails && currentEnquiry && (
+              <EnquiryDetails isOpen={isEnquiryDetails} details={currentEnquiry} onClose={() => setIsEnquiryDetails(false)} />
+            )}
     </DashboardLayout>
   );
 };

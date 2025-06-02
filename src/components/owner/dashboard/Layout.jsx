@@ -18,7 +18,7 @@ import {
 const menuItems = [
     { id: 'dashboard', label: 'Dashboard', path: '/admin/dashboard' },
     { id: 'tenants', label: 'Tenant Management', path: '/admin/tenants' },
-    { id: 'billing', label: 'Billing & Subscriptions', path: '/admin/billing' },
+    { id: 'billing', label: 'Billing & Subscriptions', path: '/admin/billings' },
     { id: 'users', label: 'User Management', path: '/admin/users' },
     { id: 'roles', label: 'Roles & Permissions', path: '/admin/roles' },
     { id: 'workflows', label: 'Workflow Settings', path: '/admin/workflows' },

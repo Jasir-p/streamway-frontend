@@ -17,6 +17,8 @@ import {
 import Layout from "../dashboard/Layout";
 import { useParams } from "react-router-dom";
 import { fetchTenantById, handleActive } from "../../../Intreceptors/TenantHandleApi";
+import { editTenants } from "../../../redux/slice/projectadmin/CompanySlice";
+import { useDispatch } from "react-redux";
 
 export default function TenantDetailView() {
   const { tenant_id } = useParams();
@@ -27,6 +29,7 @@ export default function TenantDetailView() {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [userCount, setUserCount] = useState(0);
+  const dispatch = useDispatch()
   
   useEffect(() => {
     const fetchTenantData = async () => {
@@ -125,15 +128,12 @@ export default function TenantDetailView() {
   };
 
   const handleSaveChanges = async () => {
+    console.log(editData);
+    
     try {
-      // In a real app, this would be an API call:
-      // await fetch(`/api/tenants/${tenant.id}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(editData)
-      // });
+      dispatch(editTenants({tenant_id,data:editData}))
       
-      setTenant(editData);
+      // setTenant(editData);
       setIsEditing(false);
     } catch (err) {
       setError("Failed to save changes");
@@ -340,13 +340,9 @@ export default function TenantDetailView() {
                 Schema Name
               </label>
               {isEditing ? (
-                <input
-                  type="text"
-                  name="schema_name"
-                  value={editData.schema_name}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
+                <div className="text-gray-900 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                {tenant.schema_name}
+              </div>
               ) : (
                 <div className="text-gray-900 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200">
                   {tenant.schema_name}

@@ -1,3 +1,4 @@
+import { data } from "react-router-dom";
 import subdomainInterceptors from "./getSubdomainInterceptors"
 
 export const assignToContact = async(data)=>{
@@ -50,3 +51,24 @@ export const deleteCustomFields = async(account_id,data)=>{
         return error
     }
 }
+export const AddNote = async (data) => {
+    try {
+      const response = await subdomainInterceptors.post('/api/notes/', data);
+      return response.data; 
+    } catch (error) {
+      return Promise.reject(error.response?.data || error.message);
+    }
+  };
+  
+export const assignUserToAccount = async (data) =>
+    {
+        try {
+            const response = await subdomainInterceptors.patch('/api/assign-to-account/', data);
+            return response;
+            } catch (error) {
+                return Promise.reject(error.response?.data || error.message);
+                }
+                }
+
+
+    

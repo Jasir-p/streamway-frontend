@@ -23,7 +23,8 @@ import DashboardLayout from '../../dashboard/DashbordLayout';
 import { useParams } from 'react-router-dom';
 import { fetchAccountByID } from '../../../../Intreceptors/CustomerApi';
 import CustomFieldModal from './CustomeField';
-import { addCustomFields,deleteCustomFields } from '../../../../Intreceptors/CustomerApi';
+import { addCustomFields, deleteCustomFields, AddNote } from '../../../../Intreceptors/CustomerApi';
+import { useSelector } from 'react-redux';
 
 
 export default function AccountDetail() {
@@ -35,8 +36,12 @@ export default function AccountDetail() {
   const [newFieldValue, setNewFieldValue] = useState('');
   const [customFields, setCustomFields] = useState([]);
   const [editingField, setEditingField] = useState(null);
-  const [deletedKey, setDeletedKey]= useState(null)
-  
+  const [deletedKey, setDeletedKey] = useState(null);
+  const [noteText, setNoteText] = useState('');
+  const userId = useSelector((state) => state.profile.id);
+  const role = useSelector((state) => state.auth.role);
+  const [change, setChange] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -44,14 +49,14 @@ export default function AccountDetail() {
         console.log(res);
         
         setAccount(res);
-        setCustomFields(res?.custome_fields)
+        setCustomFields(res?.custome_fields || {});
       } catch (error) {
         console.error(error);
       }
     };
 
     fetchData();
-  }, [account_id]);
+  }, [account_id, change]);
   
   const account = {
     id: 1,
@@ -69,28 +74,53 @@ export default function AccountDetail() {
     updatedAt: "2025-04-10T16:45:00Z"
   };
   
-  // Function to add a new custom field
+
+  const [error, setError] = useState('');
+  
+  const handleNoteSubmit = async() => {
+    const wordCount = noteText.trim().split(/\s+/).length;
+    if (wordCount < 5) {
+      setError("Note must be at least 5 words.");
+      return;
+    }
+    
+    const created_by = role !== 'owner' ? userId : null;
+    const data = {
+      created_by: created_by,
+      account: account_id,
+      notes: noteText
+    };
+    console.log(data);
+    
+    const res = await AddNote(data);
+    setNoteText("");
+    setError("");
+    setChange(!change);
+    console.log("Submitting note:", noteText);
+  };
+  
   const addCustomField = () => {
     if (newFieldName.trim() === '') return;
     
     const newField = {
-  
       key: newFieldName,
       value: newFieldValue
     };
-    addCustomFields(account_id,newField)
+    addCustomFields(account_id, newField);
 
     setNewFieldName('');
     setNewFieldValue('');
     setShowCustomFieldModal(false);
+    setChange(!change);
   };
   
-  // Function to delete a custom field
+
   const deleteCustomField = (key) => {
-    const data ={
-      key:key
-    }
-    deleteCustomFields(account_id,data)
+    const data = {
+      key: key
+    };
+    deleteCustomFields(account_id, data);
+    setChange(!change); 
   };
   
 
@@ -99,7 +129,7 @@ export default function AccountDetail() {
       key: key,   
       name: key,  
       value: value,
-      is_Editing:true 
+      is_Editing: true 
     });
   };
   
@@ -108,9 +138,10 @@ export default function AccountDetail() {
   const saveEditedField = () => {
     if (!editingField) return;
     
-    addCustomFields(account_id,editingField)
+    addCustomFields(account_id, editingField);
     
     setEditingField(null);
+    setChange(!change); // Toggle change to trigger re-fetch
   };
   console.log(customFields);
   
@@ -127,16 +158,7 @@ export default function AccountDetail() {
     { id: 3, name: "Expansion Project", stage: "Discovery", amount: 250000, closeDate: "2025-08-01", probability: 30 }
   ];
   
-  const tasks = [
-    { id: 1, title: "Schedule follow-up meeting", dueDate: "2025-05-05", status: "open", priority: "high" },
-    { id: 2, title: "Send proposal document", dueDate: "2025-04-30", status: "completed", priority: "medium" },
-    { id: 3, title: "Prepare quarterly review", dueDate: "2025-06-15", status: "open", priority: "medium" }
-  ];
-  
-  const notes = [
-    { id: 1, content: "Client is interested in expanding their current subscription plan.", createdBy: "John Smith", createdAt: "2025-04-20T14:30:00Z" },
-    { id: 2, content: "Met with technical team to discuss integration requirements.", createdBy: "Sarah Williams", createdAt: "2025-04-15T11:15:00Z" }
-  ];
+
   
   const activities = [
     { id: 1, type: "note", date: "2025-04-20T14:30:00Z", content: "Client is interested in expanding their current subscription plan.", user: "John Smith" },
@@ -146,11 +168,13 @@ export default function AccountDetail() {
   ];
 
   // Statistics summaries
+  const openTasks = accounts?.tasks || []; // Ensure tasks is an array
+
   const stats = {
     openOpportunities: opportunities.filter(opp => opp.stage !== "Closed Won" && opp.stage !== "Closed Lost").length,
     totalValue: opportunities.reduce((sum, opp) => sum + opp.amount, 0),
     contactCount: contacts.length,
-    openTaskCount: tasks.filter(task => task.status === "open").length
+    openTaskCount: openTasks.filter(task => task.status !== "COMPLETED").length
   };
 
   return (
@@ -363,13 +387,11 @@ export default function AccountDetail() {
                                   </div>
                                 ) : (
                                   <>
-
                                     <div>
                                       <div className="text-sm text-gray-500">{key}:</div>
                                       <p className="mt-1 text-sm text-gray-900">{value}</p>
                                     </div>
                                     <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
-
                                       <button 
                                         onClick={() => startEditingField(key, value)}
                                         className="p-1 text-blue-600 hover:text-blue-800"
@@ -478,7 +500,7 @@ export default function AccountDetail() {
                 {/* Opportunities Tab */}
                 {activeTab === 'opportunities' && (
                   <div>
-                    {/* <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-medium text-gray-900">Opportunities</h3>
                       <button className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700">
                         <Plus className="h-4 w-4 mr-1" />
@@ -509,7 +531,7 @@ export default function AccountDetail() {
                           ))}
                         </tbody>
                       </table>
-                    </div> */}
+                    </div>
                   </div>
                 )}
                 
@@ -525,18 +547,18 @@ export default function AccountDetail() {
                     </div>
                     
                     <div className="space-y-4">
-                      {tasks.map((task) => (
+                      {(accounts?.tasks || []).map((task) => (
                         <div key={task.id} className="bg-white border border-gray-200 rounded-md shadow-sm p-4">
                           <div className="flex items-start justify-between">
                             <div className="flex items-start">
                               <input
                                 type="checkbox"
                                 className="h-4 w-4 text-blue-600 rounded border-gray-300 mt-1"
-                                checked={task.status === 'completed'}
+                                checked={task.status === 'COMPLETED'}
                                 readOnly
                               />
                               <div className="ml-3">
-                                <p className={`text-sm font-medium ${task.status === 'completed' ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                                <p className={`text-sm font-medium ${task.status === 'COMPLETED' ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                                   {task.title}
                                 </p>
                                 <div className="mt-1 flex items-center space-x-2">
@@ -544,11 +566,11 @@ export default function AccountDetail() {
                                     Due: {new Date(task.dueDate).toLocaleDateString()}
                                   </span>
                                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                    task.priority === 'high' ? 'bg-red-100 text-red-800' :
-                                    task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                    task.priority === 'HIGH' ? 'bg-red-100 text-red-800' :
+                                    task.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
                                     'bg-green-100 text-green-800'
                                   }`}>
-                                    {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                                    {task.priority.charAt(0) + task.priority.slice(1).toLowerCase()}
                                   </span>
                                 </div>
                               </div>
@@ -559,10 +581,12 @@ export default function AccountDetail() {
                           </div>
                         </div>
                       ))}
+                      {(!accounts?.tasks || accounts.tasks.length === 0) && (
+                        <p className="text-center text-gray-500 py-4">No tasks found.</p>
+                      )}
                     </div>
                   </div>
                 )}
-                
                 {/* Notes Tab */}
                 {activeTab === 'notes' && (
                   <div>
@@ -571,11 +595,15 @@ export default function AccountDetail() {
                       <div>
                         <textarea
                           rows={3}
+                          value={noteText}
                           className="shadow-sm block w-full focus:ring-blue-500 focus:border-blue-500 sm:text-sm border border-gray-300 rounded-md"
+                          onChange={(e)=>setNoteText(e.target.value)}
                           placeholder="Write a note..."
                         />
+                        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
                         <div className="mt-2 flex justify-end">
-                          <button type="button" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                          <button type="button" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                           onClick={handleNoteSubmit}>
                             Save Note
                           </button>
                         </div>
@@ -583,15 +611,15 @@ export default function AccountDetail() {
                     </div>
                     
                     <div className="space-y-6">
-                      {notes.map((note) => (
+                      {accounts.notes.map((note) => (
                         <div key={note.id} className="bg-white border border-gray-200 rounded-md shadow-sm p-4">
                           <div className="flex items-start justify-between">
                             <div>
                               <div className="text-sm text-gray-500">
-                                {note.createdBy} · {new Date(note.createdAt).toLocaleString()}
+                                {note.created_by?.name|| "Owner"}({note.created_by?.role.name}) · {new Date(note.created_at).toLocaleString()}
                               </div>
                               <div className="mt-2 text-sm text-gray-900">
-                                {note.content}
+                                {note.notes}
                               </div>
                             </div>
                             <button className="text-gray-400 hover:text-gray-500">

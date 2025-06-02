@@ -8,6 +8,8 @@ import ContactForm from './ContactForm';
 import { UserDropdown } from '../../../common/ToolBar';
 import { assignToContact } from '../../../../Intreceptors/CustomerApi';
 import { useToast } from '../../../common/ToastNotification';
+import { CategoryDropdown } from '../../../common/EmailCategory';
+import { MassMail } from '../../../../Intreceptors/MassMailapi';
 
 
  
@@ -46,6 +48,9 @@ const ContactView = () => {
     const role = useSelector((state) => state.auth.role);
   console.log(isModal);
   const confirmationRef = useRef(null);
+
+  const [emailCategory, setEmailCategory] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('')
   const actionConfigs = {
     mass_email: {
       title: "Send Mass Email",
@@ -109,7 +114,11 @@ const ContactView = () => {
     if (action === 'assign') {
       setUserDropdown(true);
       
-    } else {
+    }
+    if (action === 'mass_email') {
+      setEmailCategory(true)
+    }
+     else {
       setShowConfirmation(true);
     }
     
@@ -131,6 +140,16 @@ const handleBulkAction = async(action) => {
   if (action === 'delete') {
     dispatch(deleteContacts(selectedContacts));
     setSelectedContacts([]);
+  }
+  if (action === 'mass_email') {
+    console.log("working");
+    
+    const data = {
+      "to_contacts" :selectedContacts,
+      "category":selectedCategory
+    }
+    const response = MassMail(data,{userId,role,dispatch,showError,showSuccess})
+  
   }
   if (action === 'assign') {
     const data = {'assigned_to':assignedTo,
@@ -178,6 +197,14 @@ const handleBulkAction = async(action) => {
       setSortOrder('asc');
     }
   };
+
+  const selctMailCategory = (category)=>{
+    setEmailCategory(false)
+    console.log("halooo",category)
+    setSelectedCategory(category)
+    setShowConfirmation(true)
+
+  }
   console.log(selectedContacts);
   let filteredContacts = contacts.filter(contact => {
     const matchesSearch =
@@ -257,6 +284,12 @@ const handleBulkAction = async(action) => {
                         onSelect={SelectedUser} 
                         onClose={() => setUserDropdown(false)} 
                       />
+                    )}
+                    {emailCategory &&(
+                      <CategoryDropdown
+                      isOpen={emailCategory}
+                      onSelect={selctMailCategory}
+                      onClose={()=>setEmailCategory(false)}/>
                     )}
             </div>
             )}

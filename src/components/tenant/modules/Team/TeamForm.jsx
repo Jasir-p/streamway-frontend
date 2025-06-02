@@ -11,9 +11,9 @@ const { users, loading, error } = useSelector((state) => state.users);
 const dispatch = useDispatch();
 const checkMade = (data)=>{
   const selectedFieldsFromTeam = {
-    name: team.name,
-    team_lead: String(team.team_lead?.id),
-    description:team.description,
+    name: team?.name,
+    team_lead: String(team?.team_lead?.id),
+    description:team?.description,
   };
   console.log(selectedFieldsFromTeam)
   if(isEqual(data,selectedFieldsFromTeam)){
