@@ -145,21 +145,7 @@ export default function AccountDetail() {
   };
   console.log(customFields);
   
-  // Rest of your existing code...
-  const contacts = [
-    { id: 1, firstName: "Jane", lastName: "Doe", title: "CEO", email: "jane.doe@acmecorp.com", isPrimary: true },
-    { id: 2, firstName: "Robert", lastName: "Smith", title: "CTO", email: "robert.smith@acmecorp.com", isPrimary: false },
-    { id: 3, firstName: "Alice", lastName: "Johnson", title: "Marketing Director", email: "alice.johnson@acmecorp.com", isPrimary: false }
-  ];
-  
-  const opportunities = [
-    { id: 1, name: "Enterprise Solution", stage: "Proposal", amount: 150000, closeDate: "2025-06-30", probability: 60 },
-    { id: 2, name: "Software License Renewal", stage: "Negotiation", amount: 75000, closeDate: "2025-05-15", probability: 80 },
-    { id: 3, name: "Expansion Project", stage: "Discovery", amount: 250000, closeDate: "2025-08-01", probability: 30 }
-  ];
-  
 
-  
   const activities = [
     { id: 1, type: "note", date: "2025-04-20T14:30:00Z", content: "Client is interested in expanding their current subscription plan.", user: "John Smith" },
     { id: 2, type: "task", date: "2025-04-18T09:45:00Z", content: "Sent proposal document", user: "John Smith", status: "completed" },
@@ -171,9 +157,9 @@ export default function AccountDetail() {
   const openTasks = accounts?.tasks || []; // Ensure tasks is an array
 
   const stats = {
-    openOpportunities: opportunities.filter(opp => opp.stage !== "Closed Won" && opp.stage !== "Closed Lost").length,
-    totalValue: opportunities.reduce((sum, opp) => sum + opp.amount, 0),
-    contactCount: contacts.length,
+    openOpportunities: accounts?.deals?.filter(opp => opp.stage !== "Closed Won" && opp.stage !== "Closed Lost").length,
+    totalValue: accounts?.deals?.reduce((sum, opp) => sum + opp.amount, 0),
+    contactCount: accounts?.contacts.length,
     openTaskCount: openTasks.filter(task => task.status !== "COMPLETED").length
   };
 
@@ -239,7 +225,7 @@ export default function AccountDetail() {
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Total Value</dt>
                     <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">${stats.totalValue.toLocaleString()}</div>
+                      <div className="text-2xl font-semibold text-gray-900">${stats?.totalValue?.toLocaleString()}</div>
                     </dd>
                   </dl>
                 </div>
@@ -419,33 +405,37 @@ export default function AccountDetail() {
             </div>
             {/* Contacts Section */}
             <div className="bg-white shadow rounded-lg">
-              <div className="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">Contacts</h3>
-                <button className="inline-flex items-center p-1.5 border border-transparent rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="px-4 py-5 sm:p-6">
-                <div className="space-y-4">
-                  {contacts.map(contact => (
-                    <div key={contact.id} className="border-b border-gray-200 pb-4 last:border-0 last:pb-0">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-900">{contact.firstName} {contact.lastName}</h4>
-                          <p className="text-xs text-gray-500">{contact.title}</p>
-                        </div>
-                        {contact.isPrimary && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Primary
-                          </span>
-                        )}
-                      </div>
-                      <a href={`mailto:${contact.email}`} className="mt-1 text-sm text-blue-600 hover:text-blue-800">{contact.email}</a>
-                    </div>
-                  ))}
-                </div>
-              </div>
+  <div className="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
+    <h3 className="text-lg font-medium leading-6 text-gray-900">Contacts</h3>
+    <button className="inline-flex items-center p-1.5 border border-transparent rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+      <Plus className="h-5 w-5" />
+    </button>
+  </div>
+  <div className="px-4 py-5 sm:p-6">
+    <div className="space-y-4">
+      {(accounts?.contacts || []).map(contact => (
+        <div key={contact.id} className="border-b border-gray-200 pb-4 last:border-0 last:pb-0">
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="text-sm font-medium text-gray-900">{contact.name}</h4>
+              <p className="text-xs text-gray-500">{contact.department}</p>
             </div>
+            {contact.is_primary_contact && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                Primary
+              </span>
+            )}
+          </div>
+          <a href={`mailto:${contact.email}`} className="block mt-1 text-sm text-blue-600 hover:text-blue-800">{contact.email}</a>
+          <a href={`tel:${contact.phone_number}`} className="block mt-1 text-sm text-blue-600 hover:text-blue-800">{contact.phone_number}</a>
+        </div>
+      ))}
+      {(!accounts?.contacts || accounts.contacts.length === 0) && (
+        <p className="text-center text-gray-500 py-4">No contacts found.</p>
+      )}
+    </div>
+  </div>
+</div>
           </div>
           
           {/* Right Column - Tabs for Opportunities, Tasks, Notes, Activity */}
@@ -453,6 +443,16 @@ export default function AccountDetail() {
             <div className="bg-white shadow rounded-lg">
               <div className="border-b border-gray-200">
                 <nav className="flex -mb-px">
+                   {/* <button
+                    onClick={() => setActiveTab('contacts')}
+                    className={`whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm ${
+                      activeTab === 'contacts'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    Contacts
+                  </button> */}
                   <button
                     onClick={() => setActiveTab('opportunities')}
                     className={`whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm ${
@@ -473,6 +473,7 @@ export default function AccountDetail() {
                   >
                     Tasks
                   </button>
+                 
                   <button
                     onClick={() => setActiveTab('notes')}
                     className={`whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm ${
@@ -497,7 +498,7 @@ export default function AccountDetail() {
               </div>
               
               <div className="p-6">
-                {/* Opportunities Tab */}
+               
                 {activeTab === 'opportunities' && (
                   <div>
                     <div className="flex justify-between items-center mb-4">
@@ -520,9 +521,9 @@ export default function AccountDetail() {
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {opportunities.map((opportunity) => (
+                          {accounts?.deals?.map((opportunity) => (
                             <tr key={opportunity.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{opportunity.name}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{opportunity.title}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{opportunity.stage}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${opportunity.amount.toLocaleString()}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(opportunity.closeDate).toLocaleDateString()}</td>
@@ -587,7 +588,9 @@ export default function AccountDetail() {
                     </div>
                   </div>
                 )}
+                
                 {/* Notes Tab */}
+                
                 {activeTab === 'notes' && (
                   <div>
                     <div className="mb-6">

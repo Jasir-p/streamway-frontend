@@ -1,88 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MeetingsList from './Meetings';
 import MeetingForm from './AddMeeting';
 import DashboardLayout from '../../../dashboard/DashbordLayout';
+import { useDispatch, useSelector } from 'react-redux';
+import { addMeeting, fetchMeeting,deleteMeeting,patchMeeting } from '../../../../../redux/slice/MeetingSlice';
+import Swal from 'sweetalert2';
 
-
-// Main App Component - Orchestrates between MeetingsList and MeetingForm
 const MeetingApp = () => {
-  // Sample data - same as original
-  const [meetings, setMeetings] = useState([
-    {
-      id: 1,
-      title: "Product Strategy Review",
-      type: "meeting",
-      date: "2024-05-23",
-      time: "10:00",
-      duration: "60",
-      attendees: ["john@example.com", "jane@example.com", "mike@example.com"],
-      location: "Conference Room A",
-      mode: "in-person",
-      status: "scheduled",
-      description: "Quarterly product strategy review and planning session"
-    },
-    {
-      id: 2,
-      title: "Client Onboarding Call",
-      type: "call",
-      date: "2024-05-24",
-      time: "14:30",
-      duration: "30",
-      attendees: ["sarah@example.com", "david@example.com"],
-      location: "https://zoom.us/j/123456789",
-      mode: "virtual",
-      status: "confirmed",
-      description: "Initial onboarding call with new client"
-    }
-  ]);
+  const dispatch = useDispatch();
 
-  const [currentView, setCurrentView] = useState('list'); // 'list' or 'form'
+
+  const meetings = useSelector((state) => state.meeting.meetings || []);
+  const loading = useSelector((state) => state.meeting.loading);
+  const error = useSelector((state) => state.meeting.error);
+
+  const [currentView, setCurrentView] = useState('list');
   const [editingMeeting, setEditingMeeting] = useState(null);
 
-  // Handle creating new meeting
+
+  useEffect(() => {
+    dispatch(fetchMeeting());
+  }, [dispatch]);
+
   const handleCreateNew = () => {
     setEditingMeeting(null);
     setCurrentView('form');
   };
 
-  // Handle editing existing meeting
   const handleEdit = (meeting) => {
     setEditingMeeting(meeting);
     setCurrentView('form');
   };
 
-  // Handle saving meeting (both create and update)
   const handleSave = (meetingData) => {
     if (editingMeeting) {
-      // Update existing meeting
-      setMeetings(prev => prev.map(m => m.id === meetingData.id ? meetingData : m));
+      // Update logic here if needed
+      setCurrentView('list');
+      setEditingMeeting(null);
     } else {
-      // Create new meeting
-      setMeetings(prev => [...prev, meetingData]);
-    }
-    
-    // Return to list view and clear editing state
-    setCurrentView('list');
-    setEditingMeeting(null);
-  };
-
-  // Handle deleting meeting
-  const handleDelete = (meetingId) => {
-    if (window.confirm('Are you sure you want to delete this meeting?')) {
-      setMeetings(prev => prev.filter(m => m.id !== meetingId));
+      dispatch(addMeeting(meetingData))
+        .unwrap()
+        .then(() => {
+          setCurrentView('list');
+          setEditingMeeting(null);
+        })
+        .catch((error) => {
+          console.error('Failed to add meeting:', error);
+        });
     }
   };
 
-  // Handle canceling form (return to list)
+const handleDelete = (meetingId) => {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'You won’t be able to revert this!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      dispatch(deleteMeeting(meetingId)).then((res) => {
+        if (res.meta.requestStatus === 'fulfilled') {
+          Swal.fire('Deleted!', 'The meeting has been deleted.', 'success');
+        } else {
+          Swal.fire('Error', 'Failed to delete the meeting.', 'error');
+        }
+      });
+    }
+  });
+};
+
   const handleCancel = () => {
     setCurrentView('list');
     setEditingMeeting(null);
   };
 
-  // Render appropriate view based on current state
   return (
     <DashboardLayout>
-      {currentView === 'list' ? (
+      {loading ? (
+        <div className="text-center py-10 text-gray-500">Loading meetings...</div>
+      ) : currentView === 'list' ? (
         <MeetingsList 
           meetings={meetings}
           onEdit={handleEdit}

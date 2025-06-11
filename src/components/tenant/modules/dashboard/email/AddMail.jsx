@@ -4,7 +4,7 @@ import { addEmail } from '../../../../../redux/slice/EmailSlice';
 import { useDispatch, useSelector } from 'react-redux'
 import { useToast } from '../../../../common/ToastNotification';
 
-export default function ComposeEmailModal({ isOpen, onClose, onSelectContact,contacts }) {
+export default function ComposeEmailModal({ isOpen, onClose, onSelectContact=null,contacts,isType=false }) {
   const [contact, setContact] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [subject, setSubject] = useState('');
@@ -75,6 +75,7 @@ const handleSubmit = async(e) =>
               <div className="flex-1 flex items-center">
                 <input
                   type="text"
+                  disabled={isType}
                   className="flex-1 border-b border-gray-300 focus:border-blue-500 focus:outline-none py-1"
                   placeholder="Enter email address"
                   value={contact || ''}
@@ -82,7 +83,8 @@ const handleSubmit = async(e) =>
                     setContact(e.target.value)
                   }
                 />
-                <button
+                {!isType &&(
+                    <button
                  type="button"
                   onClick={onSelectContact}
                   className="ml-2 text-blue-600 hover:text-blue-800"
@@ -90,6 +92,8 @@ const handleSubmit = async(e) =>
                 >
                   Select Contact
                 </button>
+                )}
+                
               </div>
             </div>
 

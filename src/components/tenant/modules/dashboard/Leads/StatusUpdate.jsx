@@ -20,12 +20,12 @@ export default function StatusUpdateConfirmation({ selectedLeads, onUpdateComple
   
   const statusOptions = [
     "new",
-    "Contacted",
+    "contacted",
     "follow_up",
     "Proposal",
     "Negotiation",
     "converted",
-    "Closed Lost"
+    "lost"
   ];
 
   const handleStatusChange = (e) => {

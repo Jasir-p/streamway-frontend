@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, Users, Edit, Trash2, MapPin, Video, Phone, Search, Filter, Plus } from 'lucide-react';
+import { Calendar, Clock, Users, Edit, Trash2, MapPin, Video, Phone, Search, Filter, Plus, BadgeCheck,LucideUserPlus2} from 'lucide-react';
 
 // UI Components
 const Button = ({ children, variant = "primary", size = "md", onClick, disabled = false, className = "", type = "button" }) => {
@@ -64,26 +64,24 @@ const MeetingCard = ({ meeting, onEdit, onDelete }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
+const formatDate = (startTime) => {
+  const date = new Date(startTime);
+  return date.toLocaleDateString('en-US', { 
+    weekday: 'short', 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+};
 
-  const formatTime = (timeString) => {
-    const [hours, minutes] = timeString.split(':');
-    const time = new Date();
-    time.setHours(parseInt(hours), parseInt(minutes));
-    return time.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
-  };
+const formatTime = (startTime) => {
+  const date = new Date(startTime);
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+};
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -106,20 +104,29 @@ const MeetingCard = ({ meeting, onEdit, onDelete }) => {
       
       <div className="space-y-2 text-sm text-gray-600">
         <div className="flex items-center space-x-2">
+          <LucideUserPlus2 size={16} />
+          <span>{meeting.contact?.name}</span>
+          <span >{meeting.contact?.department}</span>
+
+          
+        
+        </div>
+        <div className="flex items-center space-x-2">
           <Calendar size={16} />
-          <span>{formatDate(meeting.date)}</span>
+          <span>{formatDate(meeting.start_time)}</span>
           <Clock size={16} />
-          <span>{formatTime(meeting.time)} ({meeting.duration} min)</span>
+          <span>{formatTime(meeting.start_time)} ({meeting.duration} min)</span>
         </div>
         
-        <div className="flex items-center space-x-2">
-          {getModeIcon(meeting.mode)}
-          <span className="truncate">{meeting.location}</span>
-        </div>
+     
         
         <div className="flex items-center space-x-2">
           <Users size={16} />
-          <span>{meeting.attendees?.length || 0} attendees</span>
+          <span>{meeting.host?.name}</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <BadgeCheck size={16} />
+          <span>{meeting.created_by?.name || "Owner"}</span>
         </div>
       </div>
       

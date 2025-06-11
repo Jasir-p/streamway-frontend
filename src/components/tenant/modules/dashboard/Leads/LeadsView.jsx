@@ -12,9 +12,12 @@ import { useHasPermission } from '../../../../utils/PermissionCheck';
 import ConversionPermissionPopup from './ConvertPopup';
 import StatusDropdown from '../../../../common/StatusComponent';
 import StatusUpdateConfirmation from './StatusUpdate';
+import { useDropdown } from '../../customer/contact/hooks/Contactshooks';
+import AddLeadModal from './AddLead';
 
 const MondayStyleLeadsTable = () => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
+  const { isOpen, toggle, close } = useDropdown();
   const role = useSelector((state) => state.auth.role);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -87,7 +90,7 @@ const MondayStyleLeadsTable = () => {
       'Qualified': 'bg-green-500',
       'Negotiation': 'bg-orange-500',
       'converted': 'bg-emerald-500',
-      'Closed Lost': 'bg-red-500'
+      'lost': 'bg-red-500'
     };
     return statusColors[status] || 'bg-gray-500';
   };
@@ -132,9 +135,9 @@ const MondayStyleLeadsTable = () => {
 
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = 
-      lead.name.toLowerCase().includes(search.toLowerCase()) ||
-      lead.email.toLowerCase().includes(search.toLowerCase()) ||
-      lead.phone_number.includes(search);
+      lead?.name.toLowerCase().includes(search.toLowerCase()) ||
+      lead?.email.toLowerCase().includes(search.toLowerCase()) ||
+      lead?.phone_number.includes(search);
     
     const matchesStatus = !filters.status || lead.status === filters.status;
     
@@ -210,12 +213,23 @@ const MondayStyleLeadsTable = () => {
                 </span>
               </button>
               {canAddLead && (
-                <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition">
+                <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
+                onClick={toggle}>
                   + Add Lead
                 </button>
               )}
             </div>
           </div>
+          {
+            isOpen && (
+              <AddLeadModal
+              isOpen={isOpen}
+              onClose={close}
+              onChange ={()=>setChange(true)}/>
+            )
+              
+
+          }
 
           {showFilters && (
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">

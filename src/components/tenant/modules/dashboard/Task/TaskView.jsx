@@ -118,13 +118,18 @@ const TaskManagement = () => {
         contact_id: task.contact_id, // fixed from account_id
         lead: task.lead,
         lead_id: task.lead_id,
-        assignees: task.assigned_to_employee ? [
-          {
+        assignees: [
+          ...(task.assigned_to_employee ? [{
             id: task.assigned_to_employee.id,
             name: task.assigned_to_employee.name,
             role: task.assigned_to_employee.role
-          }
-        ] : [],
+          }] : []),
+          ...(task.assigned_to_team ? [{
+            id: task.assigned_to_team.id,
+            name: task.assigned_to_team.name,
+            role: 'Team' // or include team role if available
+          }] : [])
+        ],
         dueDate: task.created_at ? task.created_at.split('T')[0] : 'Not set',
         timeEstimate: '1h', // You can dynamically calculate if needed
         tags: [task.priority ? task.priority.toLowerCase() : 'medium'],

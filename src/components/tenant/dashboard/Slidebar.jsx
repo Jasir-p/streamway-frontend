@@ -49,8 +49,8 @@ function Sidebar() {
       items: [
         { icon: Users, text: 'Web Enquiry', path:"/dashboard/sale/enquiry" },
         { icon: Users, text: 'Leads', path:"/dashboard/sale/leads" },
-        { icon: Sparkles, text: 'Opportunities' },
-        { icon: BarChart3, text: 'Sales Pipeline' },
+        { icon: Sparkles, text: 'Opportunities', path:'/dashboard/sale/deals' },
+        { icon: BarChart3, text: 'Sales Pipeline',path:'/dashboard/sale/salespipeline' },
       ]
     },
     {

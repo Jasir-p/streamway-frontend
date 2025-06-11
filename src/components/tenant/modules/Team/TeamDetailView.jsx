@@ -11,6 +11,9 @@ import { useToast } from '../../../common/ToastNotification';
 import TeamForm from './TeamForm';
 import { updateTeam } from '../../../../redux/slice/TeamSlice';
 import DashboardLayout from '../../dashboard/DashbordLayout';
+import { UserDropdown } from '../../../common/ToolBar';
+import { partialUpdateTeam } from '../../../../redux/slice/TeamSlice';
+
 
 
 
@@ -65,6 +68,7 @@ const TeamDetailView = () => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const { register: registerEdit, handleSubmit: handleSubmitEdit, reset: resetEdit, formState: { errors: editErrors } } = useForm();
   const { users, error,status } = useSelector((state) => state.users);
+  const [modalType, setModalType] = useState(null);
   const dispatch = useDispatch();
   const { showSuccess, showError } = useToast();
   
@@ -78,6 +82,10 @@ const TeamDetailView = () => {
     tasks_pending: 0
   };
 
+  const handleModal = (type) =>{
+    setModalType(type);
+    setIsModalOpen(true);
+  }
   const fetchTeam = async () => {
     console.log("Fetching team with ID:", team_id);
     setLoading(true);
@@ -96,6 +104,23 @@ const TeamDetailView = () => {
     }
   };
 
+const onTeamLeadChange = async (data) =>{
+  setLoading(true);
+  const teamData ={
+    team_id: team_id,
+    team_lead: data.employee
+  }
+  try {
+  const result = await dispatch(partialUpdateTeam(teamData)).unwrap();
+  showSuccess('Team Lead updated successfully');
+  setIsModalOpen(false);
+  reset();
+} catch (err) {
+  console.error(err);
+  showError('Failed to update Team Lead');
+}
+
+}
   const onSubmit = async (data) => {
     setLoading(true);
     try {
@@ -287,7 +312,8 @@ const TeamDetailView = () => {
 
           <div className="w-full sm:w-1/4 mt-6 sm:mt-0">
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <button className="flex text-sm items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 w-full justify-center" onClick={() => setIsModalOpen(true)}>
+              <button className="flex text-sm items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-lg
+               hover:bg-blue-700 transition duration-200 w-full justify-center" onClick={() => handleModal('Member')}>
                 <Plus className="w-5 h-5" />
                 <span>Add Member</span>
               </button>
@@ -325,7 +351,7 @@ const TeamDetailView = () => {
           <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md animate-fadeIn">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">Add Member</h2>
+                <h2 className="text-xl font-semibold text-gray-800">{modalType}</h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -334,15 +360,15 @@ const TeamDetailView = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit(onSubmit)}>
+              <form onSubmit={handleSubmit(modalType === 'Member' ? onSubmit :onTeamLeadChange )}>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Add Members</label>
+                  
                   <select
                     {...register("employee", { required: "Member selection is required" })}
                     className="w-full border border-gray-300 rounded-2xl px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 focus:outline-none transition-all"
                     disabled={loading}
                   >
-                    <option value="">Select Members</option>
+                    <option value="">Select {modalType}</option>
                     {users.filter(user => (!team.team_lead || user.id !== team.team_lead.id)&& !members.some(member=>member.id ===user.id)).map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.name} ({user.role?.name || "No Role"})
@@ -438,7 +464,9 @@ const TeamDetailView = () => {
                         {team.team_lead.avatar ? (
                           <img src={team.team_lead.avatar} alt={team.team_lead.name} className="h-full w-full object-cover rounded-full" />
                         ) : (
-                          <span className="text-lg font-semibold">{team.team_lead.name.split(' ').map((n) => n[0]).join('')}</span>
+                          <span className="text-lg font-semibold">
+                            {team.team_lead.name.split(' ').map((n) => n[0]).join('')}
+                          </span>
                         )}
                       </div>
                       <div>
@@ -447,8 +475,19 @@ const TeamDetailView = () => {
                         <p className="text-sm text-gray-500">{team.team_lead.email || "No email"}</p>
                       </div>
                     </div>
+
+                    {/* Change Team Lead Button */}
+                    <div className="mt-3">
+                      <button
+                         onClick={() => handleModal('Team Lead')}
+                        className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                      >
+                        Change Team Lead
+                      </button>
+                    </div>
                   </div>
                 )}
+
                 
                 <h4 className="font-medium text-gray-700 mt-6 mb-2">Team Members</h4>
                 <ul className="space-y-4">
