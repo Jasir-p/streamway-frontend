@@ -31,7 +31,7 @@ export const fetchLeadsOwner = createAsyncThunk('leads/fetchLeadsOwner', async (
 export const addLeads = createAsyncThunk('leads/ leadsAdd', async (data, { rejectWithValue }) => {
     try {
         const response = await subdomainInterceptors.post("/api/leads/", data);
-        return response;
+        return response.data;
         } catch (error) {
             return rejectWithValue(error.message);
             }
@@ -107,8 +107,19 @@ const leadsSlice = createSlice({
                 .addCase(editLead.rejected, (state, action) => {
                     state.loading = false;
                     state.error = action.payload;
-                });
-                                }
+                })
+                .addCase(addLeads.pending, (state) =>
+                    {
+                        state.loading = true;
+                        state.error = null;
+                        }
+                        )
+                    .addCase(addLeads.fulfilled, (state, action) => {
+                        const newLead = action.payload.data;
+                        state.leads.push(newLead);
+                        state.loading = false;
+                    })
+                }
                             })
             
 

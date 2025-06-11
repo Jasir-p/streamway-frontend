@@ -132,14 +132,17 @@ export default function AccountList() {
     setActionToConfirm(action);
     
     if (action === 'assign') {
+      console.log("12");
+      
       setUserDropdown(true);
       
     } 
-    if(action === 'mass_email'){
+    else if(action === 'mass_email'){
       setEmailCategory(true)
 
     }
     else {
+      console.log("1233");
       setShowConfirmation(true);
     }
     

@@ -1,17 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import Sidebar from './Slidebar';
-
-import { Navigate } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
-import Navbar from '../../common/Navbar';
-import { useSelector,useDispatch } from 'react-redux';
-
-import InvoiceModal from '../modules/Payment/BillModal';
-import { fetchInVoiceStatus } from '../../../redux/slice/InvoiceSlice';
-import DashboardLayout from './DashbordLayout';
-
-
-
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   TrendingUp, 
@@ -32,22 +19,23 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,PieChart,Pie, Cell, LineChart, Line} from 'recharts';
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line
+} from 'recharts';
 
-
-
-function Dashboard() {
-  const dispatch = useDispatch();
-  const role=useSelector((state)=>state.auth.role)
-  const permission = useSelector((state) => state.auth.permissions);
-  const profile = useSelector((state) => state.profile.name);
-  const sub = localStorage.getItem("subdomain")
-  const [showModal, setShowModal] = useState(false);
-  useEffect(()=>{
-    dispatch(fetchInVoiceStatus());
-  },[])
-
-const [dateRange, setDateRange] = useState('This Month');
+const Dashboard = () => {
+  // Mock data - replace with actual API calls
+  const [dateRange, setDateRange] = useState('This Month');
   const [dashboardData, setDashboardData] = useState({
     totalLeadsThisMonth: 142,
     activeOpportunities: 28,
@@ -172,9 +160,9 @@ const [dateRange, setDateRange] = useState('This Month');
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-  return (
- <DashboardLayout>
 
+  return (
+    <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-8">
         <div className="flex justify-between items-center">
@@ -375,11 +363,8 @@ const [dateRange, setDateRange] = useState('This Month');
           </div>
         </div>
       </div>
-    
- </DashboardLayout>
+    </div>
   );
-}
-
-
+};
 
 export default Dashboard;

@@ -34,40 +34,10 @@ export default function InvoiceModal({onClose,invoices}) {
     return null
   }
 
-  const isExpired = new Date(invoice.dueDate) < new Date();
+  const isExpired = new Date(invoice.tenant_billing?.billing_expiry) < new Date();
   const showCloseButton = !(isExpired && invoice.status === "pending");
   
-  const closeModal = () => {
-    setIsOpen(false);
-    setShowDetails(false);
-  };
   
-  const showform = () => {
-    setShowForm(true);
-  };
-
-  const hidePaymentDetails = () => {
-    setShowDetails(false);
-  };
-  
-  const toggleExpired = () => {
-    setInvoice({
-      ...invoice,
-      dueDate: isExpired ? "2025-05-15" : "2025-04-30"
-    });
-  };
-  
-  const togglePaymentStatus = () => {
-    setInvoice({
-      ...invoice,
-      status: invoice.status === "paid" ? "pending" : "paid"
-    });
-    // Go back to info screen if paid
-    if (invoice.status === "pending") {
-      setShowDetails(false);
-    }
-  };
-
 
   return (
     <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4">
@@ -124,7 +94,8 @@ export default function InvoiceModal({onClose,invoices}) {
         <h3 className="text-lg font-medium text-gray-900 mb-1">New Invoice Available</h3>
         <p className="text-gray-500">
           A new invoice #{invoice.id} has been generated for your account.
-          Please complete payment by {invoice.dueDate}.
+          Please complete payment by { new Date(invoice.tenant_billing?.billing_expiry).toISOString().split('T')[0]
+}.
         </p>
       </div>
     ) : null}
@@ -139,7 +110,8 @@ export default function InvoiceModal({onClose,invoices}) {
               <div>
                 <p className="text-sm text-gray-500">Due Date</p>
                 <p className={`font-medium ${isExpired && invoice.status === "pending" ? "text-red-600" : ""}`}>
-                  {invoice.dueDate}
+                  {new Date(invoice.tenant_billing?.billing_expiry).toISOString().split('T')[0]
+}
                 </p>
               </div>
             </div>

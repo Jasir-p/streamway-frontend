@@ -12,21 +12,21 @@ function SettingSidebar() {
   
   const menuItems = [
     { id: 'general', icon: Settings, label: 'General', path: "/setting/genaral" },
-    { id: 'customization', icon: LayoutGrid, label: 'Customization', path: "" },
+
     { id: 'users', icon: Users, label: 'Users', path: "/setting/users" },
     { id: 'security', icon: Shield, label: 'Security', path: '/setting/security' },
-    { id: 'connections', icon: Link2, label: 'Connections', path: "" },
+
     { id: 'billing', icon: CreditCard, label: 'Billing', path: "/setting/payment" },
     { id: 'usage', icon: BarChart2, label: 'Usage Stats', path: "" },
-    { id: 'cleanup', icon: Archive, label: 'Tidy Up', path: "" },
+
     { id: 'lead_form', icon: LayoutGrid, label: 'Lead Form', path: "/setting/lead_form" },
-    { id: 'copier', icon: Copy, label: 'Cross Account Copier', path: "" }
+
   ];
   
   const sections = [
-    { title: 'General', items: menuItems.slice(0, 4) },
-    { title: 'Account', items: menuItems.slice(4, 7) },
-    { title: 'Management', items: menuItems.slice(7) }
+    { title: 'General', items: menuItems.slice(0, 3) },
+    { title: 'Account', items: menuItems.slice(3, 5) },
+    { title: 'Management', items: menuItems.slice(5 ) }
   ];
 
   return (

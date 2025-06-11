@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
+import defaultInterceptor from '../../../Intreceptors/defaultInterceptors';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../common/ToastNotification';
 
 const AdminLogin = () => {
   const [form, setForm] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const {showError}= useToast();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -11,11 +16,16 @@ const AdminLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: Replace with your actual login API call
+    
     try {
       console.log('Logging in with:', form);
-      // const response = await axios.post('/api/admin/login/', form);
+      const response = await defaultInterceptor.post('/api/admin-login/', form);
+      console.log(response);
+      navigate("/admin/dashboard")
+      
+      
     } catch (error) {
+      showError("Invalid username or password")
       console.error('Login failed', error);
     } finally {
       setLoading(false);

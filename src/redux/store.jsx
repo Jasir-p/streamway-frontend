@@ -20,6 +20,8 @@ import taskReducer from "./slice/TaskSlice";
 import invoiceSliceReducer from "./slice/InvoiceSlice";
 import emailSliceReducer from "./slice/EmailSlice";
 import billingSliceReducer from "./slice/projectadmin/tenantsBillingsSlice.jsx";
+import meetingSliceReducer from "./slice/MeetingSlice";
+import dealSliceReducer from "./slice/DealSlice";
 
 
 const persistConfigAuth = {
@@ -70,6 +72,8 @@ const store = configureStore({
     invoice:invoiceSliceReducer,
     emails:emailSliceReducer,
     billing :billingSliceReducer,
+    meeting :meetingSliceReducer,
+    deals:dealSliceReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

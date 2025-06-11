@@ -45,6 +45,8 @@ import NotificationsPage from "./components/tenant/modules/dashboard/notificatio
 import Billings from "./components/owner/tenants/Billings";
 import TenantBillingInvoices from "./components/owner/tenants/billing/BillingInvoices";
 import AdminLogin from "./components/owner/auth/AdminLogin";
+import SalesPipelineDashboard from "./components/tenant/modules/dashboard/Leads/SalesPipline";
+import DealsListPage from "./components/tenant/modules/dashboard/deals/DealsView";
 
 function App() {
   const location = useLocation();
@@ -52,11 +54,24 @@ function App() {
   const dispatch = useDispatch();
   
 
-  const shouldUseSubdomainProvider = !location.pathname.startsWith('/admin') && 
-                                   location.pathname !== '/' && 
-                                   location.pathname !== '/login' && 
-                                   location.pathname !== '/otp' && 
-                                   location.pathname !== '/signin';
+  const noSubdomainRoutes = [
+    "/login",
+    "/otp",
+    "/",
+    "/admin/dashboard",
+    "/admin/tenants",
+    "/admin/tenants/:tenant_id",
+    "/admin/billings",           
+    "/admin/billings/:billing_id", 
+    "/admin/login"               
+  ];
+
+  const shouldUseSubdomainProvider = !noSubdomainRoutes.some(route => {
+    if (!route.includes(":")) {
+      return location.pathname === route;
+    }
+    return matchPath({ path: route }, location.pathname) !== null;
+  });
 
   console.log('Current path:', location.pathname);
   console.log('Should use subdomain provider:', shouldUseSubdomainProvider);
@@ -78,6 +93,9 @@ function App() {
             <Route path="/dashboard/sale/leads" element={<ProtectedRoute><MondayStyleLeadsTable /></ProtectedRoute>} />
             <Route path="/dashboard/sale/leads/:lead_id/" element={<ProtectedRoute><LeadDetailPage /></ProtectedRoute>} />
             <Route path="/dashboard/sale/enquiry" element={<ProtectedRoute><WebEnquirerComponent /></ProtectedRoute>} />
+            <Route path="/dashboard/sale/deals" element={<ProtectedRoute><DealsListPage /></ProtectedRoute>} />
+            <Route path="/dashboard/sale/salespipeline" element={<ProtectedRoute><SalesPipelineDashboard /></ProtectedRoute>} />
+            
             <Route path="/dashboard/activity/task" element={<ProtectedRoute><TaskManagement /></ProtectedRoute>} />
             <Route path="/dashboard/profile/password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
             <Route path="/dashboard/profile/personal" element={<ProtectedRoute><Personal /></ProtectedRoute>} />
@@ -93,6 +111,7 @@ function App() {
             <Route path="/dashboard/activity/email" element={<ProtectedRoute><EmailManagement/> </ProtectedRoute>} />
             <Route path="/dashboard/activity/meetings" element={<ProtectedRoute><MeetingApp/></ProtectedRoute>} />
             <Route path="/dashboard/Notification" element={<ProtectedRoute><NotificationsPage/></ProtectedRoute>} />
+            
 
             <Route path="/signin" element={<LoginEmoloye />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -117,3 +136,5 @@ function App() {
 }
 
 export default App;
+
+

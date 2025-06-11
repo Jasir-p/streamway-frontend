@@ -6,7 +6,8 @@ import subdomainInterceptors from '../../../../../Intreceptors/getSubdomainInter
 import { editLead } from '../../../../../redux/slice/leadsSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { addLeadNote } from '../../../../../Intreceptors/LeadsApi';
-
+import ComposeEmailModal from '../email/AddMail';
+import { useDropdown } from '../../customer/contact/hooks/Contactshooks';
 const fetchLeadById = async (lead_id) => {
     try {
         const response = await subdomainInterceptors.get("api/lead-overview/",
@@ -23,13 +24,14 @@ const fetchLeadById = async (lead_id) => {
 export default function LeadDetailPage() {
   const userId = useSelector((state) => state.profile.id);
   const role = useSelector((state) => state.auth.role);
-  const [activeTab, setActiveTab] = useState('activities');
+  const [activeTab, setActiveTab] = useState('notes');
   const [leads, setLead] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [change, setChange] = useState(false);
   const [error, setError] = useState('');
   const {lead_id} = useParams();
   const dispatch = useDispatch();
+  const { isOpen, toggle, open, close } = useDropdown();
   
   // Initialize leadData with proper structure
   const [leadData, setLeadData] = useState({
@@ -87,52 +89,6 @@ export default function LeadDetailPage() {
     }
   }, []);
 
-  const activities = [
-    {
-      id: 1,
-      type: 'email',
-      title: 'Email Sent',
-      date: 'April 10, 2025 at 2:30 PM',
-      description: 'Sent product demo invitation email to John'
-    },
-    {
-      id: 2,
-      type: 'call',
-      title: 'Phone Call',
-      date: 'April 8, 2025 at 11:15 AM',
-      description: 'Initial call to discuss needs and potential solutions. John expressed interest in our enterprise package.'
-    },
-    {
-      id: 3,
-      type: 'visit',
-      title: 'Website Visit',
-      date: 'April 5, 2025 at 3:42 PM',
-      description: 'Visited pricing page and downloaded whitepaper'
-    },
-    {
-      id: 4,
-      type: 'form',
-      title: 'Form Submission',
-      date: 'April 5, 2025 at 3:45 PM',
-      description: 'Submitted contact form requesting information about enterprise solutions'
-    }
-  ];
-  const openTasks = leads?.tasks || [];
-
-  const renderIcon = (type) => {
-    switch (type) {
-      case 'email':
-        return <Mail size={16} className="text-blue-500" />;
-      case 'call':
-        return <Phone size={16} className="text-green-500" />;
-      case 'visit':
-        return <Globe size={16} className="text-purple-500" />;
-      case 'form':
-        return <FileText size={16} className="text-orange-500" />;
-      default:
-        return <Clock size={16} className="text-gray-500" />;
-    }
-  };
 
   const handleEdit = (e) => {
     e.preventDefault(); // Prevent form submission from reloading page
@@ -196,15 +152,20 @@ export default function LeadDetailPage() {
                 <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
                   <Phone size={16} className="mr-2" /> Call
                 </button>
-                <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
+                <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50" onClick={toggle}>
                   <Mail size={16} className="mr-2" /> Email
-                </button>
-                <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
-                  <DollarSign size={16} className="mr-2" /> Convert to Deal
                 </button>
               </div>
             </div>
 
+            { isOpen &&(
+              <ComposeEmailModal
+              contacts={leads}
+              onClose={close}
+              isOpen={isOpen}
+              isType = {true}
+              />
+            )}
             {/* Lead Profile Card */}
             <div className="bg-white rounded-lg shadow mb-6">
               <div className="p-6">
@@ -247,11 +208,7 @@ export default function LeadDetailPage() {
             <div className="bg-white rounded-lg shadow">
               <div className="border-b border-gray-200">
                 <nav className="flex">
-                  <TabButton 
-                    text="Activities" 
-                    active={activeTab === 'activities'} 
-                    onClick={() => setActiveTab('activities')} 
-                  />
+                  
                   <TabButton 
                     text="Notes" 
                     active={activeTab === 'notes'} 
@@ -272,24 +229,7 @@ export default function LeadDetailPage() {
 
               <div className="p-6">
                 {/* Activities Tab */}
-                {activeTab === 'activities' && (
-                  <div>
-                    {activities.map(activity => (
-                      <div key={activity.id} className="flex py-4 border-b border-gray-200 last:border-0">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                          {renderIcon(activity.type)}
-                        </div>
-                        <div>
-                          <div className="flex justify-between mb-1">
-                            <h4 className="font-medium text-gray-900">{activity.title}</h4>
-                            <span className="text-sm text-gray-500">{activity.date}</span>
-                          </div>
-                          <p className="text-gray-600 text-sm">{activity.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                
 
                 {/* Notes Tab */}
                 {activeTab === 'notes' && (

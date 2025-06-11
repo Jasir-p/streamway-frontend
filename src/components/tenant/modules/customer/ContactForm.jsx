@@ -1,26 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { X } from 'lucide-react';
 import { addContact } from '../../../../redux/slice/contactSlice';
 import { useToast } from '../../../common/ToastNotification';
+import { fetchAccounts } from '../../../../redux/slice/AccountsSlice';
 
 
 
-const ContactForm = ({ isOpen, onClose }) => {
+const ContactForm = ({ isOpen, onClose,onChange }) => {
   const role = useSelector((state) => state.auth.role);
   const userId = useSelector((state) => state.profile.id);
   const dispatch = useDispatch();
   const { showSuccess, showError } = useToast();
 
+  // const [selectedAccount, setSelectedAccount] = useState('')
+  const accounts = useSelector((state) => state.accounts.accounts);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone_number: '',
     address: '',
+    account_id:'',
+    department:''
   });
 
-  const [errors, setErrors] = useState({});
+  useEffect (()=>{
+    dispatch(fetchAccounts())
 
+  },[])
+
+  const [errors, setErrors] = useState({});
+  // const accounts = [
+  //   { id: 1, name: 'Acme Corp' },
+  //   { id: 2, name: 'Globex Ltd' },
+  //   { id: 3, name: 'Wayne Enterprises' },
+  //   { id: 4, name: 'Stark Industries' }
+  // ];
+
+  const handleAccountChange = (e) => {
+    setSelectedAccount(e.target.value);
+  };
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Name is required';
@@ -52,9 +71,10 @@ const ContactForm = ({ isOpen, onClose }) => {
           name: '',
           email: '',
           phone_number: '',
-          location: '',
+          account_id:null,
+          department:''
         });
-  
+        onChange()
         onClose();
       } catch (error) {
         console.error('Error saving contact:', error);
@@ -128,21 +148,40 @@ const ContactForm = ({ isOpen, onClose }) => {
               placeholder="Enter contact number"
             />
           </div>
-
           <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-              Address
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              Department
             </label>
-            <textarea
-              id="address"
-              name="address"
-              rows="3"
-              value={formData.address}
+            <input
+              type="text"
+              id="name"
+              name="department"
+              value={formData.department}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              placeholder="Enter address"
+              className={`w-full p-2 border rounded-md ${
+                errors.name ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Enter contact name"
             />
+            {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
           </div>
+
+        <div className="p-4">
+            <label className="block text-sm font-medium mb-1">Select Account</label>
+            <select
+            name='account_id'
+              value={formData.account_id}
+              onChange={handleChange}
+              className="border border-gray-300 rounded p-2 w-full"
+            >
+              <option value="">-- Choose an account --</option>
+              {accounts?.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name}
+                </option>
+              ))}
+            </select>
+        </div>
 
           <div className="pt-4 border-t border-gray-200 flex justify-end space-x-3">
             <button

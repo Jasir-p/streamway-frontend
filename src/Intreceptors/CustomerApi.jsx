@@ -71,4 +71,12 @@ export const assignUserToAccount = async (data) =>
                 }
 
 
-    
+export const ContactStatus = async (data) =>
+    {
+        try {
+            const response = await subdomainInterceptors.patch('/api/contact/', data);
+            return response;
+            } catch (error) {
+                return Promise.reject(error.response?.data || error.message);
+                }
+                }

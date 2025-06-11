@@ -31,6 +31,25 @@ export const deleteContacts = createAsyncThunk('contacts/deleteContact', async(c
     }
 })
 
+export const updateContact = createAsyncThunk(
+  'contacts/updateContact',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await subdomainInterceptors.patch(`/api/contact/?contact_id=${data.id}`, data);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data);
+      } else {
+        return rejectWithValue(error.message);
+      }
+    }
+  }
+);
+
+
+
+
 const initialState = {
     contacts: [],
     error:null,
