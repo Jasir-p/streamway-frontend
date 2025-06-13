@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchTeamById } from '../api/teamApi';
+import { fetchTeamById } from '../api/teamapi';
 
 export const useTeam = () => {
   const [team, setTeam] = useState(null);

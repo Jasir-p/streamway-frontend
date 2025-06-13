@@ -25,20 +25,7 @@ const TabContent = ({ activeTab, team, members, activities, onChangeTeamLead, on
     );
   }
 
-  if (activeTab === 'activities') {
-    return (
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-semibold text-gray-900">Recent Activities</h3>
-        <ul className="mt-4 space-y-4">
-          {activities.map((activity) => (
-            <li key={activity.id} className="flex items-center space-x-3">
-              {/* Activity content */}
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
+  
 
   return null;
 };

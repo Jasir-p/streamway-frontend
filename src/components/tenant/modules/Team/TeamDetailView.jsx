@@ -1,3 +1,5 @@
+
+
 import { useState } from 'react';
 import DashboardLayout from '../../dashboard/DashbordLayout';
 import DashbordLoading from '../../../common/DashbordLoading';
@@ -11,6 +13,7 @@ import TeamLead from './components/TeamLead';
 import MembersList from './components/MembersList';
 import TabNavigation from './components/TabNavigation';
 import TabContent from './components/TabContent';
+import TeamModal from './components/TeamModal';
 
 
 
@@ -108,7 +111,7 @@ const TeamDetailView = () => {
               activeTab={activeTab}
               team={team}
               members={members}
-              activities={activities}
+          
               onChangeTeamLead={() => handleModal('Team Lead')}
               onRemoveMember={(memberId) => handleModal('Remove Member', memberId)}
             />
