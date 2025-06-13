@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { addMember, removeMember } from '../api/teamApi';
-import { updateTeam, partialUpdateTeam } from '../redux/slice/TeamSlice';
-import { useToast } from '../common/ToastNotification';
+
+import { updateTeam,partialUpdateTeam } from '../../../../../redux/slice/TeamSlice';
+import { useToast } from '../../../../common/ToastNotification';
+import { addMember,removeMember } from '../api/teamapi';
 
 export const useTeamActions = (team_id, fetchTeam) => {
   const [loading, setLoading] = useState(false);

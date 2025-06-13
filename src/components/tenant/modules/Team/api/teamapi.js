@@ -1,5 +1,5 @@
 import axios from 'axios';
-import subdomainInterceptors from '../../../Intreceptors/getSubdomainInterceptors';
+import subdomainInterceptors from '../../../../../Intreceptors/getSubdomainInterceptors';
 
 export const fetchTeamById = async (team_id) => {
   const subdomain = localStorage.getItem("subdomain");
