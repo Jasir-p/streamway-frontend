@@ -127,11 +127,19 @@ const teamStats = mapteamStats(teamTaskData)
                     <div className="flex items-center">
                       <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
                         <div 
-                          className="bg-green-500 h-2 rounded-full" 
-                          style={{ width: `${(team.totalComplete /team.totalTasks) * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm">{Math.round((team.totalComplete /team.totalTasks) * 100)}%</span>
+                            className="bg-green-500 h-2 rounded-full" 
+                            style={{ 
+                              width: team.totalTasks > 0 
+                                ? `${(team.totalComplete / team.totalTasks) * 100}%` 
+                                : "0%" 
+                            }}
+                          ></div>
+                        </div>
+                        <span className="text-sm">
+                          {team.totalTasks > 0 
+                            ? `${Math.round((team.totalComplete / team.totalTasks) * 100)}%` 
+                            : "0%"}
+                        </span>
                     </div>
                   </td>
                   <td className="py-3 px-4 text-red-600">{team.totalDue}</td>
