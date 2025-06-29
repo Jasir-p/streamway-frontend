@@ -1,7 +1,7 @@
 import React from 'react';
 import SettingsLayout from './Settings';
 import Navbar from '../../common/Navbar';
-import Company from '../modules/Genaral/company';
+import Company from '../../tenant/modules/Genaral/Company'
 import { 
   Building, Shield, Zap, CheckCircle, 
   Users, Briefcase, Settings, ExternalLink
