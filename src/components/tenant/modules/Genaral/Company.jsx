@@ -273,17 +273,14 @@ const Company = () => {
               {renderDetailRow(<Building className='w-5 h-5 text-blue-500' />, 'Company Name', 'name')}
               {renderDetailRow(<Mail className='w-5 h-5 text-green-500' />, 'Email Address', 'email', 'email')}
               {renderDetailRow(<Phone className='w-5 h-5 text-purple-500' />, 'Phone Number', 'phone', 'tel')}
-              {renderDetailRow(<MapPin className='w-5 h-5 text-red-500' />, 'Headquarters', 'headquarters')}
-              {renderDetailRow(<Globe className='w-5 h-5 text-yellow-500' />, 'Website', 'website', 'url')}
+        
             </div>
             
             <div>
               {renderDetailRow(<Calendar className='w-5 h-5 text-indigo-500' />, 'Founded', 'founded')}
               {renderDetailRow(<Calendar className='w-5 h-5 text-indigo-500' />, 'Joined', 'joined', "text", false)}
               {renderDetailRow(<Users className='w-5 h-5 text-teal-500' />, 'Employees', 'employees', 'text', false)}
-              {renderDetailRow(<DollarSign className='w-5 h-5 text-emerald-500' />, 'Annual Revenue', 'revenue')}
-              {renderDetailRow(<Hash className='w-5 h-5 text-orange-500' />, 'Tax ID', 'taxId')}
-              {renderDetailRow(<Briefcase className='w-5 h-5 text-sky-500' />, 'Business Type', 'businessType')}
+       
             </div>
           </div>
         </div>

@@ -45,8 +45,14 @@ import NotificationsPage from "./components/tenant/modules/dashboard/notificatio
 import Billings from "./components/owner/tenants/Billings";
 import TenantBillingInvoices from "./components/owner/tenants/billing/BillingInvoices";
 import AdminLogin from "./components/owner/auth/AdminLogin";
-import SalesPipelineDashboard from "./components/tenant/modules/dashboard/Leads/SalesPipline";
+import SalesPipelineDashboard from "./components/tenant/modules/dashboard/salespipeline/SalesPipelineDashboard";
 import DealsListPage from "./components/tenant/modules/dashboard/deals/DealsView";
+import DealViewUI from "./components/tenant/modules/dashboard/deals/DealsOverView";
+import CRMAnalytics from "./components/tenant/modules/dashboard/analytics/Analytics";
+import AdminRouteProtection from "./components/tenant/routes/GenarelRoute";
+import TenantAnalytics from "./components/owner/analytics/AdminAnalytics";
+import PublicRoute from "./components/tenant/routes/PublicRoute";
+import ActiveLogs from "./components/owner/activelogs/ActiveLogs";
 
 function App() {
   const location = useLocation();
@@ -63,7 +69,9 @@ function App() {
     "/admin/tenants/:tenant_id",
     "/admin/billings",           
     "/admin/billings/:billing_id", 
-    "/admin/login"               
+    "/admin/login",
+    '/admin/analytics',
+    "/admin/activelogs"               
   ];
 
   const shouldUseSubdomainProvider = !noSubdomainRoutes.some(route => {
@@ -94,6 +102,7 @@ function App() {
             <Route path="/dashboard/sale/leads/:lead_id/" element={<ProtectedRoute><LeadDetailPage /></ProtectedRoute>} />
             <Route path="/dashboard/sale/enquiry" element={<ProtectedRoute><WebEnquirerComponent /></ProtectedRoute>} />
             <Route path="/dashboard/sale/deals" element={<ProtectedRoute><DealsListPage /></ProtectedRoute>} />
+            <Route path="/dashboard/sale/deals/:deal_id/" element={<ProtectedRoute><DealViewUI /></ProtectedRoute>} />
             <Route path="/dashboard/sale/salespipeline" element={<ProtectedRoute><SalesPipelineDashboard /></ProtectedRoute>} />
             
             <Route path="/dashboard/activity/task" element={<ProtectedRoute><TaskManagement /></ProtectedRoute>} />
@@ -111,6 +120,7 @@ function App() {
             <Route path="/dashboard/activity/email" element={<ProtectedRoute><EmailManagement/> </ProtectedRoute>} />
             <Route path="/dashboard/activity/meetings" element={<ProtectedRoute><MeetingApp/></ProtectedRoute>} />
             <Route path="/dashboard/Notification" element={<ProtectedRoute><NotificationsPage/></ProtectedRoute>} />
+            <Route path="/dashboard/analytics" element={<ProtectedRoute><CRMAnalytics/></ProtectedRoute>} />
             
 
             <Route path="/signin" element={<LoginEmoloye />} />
@@ -120,14 +130,23 @@ function App() {
       ) : (
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
           <Route path="/otp" element={<OtpPage />} />
-          <Route path="/admin/dashboard" element={<CRMAdminDashboard />} />
-          <Route path="/admin/tenants" element={<Tenants />} />
-          <Route path="/admin/tenants/:tenant_id" element={<TenantsDetail />} />
-          <Route path="/admin/billings" element={<Billings/>}/>
-          <Route path="/admin/billings/:billing_id" element={<TenantBillingInvoices/>}/>
-          <Route path="/admin/login" element={<AdminLogin/>} />
+          <Route path="/admin/login" element={
+            <AdminRouteProtection redirectIfAuthenticated={true}>
+              <AdminLogin />
+            </AdminRouteProtection>
+          } />
+
+         
+          <Route path="/admin/dashboard" element={<AdminRouteProtection><CRMAdminDashboard /></AdminRouteProtection>} />
+          <Route path="/admin/tenants" element={<AdminRouteProtection><Tenants /></AdminRouteProtection>} />
+          <Route path="/admin/tenants/:tenant_id" element={<AdminRouteProtection><TenantsDetail /></AdminRouteProtection>} />
+          <Route path="/admin/billings" element={<AdminRouteProtection><Billings/></AdminRouteProtection>}/>
+          <Route path="/admin/billings/:billing_id" element={<AdminRouteProtection><TenantBillingInvoices/></AdminRouteProtection>}/>
+          <Route path="/admin/analytics" element={<AdminRouteProtection><TenantAnalytics/></AdminRouteProtection>}/>
+          <Route path="/admin/activelogs" element={<AdminRouteProtection><ActiveLogs/></AdminRouteProtection>}/>
+      
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       )}

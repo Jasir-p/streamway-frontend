@@ -167,7 +167,7 @@ const RoleDetails = () => {
           setSelectedRole(null); // Clear selected role when modal is closed
           setSelectedParentId(null); // Clear parent ID
         }}
-        onSubmit={handleRoleSubmit} // Define the submit handler to handle form data
+        onSubmit={handleRoleSubmit} 
         defaultValues={
           roleData.roles
             ? { name: roleData.roles.name, description: roleData.roles.description, id: roleData.roles.id }

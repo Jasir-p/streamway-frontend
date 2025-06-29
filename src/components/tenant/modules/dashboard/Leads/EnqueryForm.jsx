@@ -41,12 +41,23 @@ const EnquiryForm = () => {
     { id: "name", field_name: "Full Name", field_type: "text", is_required: true },
     { id: "email", field_name: "Email Address", field_type: "email", is_required: true },
     { id: "phone_number", field_name: "Contact Number", field_type: "tel", is_required: true },
+     {id:'source', field_name: 'Source', field_type: 'select', is_required: true,
+       options: [
+      { value: 'website', label: 'Website' },
+      { value: 'whatsapp', label: 'WhatsApp' },
+      { value: 'facebook', label: 'Facebook' },
+      { value: 'instagram', label: 'Instagram' },
+      { value: 'google_ads', label: 'Google Ads' },
+      { value: 'referral', label: 'Referral' },
+      { value: 'other', label: 'Other' }
+    ]},
     { id: "location", field_name: "Location", field_type: "text", is_required: true },
+      
   ];
 
 
-  const contactFields = requiredFields.slice(0, 3);
-  const locationFields = [requiredFields[3]];
+  const contactFields = requiredFields.slice(0, 4);
+  const locationFields = [requiredFields[4]];
   const additionalFields = formfields;
 
 

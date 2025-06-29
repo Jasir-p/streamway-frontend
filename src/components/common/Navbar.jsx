@@ -1,19 +1,22 @@
-import React, { useState,useRef } from 'react'
+import React, { useState, useRef } from 'react'
 import { Users, Sparkles, ShoppingBag, Briefcase, Search, Bell, Settings2Icon, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ProfileModal from '../tenant/dashboard/ProfileIcon';
 import NotificationsModal from '../tenant/modules/dashboard/notifications/Notifications';
-
-
+import userProfile from '../../assets/user-profile.webp';
 
 
 const Navbar = () => {
-  const navigate=useNavigate()
+  const navigate = useNavigate()
   const role = useSelector((state) => state.auth.role);
   const [profileOpen, setProfileOpen] = useState(false);
-  const[bellOpen, setBellOpen]=useState(false)
+  const [bellOpen, setBellOpen] = useState(false)
   const profileRef = useRef(null);
+  const [UnreadCount,setUnreadCount] = useState(0);
+  
+  // You can make this dynamic by getting the count from your state/props
+  const unreadNotificationCount = 12;
 
   return (
     <div className="flex justify-center py-4 bg-white "> {/* Centering the navbar */}
@@ -28,36 +31,47 @@ const Navbar = () => {
             />
           </div>
           <div className="flex items-center space-x-4">
-            <button className="p-2 hover:bg-gray-700 rounded-full">
-              <Bell className="h-5 w-5 text-white"  onClick={()=>setBellOpen(true)}/>
+            {/* Bell button with notification badge */}
+            <button 
+              className="p-2 hover:bg-gray-700 rounded-full relative"
+              onClick={() => setBellOpen(true)}
+            >
+              <Bell className="h-5 w-5 text-white" />
+              {UnreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {UnreadCount > 99 ? '99+' : UnreadCount}
+                </span>
+              )}
             </button>
-                   <NotificationsModal
-        isOpen={bellOpen}
-        onClose={()=>setBellOpen(false)}
-        />
+            
+            <NotificationsModal
+              isOpen={bellOpen}
+              onClose={() => setBellOpen(false)}
+              setCount ={setUnreadCount}
+            />
        
-            {role ==="owner"&&(<button className="p-2 hover:bg-gray-700 rounded-full" onClick={()=>navigate('/setting/genaral')}>
-              <Settings className="h-5 w-5 text-white" />
-            </button>)}
+            {role === "owner" && (
+              <button className="p-2 hover:bg-gray-700 rounded-full" onClick={() => navigate('/setting/genaral')}>
+                <Settings className="h-5 w-5 text-white" />
+              </button>
+            )}
             
             <div className="h-8 w-px bg-gray-200" />
             <div className="h-8 w-px bg-gray-200" />
-                <img
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32"
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full border-2 border-gray-300 cursor-pointer"
-                  onClick={() => setProfileOpen(true)} 
-                />
-                
+            <img
+              src={userProfile}
+              alt="Profile"
+              className="w-12 h-12 rounded-full border-2 border-gray-500 cursor-pointer"
+              onClick={() => setProfileOpen(true)} 
+            />
           </div>
-           {/* Modal that will appear near the icon */}
-        <ProfileModal 
-          open={profileOpen} 
-          setOpen={setProfileOpen} 
-          anchorRef={profileRef}
-        />
-       
-       
+          
+          {/* Modal that will appear near the icon */}
+          <ProfileModal 
+            open={profileOpen} 
+            setOpen={setProfileOpen} 
+            anchorRef={profileRef}
+          />
         </div>
       </header>
     </div>

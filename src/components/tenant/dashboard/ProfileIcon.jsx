@@ -4,7 +4,10 @@ import { Logout } from "../authentication/Authentication";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Personal from "./Personal";
-import DashboardLayout from "./DashbordLayout";
+import userProfile from '../../../assets/user-profile.webp';
+
+
+
 // import ChangePassword from "../modules/Genaral/ChangePassword";
 // import Notifications from "../modules/Genaral/Notifications";
 // import HelpSupport from "../modules/Genaral/HelpSupport";
@@ -13,6 +16,7 @@ export default function ProfileDropdown({ open, setOpen }) {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const role = useSelector((state) => state.auth.role);
+  const profile = useSelector((state) =>state.profile)
 
   const [showModal, setShowModal] = useState(false);
   const [activeSection, setActiveSection] = useState("personal"); // To handle sections
@@ -48,14 +52,14 @@ export default function ProfileDropdown({ open, setOpen }) {
             <div className="flex items-center space-x-3">
               <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center p-0.5">
                 <img
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32"
+                  src={userProfile}
                   alt="Profile"
                   className="w-full h-full rounded-full object-cover"
                 />
               </div>
               <div className="text-white">
-                <h4 className="font-medium text-lg">John Doe</h4>
-                <p className="text-sm text-white/80">john.doe@example.com</p>
+                <h4 className="font-medium text-lg">{profile.name}</h4>
+                <p className="text-sm text-white/80">{profile.email}</p>
                 <div className="flex items-center mt-1">
                   <div className="w-2 h-2 rounded-full bg-green-400 mr-1.5"></div>
                   <span className="text-xs text-white/90">Online</span>

@@ -13,6 +13,7 @@ const PreviewForm = ({
     { id: 'email', field_name: 'Email Address', field_type: 'email', is_required: true },
     { id: 'contact', field_name: 'Contact Number', field_type: 'tel', is_required: true },
     { id: 'location', field_name: 'Location', field_type: 'text', is_required: true },
+    {id: 'source', field_name: 'Source', field_type: 'select', is_required: true }
   ];
 
   const allFields = [
@@ -166,7 +167,7 @@ const PreviewForm = ({
       {showLinkBox && (
         <div className="mt-6">
           <LinkCopyComponent
-            linkUrl="https://example.com/lead-form"
+            linkUrl="http://questudiopmd22v.localhost:5173/Streamway/form/"
             linkTitle="Lead Form Link"
           />
         </div>

@@ -63,9 +63,14 @@ export const EmailDetailModal = ({ email, isOpen, onClose }) => {
           </div>
           
           {/* Email Content */}
-          <div className="border-t pt-4">
-            <p className="text-gray-800 whitespace-pre-line text-lg">{email.body}</p>
-          </div>
+          {/* Email Content */}
+        
+          <div
+            className="text-gray-800 text-base"
+            dangerouslySetInnerHTML={{ __html: email.body }}
+          />
+       
+
           
           {/* Attachments Section if applicable */}
           {email.attachments && email.attachments.length > 0 && (

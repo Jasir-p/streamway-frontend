@@ -439,21 +439,7 @@ export default function AccountList() {
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Contact
               </th>
-              <th 
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                onClick={() => handleSort('location')}
-              >
-                <div className="flex items-center">
-                  <span>Location</span>
-                  {sortBy === 'location' && (
-                    <ChevronDown 
-                      size={16} 
-                      className={`ml-1 ${sortDirection === 'desc' ? 'transform rotate-180' : ''}`} 
-                    />
-                  )}
-                </div>
-              </th>
+              
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Owner
               </th>
@@ -517,11 +503,7 @@ export default function AccountList() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {account.city}, {account.state}
-                    </div>
-                  </td>
+                 
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <img src={userprofile} alt="" className="h-6 w-6 rounded-full mr-2" />

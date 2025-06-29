@@ -20,9 +20,9 @@ const SidebarAdmin = () => {
     { id: 'tenants', icon: Building2, label: 'Tenant Management', path: '/admin/tenants' },
     { id: 'billing', icon: CreditCard, label: 'Billing & Subscriptions', path: '/admin/billings' },
 
-    { id: 'reports', icon: LineChart, label: 'Reports & Analytics', path: '/admin/reports' },
+    { id: 'reports', icon: LineChart, label: 'Analytics', path: '/admin/analytics' },
     { id: 'settings', icon: Settings, label: 'System Settings', path: '/admin/settings' },
-    { id: 'audit', icon: Clipboard, label: 'Audit Logs', path: '/admin/audit' },
+    { id: 'active', icon: Clipboard, label: 'Active Logs', path: '/admin/activelogs' },
   ];
 
   return (

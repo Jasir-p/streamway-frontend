@@ -53,7 +53,7 @@ const {
     try {
       console.log('📋 Fetching chats...');
       const personal = null; // TODO: Implement personal chat fetching
-      const groups = await GroupChatPersonal(userID);
+      const groups = await GroupChatPersonal(role === 'owner' ? null : userID);
       console.log('👥 Group chats:', groups);
       
       if (isUnmountedRef.current) return;

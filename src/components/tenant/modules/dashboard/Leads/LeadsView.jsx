@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../../dashboard/DashbordLayout';
-import subdomainInterceptors from '../../../../../Intreceptors/getSubdomainInterceptors';
+
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchLeadsEmployee, fetchLeadsOwner } from '../../../../../redux/slice/leadsSlice';
 import ExactToolbar from '../../../../common/ToolBar';
@@ -8,12 +8,12 @@ import userprofile from "../../../../../assets/user-profile.webp";
 import formatTimeAgo from '../../../../utils/formatTimeAgo';
 
 import { useNavigate } from 'react-router-dom';
-import { useHasPermission } from '../../../../utils/PermissionCheck';
-import ConversionPermissionPopup from './ConvertPopup';
-import StatusDropdown from '../../../../common/StatusComponent';
 import StatusUpdateConfirmation from './StatusUpdate';
 import { useDropdown } from '../../customer/contact/hooks/Contactshooks';
 import AddLeadModal from './AddLead';
+import { getUser } from '../../../../../Intreceptors/LeadsApi';
+import { useLeadPermissions } from '../../../authorization/LeadPermissions';
+
 
 const MondayStyleLeadsTable = () => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
@@ -40,22 +40,25 @@ const MondayStyleLeadsTable = () => {
     assigned_to: '',
     location: ''
   });
+const { canAddLead, canEditLead, canDeleteLead, canViewLead } = useLeadPermissions(selectedLeads);
 
-  const hasAddLeadPermission = useHasPermission('add_leads');
-  const canAddLead = hasAddLeadPermission || role === "owner";
-  const hasEditLeadsPermission = useHasPermission("edit_leads");
-  const canEditLead = selectedLeads?.length > 0 && (hasEditLeadsPermission || role === "owner");
   
-  const hasDeleteLeads = useHasPermission("delete_leads");
-  const canDeleteLead = hasDeleteLeads|| role === "owner";
-  const hasViewLeadsPermission = useHasPermission("view_leads");
- 
-  const canViewLead = hasViewLeadsPermission || role === "owner";
-
   const uniqueStatuses = [...new Set(leads.map(lead => lead.status))];
   const uniqueSources = [...new Set(leads.map(lead => lead.source))];
   const uniqueLocations = [...new Set(leads.map(lead => lead.location))];
-  const uniqueAssignees = [...new Set(leads.map(lead => lead.employee?.name))].filter(Boolean);
+  const [employees, setEmployees] = useState([]);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      const data = await getUser(role === 'owner' ? role : userId); 
+      if (data) {
+        setEmployees(data);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
+
 
   const updateLeadStatus = (success) => {
     if (success) {
@@ -133,23 +136,31 @@ const MondayStyleLeadsTable = () => {
     navigate (`/dashboard/sale/leads/${lead.lead_id}/`);
     };
 
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = 
-      lead?.name.toLowerCase().includes(search.toLowerCase()) ||
-      lead?.email.toLowerCase().includes(search.toLowerCase()) ||
-      lead?.phone_number.includes(search);
-    
-    const matchesStatus = !filters.status || lead.status === filters.status;
-    
-    const matchesSource = !filters.source || lead.source === filters.source;
-    
-    const matchesAssignee = !filters.assigned_to || lead.employee?.name === filters.assigned_to;
-    
-    const matchesLocation = !filters.location || lead.location === filters.location;
-    // const isNotConverted = lead.status.toLowerCase() !== "converted";
-    
-    return matchesSearch && matchesStatus && matchesSource && matchesAssignee && matchesLocation ;
-  });
+const filteredLeads = leads.filter(lead => {
+  const name = lead?.name || '';
+  const email = lead?.email || '';
+  const phone = lead?.phone_number || '';
+
+  const matchesSearch =
+    name.toLowerCase().includes(search.toLowerCase()) ||
+    email.toLowerCase().includes(search.toLowerCase()) ||
+    phone.includes(search);
+
+  const matchesStatus = !filters.status || lead.status === filters.status;
+
+  const matchesSource = !filters.source || lead.source === filters.source;
+ 
+ 
+  const matchesAssignee =
+    !filters.assigned_to ||
+    (lead.employee?.id && String(lead.employee.id) === String(filters.assigned_to))||
+    (role === 'owner' && !lead.employee);
+
+  const matchesLocation = !filters.location || lead.location === filters.location;
+
+  return matchesSearch && matchesStatus && matchesSource && matchesAssignee && matchesLocation;
+});
+
 
   const activeFilterCount = Object.values(filters).filter(value => value !== '').length;
   const handleSelectAllChange = (event) => {
@@ -258,8 +269,9 @@ const MondayStyleLeadsTable = () => {
                     onChange={(e) => handleFilterChange('assigned_to', e.target.value)}
                   >
                     <option value="">All Assignees</option>
-                    {uniqueAssignees.map((name) => (
-                      <option key={name} value={name}>{name}</option>
+                    <option value={userId}>You</option>
+                    {employees.map((user) => (
+                      <option key={user.id} value={user.id}>{user.name}</option>
                     ))}
                   </select>
                 </div>

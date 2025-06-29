@@ -4,15 +4,19 @@ import subdomainInterceptors from '../../Intreceptors/getSubdomainInterceptors';
 
 export const fetchMeeting = createAsyncThunk(
   'meeting/fetchMeeting',
-  async (_, { rejectWithValue }) => {
+  async (userId, { rejectWithValue }) => {
     try {
-      const response = await subdomainInterceptors.get('/api/meeting/');
+
+      const params = userId ? { params: { userId } } : {};
+
+      const response = await subdomainInterceptors.get('/api/meeting/', params);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
   }
 );
+
 
 
 export const addMeeting = createAsyncThunk(
@@ -30,6 +34,8 @@ export const addMeeting = createAsyncThunk(
 export const patchMeeting = createAsyncThunk(
   'meeting/patchMeeting',
   async ({ id, updatedData }, { rejectWithValue }) => {
+    console.log(updatedData);
+    
     try {
       const response = await subdomainInterceptors.patch(`/api/meeting/${id}/`, updatedData);
       return response.data;

@@ -32,6 +32,8 @@ export default function EmailManagementUI() {
   const { emails, loading } = useSelector((state) => state.emails);
   const [selectedContact, setSelectedContact] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const role = useSelector((state) =>state.auth.role)
+  const userID = useSelector((state) =>state.profile.id)
   
   // New filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -42,7 +44,7 @@ export default function EmailManagementUI() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(fetchEmails());
+    dispatch(fetchEmails(role!='owner'?userID:null));
   }, []);
 
   const emailCategories = [
@@ -343,14 +345,14 @@ export default function EmailManagementUI() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-gray-900">To: {email?.recipient?.name}</p>
+                          <p className="text-sm font-medium text-gray-900">To: {email?.recipient_name}</p>
                           <p className="text-xs text-gray-500">{email.created_At}</p>
                         </div>
 
                         <p className="text-sm font-medium text-gray-900">{email.subject}</p>
 
                         <div className="flex items-center mt-1">
-                          <span className="text-xs text-gray-500 truncate">{email.recipient?.email}</span>
+                          <span className="text-xs text-gray-500 truncate">{email.recipient_email}</span>
                         </div>
 
                         <div className="flex items-center mt-2">

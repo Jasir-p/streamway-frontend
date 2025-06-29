@@ -37,10 +37,11 @@ const TeamManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [change,setChange] =useState(false)
-
+  const role = useSelector((state) =>state.auth.role)
+  const userId = useSelector((state) =>state.profile.id)
 
   useEffect(()=>{
-    dispatch(fetchTeams())
+    dispatch(fetchTeams(role==='owner'?null:userId))
   },[dispatch,change])
 
 

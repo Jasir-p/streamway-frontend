@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Calendar, 
   User, 
@@ -17,48 +17,29 @@ import {
   AlertCircle,
   XCircle
 } from 'lucide-react';
+import DashboardLayout from '../../../dashboard/DashbordLayout';
+import { useParams } from 'react-router-dom';
+import { getDealOverView } from './api/DealsAPI';
+import NotesDescription from './components/NotesDescription';
+import { dealAddNote } from './api/DealsAPI';
+import { useToast } from '../../../../common/ToastNotification';
+import { dealsUtils } from './utils/dealsUtils';
 
 const DealViewUI = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const {deal_id} = useParams()
+  const [deals, setDeal] = useState({});
+  const {setShowSuccess, setShowError} = useToast()
+  const [change, setChange] = useState(false);
   
-  // Sample deal data
-  const deal = {
-    id: 1,
-    title: "Website Revamp for ABC Corp",
-    stage: "Negotiation",
-    status: "In Progress",
-    amount: "2,00,000",
-    expectedCloseDate: "25 June 2025",
-    priority: "High",
-    source: "Website",
-    notes: "Client is very interested in the proposal. They want to see additional features for mobile responsiveness. Follow up scheduled for next week.\n\nKey requirements:\n- Modern design\n- Mobile-first approach\n- SEO optimization\n- CMS integration",
-    account: {
-      name: "ABC Corporation",
-      type: "B2B", // B2B or B2C
-      contact: {
-        name: "John Smith",
-        email: "john.smith@abccorp.com",
-        phone: "+91 98765 43210"
-      }
-    },
-    assignedTo: "Sarah Johnson",
-    createdDate: "2025-06-01",
-    lastActivity: "2025-06-08"
-  };
-
-  const activities = [
-    { id: 1, type: "call", description: "Initial discovery call completed", date: "2025-06-08", time: "2:30 PM" },
-    { id: 2, type: "email", description: "Sent proposal and pricing", date: "2025-06-07", time: "11:15 AM" },
-    { id: 3, type: "meeting", description: "Requirements gathering session", date: "2025-06-05", time: "3:00 PM" },
-    { id: 4, type: "task", description: "Deal created and assigned", date: "2025-06-01", time: "9:00 AM" }
-  ];
+  console.log(deals);
 
   const getStatusColor = (status) => {
     const colors = {
-      "New": "bg-blue-100 text-blue-800",
-      "In Progress": "bg-yellow-100 text-yellow-800",
-      "Won": "bg-green-100 text-green-800",
-      "Lost": "bg-red-100 text-red-800"
+      "new": "bg-blue-100 text-blue-800",
+      "in_progress": "bg-yellow-100 text-yellow-800",
+      "won": "bg-green-100 text-green-800",
+      "lost": "bg-red-100 text-red-800"
     };
     return colors[status] || "bg-gray-100 text-gray-800";
   };
@@ -75,9 +56,9 @@ const DealViewUI = () => {
 
   const getPriorityColor = (priority) => {
     const colors = {
-      "High": "bg-red-100 text-red-800",
-      "Medium": "bg-yellow-100 text-yellow-800",
-      "Low": "bg-green-100 text-green-800"
+      "high": "bg-red-100 text-red-800",
+      "medium": "bg-yellow-100 text-yellow-800",
+      "low": "bg-green-100 text-green-800"
     };
     return colors[priority] || "bg-gray-100 text-gray-800";
   };
@@ -98,37 +79,79 @@ const DealViewUI = () => {
     alert('Deal deleted successfully!');
   };
 
+  useEffect(()=>{
+    const fetchDealOverView = async () =>
+      {
+        try{
+          const res = await getDealOverView(deal_id)
+        setDeal(res)
+
+        }catch(error){
+          console.error("Failed to fetch deal overview:", error);
+        }
+        
+      }
+      if( deal_id ){
+        fetchDealOverView()
+        }
+
+    
+  },[deal_id,change])
+
+ const handleAddNote = async (data) => {
+  console.log(data);
+
+  try {
+    const res = await dealAddNote(data);
+    console.log("Note added:", res);
+    setChange(true)
+ 
+  } catch (error) {
+    console.error("Error adding note:", error);
+  }
+};
+
+  const notes = Array.isArray(deals.dealNotes) ? deals.dealNotes : [];
+  console.log(notes);
+  
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
-      {/* Header Section */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+    <DashboardLayout>
+   
+      {/* Header Section with Edit Button */}
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{deal.title}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">{deals.title}</h1>
             <div className="flex items-center gap-3 text-sm text-gray-600">
               <span className="flex items-center gap-1">
                 <Tag className="w-4 h-4" />
-                Stage: <strong className="text-gray-900">{deal.stage}</strong>
+                Stage: <strong className="text-gray-900">{deals.stage}</strong>
               </span>
               <span className="text-gray-400">•</span>
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                Expected Close: <strong className="text-gray-900">{deal.expectedCloseDate}</strong>
+                Expected Close: <strong className="text-gray-900">{deals.expected_close_date}</strong>
               </span>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-green-600 mb-2">₹{deal.amount}</div>
-            <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(deal.status)}`}>
-              {getStatusIcon(deal.status)}
-              {deal.status}
+            <div className="text-2xl font-bold text-green-600 mb-2">₹{deals.amount}</div>
+            <div className="flex items-center gap-3">
+              <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${dealsUtils.getStatusColor(deals.status)}`}>
+                {getStatusIcon(deals.status)}
+                {deals.status}
+              </div>
+              <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <Edit3 className="w-4 h-4" />
+                Edit Deal
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Account & Contact Info */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <Building2 className="w-5 h-5" />
           Account & Contact Information
@@ -140,121 +163,63 @@ const DealViewUI = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-900">{deal.account.name}</span>
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                <span className="text-gray-900">{deals.account_id?.name}</span>
+                {/* <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
                   {deal.account.type}
-                </span>
+                </span> */}
               </div>
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-600">Assigned to: <strong>{deal.assignedTo}</strong></span>
+                <span className="text-gray-600">Assigned to: <strong>{deals?.owner?.name}</strong></span>
               </div>
             </div>
           </div>
 
-          {deal.account.type === "B2B" && (
+          
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-3">Contact Details</h3>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-900">{deal.account.contact.name}</span>
+                  <span className="text-gray-900">{deals?.dealContact?.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-600">{deal.account.contact.email}</span>
+                  <span className="text-gray-600">{deals.dealContact?.email}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-600">{deal.account.contact.phone}</span>
+                  <span className="text-gray-600">{deals.dealContact?.phone_number}</span>
                 </div>
               </div>
             </div>
-          )}
+          
         </div>
       </div>
 
       {/* Deal Description / Notes */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <FileText className="w-5 h-5" />
-          Notes & Description
-        </h2>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-            {deal.notes || 'No notes added yet.'}
-          </p>
-        </div>
-      </div>
+     <NotesDescription notes={notes} onAddNote={handleAddNote} dealId={deals.deal_id} />
 
       {/* Tags & Meta */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <Tag className="w-5 h-5" />
           Priority & Source
         </h2>
         <div className="flex flex-wrap gap-3">
-          <div className={`inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium ${getPriorityColor(deal.priority)}`}>
+          <div className={`inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium ${getPriorityColor(deals.priority)}`}>
             <AlertCircle className="w-4 h-4" />
-            Priority: {deal.priority}
+            Priority: {deals.priority?.toUpperCase()}
           </div>
-          <div className={`inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium ${getSourceColor(deal.source)}`}>
+          <div className={`inline-flex items-center gap-1 px-3 py-2 rounded-full text-sm font-medium ${getSourceColor(deals.source)}`}>
             <Users className="w-4 h-4" />
-            Source: {deal.source}
+            Source: {deals.source}
           </div>
         </div>
       </div>
 
-      {/* Activity Timeline */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Clock className="w-5 h-5" />
-          Recent Activity
-        </h2>
-        <div className="space-y-4">
-          {activities.map((activity, index) => (
-            <div key={activity.id} className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-b-0">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                {activity.type === 'call' && <Phone className="w-4 h-4 text-blue-600" />}
-                {activity.type === 'email' && <Mail className="w-4 h-4 text-blue-600" />}
-                {activity.type === 'meeting' && <Users className="w-4 h-4 text-blue-600" />}
-                {activity.type === 'task' && <CheckCircle className="w-4 h-4 text-blue-600" />}
-              </div>
-              <div className="flex-1">
-                <p className="text-gray-900 font-medium">{activity.description}</p>
-                <p className="text-sm text-gray-500">{activity.date} at {activity.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
-        <div className="flex flex-wrap gap-3">
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            <Edit3 className="w-4 h-4" />
-            Edit Deal
-          </button>
-          <button 
-            onClick={() => setShowDeleteConfirm(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete Deal
-          </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-            <DollarSign className="w-4 h-4" />
-            Convert to Sale
-          </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-            <Plus className="w-4 h-4" />
-            Add Follow-up
-          </button>
-        </div>
-      </div>
-
+     
+      
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -288,7 +253,8 @@ const DealViewUI = () => {
           </div>
         </div>
       )}
-    </div>
+    
+    </DashboardLayout>
   );
 };
 

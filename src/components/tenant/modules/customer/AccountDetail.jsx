@@ -28,7 +28,7 @@ import { useSelector } from 'react-redux';
 
 
 export default function AccountDetail() {
-  const [activeTab, setActiveTab] = useState('opportunities');
+  const [activeTab, setActiveTab] = useState('Deals');
   const { account_id } = useParams();
   const [accounts, setAccount] = useState(null);
   const [showCustomFieldModal, setShowCustomFieldModal] = useState(false);
@@ -157,7 +157,7 @@ export default function AccountDetail() {
   const openTasks = accounts?.tasks || []; // Ensure tasks is an array
 
   const stats = {
-    openOpportunities: accounts?.deals?.filter(opp => opp.stage !== "Closed Won" && opp.stage !== "Closed Lost").length,
+    openDeals: accounts?.deals?.filter(opp => opp.stage !== "Closed Won" && opp.stage !== "Closed Lost").length,
     totalValue: accounts?.deals?.reduce((sum, opp) => sum + opp.amount, 0),
     contactCount: accounts?.contacts.length,
     openTaskCount: openTasks.filter(task => task.status !== "COMPLETED").length
@@ -205,9 +205,9 @@ export default function AccountDetail() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Open Opportunities</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Open Deals</dt>
                     <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{stats.openOpportunities}</div>
+                      <div className="text-2xl font-semibold text-gray-900">{stats.openDeals}</div>
                     </dd>
                   </dl>
                 </div>
@@ -315,7 +315,7 @@ export default function AccountDetail() {
                       <MapPin className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
                       <span>Address:</span>
                     </div>
-                    <p className="mt-1 text-sm text-gray-900">{accounts?.address || account.address}</p>
+                    <p className="mt-1 text-sm text-gray-900">{accounts?.address}</p>
                   </div>
                   
                   <div>
@@ -438,7 +438,7 @@ export default function AccountDetail() {
 </div>
           </div>
           
-          {/* Right Column - Tabs for Opportunities, Tasks, Notes, Activity */}
+          {/* Right Column - Tabs for Deals, Tasks, Notes, Activity */}
           <div className="lg:col-span-2">
             <div className="bg-white shadow rounded-lg">
               <div className="border-b border-gray-200">
@@ -454,14 +454,14 @@ export default function AccountDetail() {
                     Contacts
                   </button> */}
                   <button
-                    onClick={() => setActiveTab('opportunities')}
+                    onClick={() => setActiveTab('Deals')}
                     className={`whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm ${
-                      activeTab === 'opportunities'
+                      activeTab === 'Deals'
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
-                    Opportunities
+                    Deals
                   </button>
                   <button
                     onClick={() => setActiveTab('tasks')}
@@ -499,10 +499,10 @@ export default function AccountDetail() {
               
               <div className="p-6">
                
-                {activeTab === 'opportunities' && (
+                {activeTab === 'Deals' && (
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-medium text-gray-900">Opportunities</h3>
+                      <h3 className="text-lg font-medium text-gray-900">Deals</h3>
                       <button className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700">
                         <Plus className="h-4 w-4 mr-1" />
                         New Opportunity
