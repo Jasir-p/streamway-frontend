@@ -30,12 +30,7 @@ const ContactForm = ({ isOpen, onClose,onChange }) => {
   },[])
 
   const [errors, setErrors] = useState({});
-  // const accounts = [
-  //   { id: 1, name: 'Acme Corp' },
-  //   { id: 2, name: 'Globex Ltd' },
-  //   { id: 3, name: 'Wayne Enterprises' },
-  //   { id: 4, name: 'Stark Industries' }
-  // ];
+
 
   const handleAccountChange = (e) => {
     setSelectedAccount(e.target.value);

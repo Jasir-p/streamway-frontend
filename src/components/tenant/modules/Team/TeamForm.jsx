@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react'
+import React, { useEffect,useState } from 'react'
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUsers } from "../../../../redux/slice/UsersSlice";
 import { useForm } from 'react-hook-form';
 import isEqual from 'lodash/isEqual';
+import { getUser } from '../../../../Intreceptors/LeadsApi';
+import { useTeam } from './hooks/useTeam';
 
 
 const TeamForm = ({isOpen, onClose,changes, onSubmit,team=null, type='add'}) => {
 
-const { users, loading, error } = useSelector((state) => state.users);
-const dispatch = useDispatch();
 const checkMade = (data)=>{
   const selectedFieldsFromTeam = {
     name: team?.name,
@@ -20,10 +20,11 @@ const checkMade = (data)=>{
             console.log("chnages no");
         return}
   onSubmit(data)}
-useEffect(()=>{
-    dispatch(fetchUsers());
-},[])
+
+
+
 const { register, handleSubmit, reset, formState: { errors } } = useForm();
+const {employees}=useTeam()
 
 
       return (
@@ -72,7 +73,7 @@ const { register, handleSubmit, reset, formState: { errors } } = useForm();
             className="w-full border border-gray-300 rounded-2xl px-3 py-2 mt-1 focus:border-blue-300 focus:ring focus:ring-blue-300 focus:outline-none"
           >
             <option value={team?.team_lead.id}>{team?.team_lead.name ||"Select a team leader"}{team?.team_lead?.role?.name ? ` (${team.team_lead.role.name})` : ""}</option>
-            {users.map((user) => (
+            {employees.map((user) => (
               <option key={user.id} value={user.id}>
               {user.name} ({user.role?.name || "No Role"})
             </option>

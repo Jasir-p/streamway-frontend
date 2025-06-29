@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Bell, Filter, Search, CheckSquare, MessageCircle, Clock, User, X, MoreHorizontal } from 'lucide-react';
-import { useWebSocket } from '../chat/WebSocketHandler';
+import { useNotificationWebSocket } from './WebsocketNottification'; // Updated import path
 
 // Fallback icon component for unknown types
 const FallbackIcon = () => <Bell className="w-4 h-4" />;
 
-export default function NotificationsModal({ isOpen = true, onClose = () => {} }) {
+export default function NotificationsModal({ isOpen = true, onClose = () => {}, setCount }) {
   const {
     isConnected,
     connectionStatus,
     lastMessage,
-    currentRoomId,
+    currentRoomId, // This will always be null for notifications
     connect,
     disconnect,
     sendMessage,
@@ -18,7 +18,7 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {} }
     addMessageHandler,
     addConnectionHandler,
     getConnectionStatus,
-  } = useWebSocket();
+  } = useNotificationWebSocket();
 
   const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -27,20 +27,25 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {} }
   useEffect(() => {
     const subdomain = localStorage.getItem('subdomain');
     const token = localStorage.getItem('access_token');
-    const type = 'notification';
 
     if (token && subdomain) {
-      console.log('Making initial WebSocket connection...', { subdomain, type });
-      const socket = connect(null, token, subdomain, type);
+      console.log('Making initial Notification WebSocket connection...', { subdomain });
+      // Updated call - notifications don't need roomId, only token and subdomain
+      connect(token, subdomain);
 
       const messageCleanup = addMessageHandler((data) => {
-        console.log('📨 Raw message received:', data);
+        console.log('📨 Raw notification message received:', data);
         try {
           const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
           console.log('📨 Parsed notification received:', parsedData);
 
           if (Array.isArray(parsedData)) {
+            let unreadCount = 0;
+            
             parsedData.forEach((notification) => {
+              const isRead = notification.is_read || false;
+              if (!isRead) unreadCount += 1;
+              
               const newNotification = {
                 id: notification.id,
                 type: (notification.type || 'task').toLowerCase(), // Normalize type to lowercase
@@ -48,30 +53,61 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {} }
                 message: notification.message || '',
                 user: notification.user || null,
                 time: notification.timestamp || 'Just now',
-                read: notification.is_read || false,
+                read: isRead,
               };
               console.log('Adding notification:', newNotification); // Debug
               setNotifications((prev) => [newNotification, ...prev]);
             });
+            
+            setCount(unreadCount);
+          } else if (parsedData && typeof parsedData === 'object') {
+            // Handle single notification object
+            const isRead = parsedData.is_read || false;
+            const newNotification = {
+              id: parsedData.id,
+              type: (parsedData.type || 'task').toLowerCase(),
+              title: parsedData.message || 'New notification',
+              message: parsedData.message || '',
+              user: parsedData.user || null,
+              time: parsedData.timestamp || 'Just now',
+              read: isRead,
+            };
+            
+            console.log('Adding single notification:', newNotification);
+            setNotifications((prev) => [newNotification, ...prev]);
+            
+            if (!isRead) {
+              setCount((prevCount) => prevCount + 1);
+            }
           }
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          console.error('Error parsing WebSocket notification message:', error);
         }
       });
 
-
+      // Optional: Add connection status handler
+      const connectionCleanup = addConnectionHandler((event) => {
+        console.log('📡 Notification WebSocket connection event:', event);
+        if (event.type === 'connected') {
+          console.log('✅ Successfully connected to notification WebSocket');
+        } else if (event.type === 'error') {
+          console.error('❌ Notification WebSocket connection error:', event.error);
+        }
+      });
 
       return () => {
-        console.log('Cleaning up WebSocket connection');
+        console.log('Cleaning up Notification WebSocket connection');
         messageCleanup();
-     // Ensure socket is closed
+        connectionCleanup();
+        disconnect(); // Properly disconnect the WebSocket
       };
     } else {
-      console.warn('No token or subdomain found, skipping WebSocket connection');
+      console.warn('No token or subdomain found, skipping Notification WebSocket connection');
     }
-  }, [connect, addMessageHandler]);
+  }, [connect, addMessageHandler, addConnectionHandler, disconnect, setCount]);
 
   console.log('Notifications state:', notifications);
+  console.log('WebSocket connection status:', { isConnected, connectionStatus });
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -90,18 +126,36 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {} }
     return matchesFilter && matchesSearch;
   });
 
-  const markAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  };
+const markAsRead = (id) => {
+
+  sendMessage({
+    type: "mark_as_read",
+    notification_ids: [id], 
+  });
+
+
+  setNotifications((prev) =>
+    prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+  );
+
+  // Decrease unread count safely
+  setCount((prevCount) => Math.max(0, prevCount - 1));
+};
+
 
   const removeNotification = (id) => {
+    const notificationToRemove = notifications.find(n => n.id === id);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    
+    // Update count if removing an unread notification
+    if (notificationToRemove && !notificationToRemove.read) {
+      setCount((prevCount) => Math.max(0, prevCount - 1));
+    }
   };
 
   const markAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setCount(0); 
   };
 
   const getIcon = (type) => {
@@ -111,7 +165,7 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {} }
       chat: MessageCircle,
       due: Clock,
     };
-    const Icon = icons[type.toLowerCase()] || FallbackIcon; // Fallback to Bell icon
+    const Icon = icons[type.toLowerCase()] || FallbackIcon;
     return <Icon className="w-4 h-4" />;
   };
 
@@ -121,7 +175,7 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {} }
       chat: 'text-green-600 bg-green-50',
       due: 'text-orange-600 bg-orange-50',
     };
-    return colors[type.toLowerCase()] || 'text-gray-600 bg-gray-50'; // Fallback color
+    return colors[type.toLowerCase()] || 'text-gray-600 bg-gray-50'; 
   };
 
   if (!isOpen) return null;
@@ -138,7 +192,13 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {} }
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
-                <p className="text-sm text-gray-500">{unreadCount} unread messages</p>
+                <p className="text-sm text-gray-500">
+                  {unreadCount} unread messages
+                  {/* Show connection status for debugging */}
+                  <span className="ml-2 text-xs">
+                    ({isConnected ? '🟢 Connected' : '🔴 Disconnected'})
+                  </span>
+                </p>
               </div>
             </div>
             <button

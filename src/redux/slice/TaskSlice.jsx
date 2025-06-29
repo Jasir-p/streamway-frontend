@@ -3,26 +3,28 @@ import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 import axios from "axios";
 
 
+
 export const fetchTask = createAsyncThunk(
     'task/fetchTask',
-    async (userID = null, { rejectWithValue }) => {
+    async ({ role, userID, url }, { rejectWithValue }) => {
         console.log(userID);
         
       try {
-        const params = {};
+        let requestUrl = url || '/api/tasks/';
+        
   
-        if (userID) {
-          params.assigned_to = userID; 
+        if (!url && role !== 'owner' && userID) {
+          const params = new URLSearchParams({ userID });
+          requestUrl += `?${params.toString()}`;
         }
   
-        const response = await subdomainInterceptors.get('/api/tasks/', { params });
+        const response = await subdomainInterceptors.get(requestUrl);
         return response.data;
       } catch (error) {
         return rejectWithValue(error.message);
       }
     }
   );
-  
 
 export const  addTask =  createAsyncThunk('task/addTask', async (taskData, {rejectWithValue}) => {
     try {
@@ -60,37 +62,45 @@ export const deleteTask = createAsyncThunk('task/deleteTask', async(task_id,{rej
         return rejectWithValue(error.response?.data?.message || error.message);
     }
 })
-export const  editTask =  createAsyncThunk('task/EditTask', async (task_id,taskData, {rejectWithValue}) => {
+export const editTask = createAsyncThunk(
+  'task/editTask',
+  async ({ task_id, taskData }, { rejectWithValue }) => {
     try {
-        const token = localStorage.getItem("access_token");
-        const subdomain = localStorage.getItem("subdomain");
-    
-        if (!token) return rejectWithValue("No token found, please log in again.");
-        if (!subdomain) return rejectWithValue("Subdomain not set.");
-    
-        
-    
-        const response = await axios.put(`http://${subdomain}.localhost:8000/api/tasks/`, taskData, {
-            params:{task_id},
-            
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "multipart/form-data",
-            },
-        });
-    
-        console.log(response.data);
-        return response.data;
+      const token = localStorage.getItem("access_token");
+      const subdomain = localStorage.getItem("subdomain");
+
+      if (!token) return rejectWithValue("No token found, please log in again.");
+      if (!subdomain) return rejectWithValue("Subdomain not set.");
+
+      const response = await axios.patch(
+        `http://${subdomain}.localhost:8000/api/tasks/`,
+        taskData,
+        {
+          params: { task_id: task_id },  // Matches your Django patch logic: request.data.get("id")
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
+
+      console.log(response.data);
+      return response.data;
     } catch (error) {
-        console.error("Error submitting task:", error.response?.data || error.message);
-        return rejectWithValue(error.response?.data || "Failed to submit task");
+      console.error("Error updating task:", error.response?.data || error.message);
+      return rejectWithValue(error.response?.data || "Failed to update task");
     }
-            })
+  }
+);
+
+
 
 const initialState = {
     tasks: [],
     loading:null,
-    error:null
+    error:null,
+    next:null,
+    previous:null,
     }
 const taskSlice = createSlice({
     name:'task',
@@ -103,8 +113,10 @@ const taskSlice = createSlice({
             state.error = null;
             })
         .addCase(fetchTask.fulfilled, (state, action) => {
-            state.tasks = action.payload;
+            state.tasks = action.payload.results;
             state.loading = false;
+            state.next = action.payload.next;
+            state.previous = action.payload.previous;
             })
         .addCase(fetchTask.rejected, (state, action) => {
                 state.error = action.payload;
@@ -135,6 +147,21 @@ const taskSlice = createSlice({
                     state.loading = false;
                     state.error = action.payload || 'Failed to delete task';
                   })
+                .addCase(editTask.pending, (state) => {
+                        state.loading = true;
+                        state.error = null;
+                    })
+                    .addCase(editTask.fulfilled, (state, action) => {
+                        state.loading = false;
+                        const updatedTask = action.payload;
+                        state.tasks = state.tasks.map(task =>
+                        task.id === updatedTask.id ? updatedTask : task
+                        );
+                    })
+                    .addCase(editTask.rejected, (state, action) => {
+                        state.loading = false;
+                        state.error = action.payload || 'Failed to update task';
+                    });
                 }
                 }
             )

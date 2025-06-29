@@ -45,3 +45,13 @@ export const removeMember = async (team_id, selectedMemberId) => {
     throw error;
   }
 };
+
+export const getMembers = async (team_id) =>{
+  try{
+    const response = await subdomainInterceptors.get(`/team_members/?team=${team_id}`);
+    return response.data.team_member;
+  }
+  catch(error){
+    console.error("Error fetching members:", error.response?.data || error.message);
+  }
+}

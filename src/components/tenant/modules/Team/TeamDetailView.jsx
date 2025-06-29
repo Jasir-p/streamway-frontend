@@ -24,7 +24,7 @@ const TeamDetailView = () => {
   const [modalType, setModalType] = useState(null);
   const [selectedMemberId, setSelectedMemberId] = useState(null);
 
-  const { team, members, loading, fetchTeam, team_id } = useTeam();
+  const { team, members,tasks, loading, fetchTeam, team_id,employees,completeCount,pendingCount,completionRatio } = useTeam();
   const { 
     loading: actionLoading,
     handleAddMember,
@@ -38,7 +38,8 @@ const TeamDetailView = () => {
     setSelectedMemberId(memberId);
     setIsModalOpen(true);
   };
-
+  console.log(tasks);
+  
   const handleModalSubmit = async (data) => {
     let success = false;
     
@@ -87,10 +88,14 @@ const TeamDetailView = () => {
           <div className="w-full sm:w-3/4">
             <div className="bg-white rounded-lg shadow-md">
               <TeamHeader team={team} onEditClick={() => setIsEditModalOpen(true)} />
-              <TeamStats team={team} />
+              <TeamStats team={team} 
+              completeCount={completeCount}
+              pendingCount={pendingCount}
+              completionRatio={completionRatio} />
               <TeamLead 
                 teamLead={team.team_lead} 
-                onChangeTeamLead={() => handleModal('Team Lead')} 
+                onChangeTeamLead={() => handleModal('Team Lead')}
+                
               />
             </div>
           </div>
@@ -111,7 +116,7 @@ const TeamDetailView = () => {
               activeTab={activeTab}
               team={team}
               members={members}
-          
+              tasks={tasks}
               onChangeTeamLead={() => handleModal('Team Lead')}
               onRemoveMember={(memberId) => handleModal('Remove Member', memberId)}
             />
@@ -123,8 +128,11 @@ const TeamDetailView = () => {
             isOpen={isModalOpen}
             modalType={modalType}
             loading={actionLoading}
+            team={team}
             onClose={() => setIsModalOpen(false)}
             onSubmit={handleModalSubmit}
+            members={members}
+            employees={employees}
           />
         )}
 

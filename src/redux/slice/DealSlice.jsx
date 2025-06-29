@@ -4,20 +4,28 @@ import subdomainInterceptors from '../../Intreceptors/getSubdomainInterceptors';
 // Fetch all deals
 export const fetchDeals = createAsyncThunk(
   'deals/fetchDeals',
-  async ({ role, userId }, { rejectWithValue }) => {
+  async ({ role, userId, url }, { rejectWithValue }) => {
+    console.log(userId);
+    
     try {
-      let url = '/api/deals/';
-      if (role !== 'owner' && userId) {
-        url += `?userId=${userId}`;
-      }
+      let requestUrl = url || '/api/deals/';
 
-      const response = await subdomainInterceptors.get(url);
+      // Append userId if the user is not owner and userId exists
+      if (!url && role !== 'owner' && userId) {
+        const params = new URLSearchParams({ userId });
+        requestUrl += `?${params.toString()}`;
+      }
+      console.log(requestUrl);
+      
+      const response = await subdomainInterceptors.get(requestUrl);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
+
+
 
 
 // Add a new deal

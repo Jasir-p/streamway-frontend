@@ -90,9 +90,9 @@ const ContactRow = ({
               className="w-8 h-8 rounded-full"
             />
             <div className="text-sm font-medium text-gray-900">
-              {contact.assigned_to?.name}
+              {contact.account_id?.assigned_to?.name}
               <div className="text-xs text-gray-500">
-                {contact.assigned_to?.role?.name}
+                {contact.account_id?.assigned_to?.role?.name}
               </div>
             </div>
           </div>

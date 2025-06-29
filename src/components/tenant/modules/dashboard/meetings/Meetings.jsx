@@ -1,66 +1,17 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, Users, Edit, Trash2, MapPin, Video, Phone, Search, Filter, Plus, BadgeCheck,LucideUserPlus2} from 'lucide-react';
-
-// UI Components
-const Button = ({ children, variant = "primary", size = "md", onClick, disabled = false, className = "", type = "button" }) => {
-  const variants = {
-    primary: "bg-blue-600 hover:bg-blue-700 text-white",
-    secondary: "bg-gray-200 hover:bg-gray-300 text-gray-800",
-    danger: "bg-red-600 hover:bg-red-700 text-white",
-    ghost: "hover:bg-gray-100 text-gray-600"
-  };
-  
-  const sizes = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-sm",
-    lg: "px-6 py-3 text-base"
-  };
-  
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      className={`${variants[variant]} ${sizes[size]} rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
-    >
-      {children}
-    </button>
-  );
-};
-
-const Badge = ({ children, variant = "default" }) => {
-  const variants = {
-    default: "bg-gray-100 text-gray-800",
-    success: "bg-green-100 text-green-800",
-    warning: "bg-yellow-100 text-yellow-800",
-    info: "bg-blue-100 text-blue-800",
-    danger: "bg-red-100 text-red-800"
-  };
-  
-  return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${variants[variant]}`}>
-      {children}
-    </span>
-  );
-};
+import { Button } from './components/UiComponent';
+import { Badge } from './components/UiComponent';
+import { MeetingDetailModal } from './MeetingDetail';
 
 // Meeting Card Component
-const MeetingCard = ({ meeting, onEdit, onDelete }) => {
+const MeetingCard = ({ meeting, onEdit, onDelete,onClick }) => {
   const getStatusColor = (status) => {
     switch (status) {
-      case 'confirmed': return 'success';
-      case 'scheduled': return 'info';
+      case 'completed': return 'success';
       case 'pending': return 'warning';
       case 'cancelled': return 'danger';
       default: return 'default';
-    }
-  };
-
-  const getModeIcon = (mode) => {
-    switch (mode) {
-      case 'virtual': return <Video size={16} />;
-      case 'call': return <Phone size={16} />;
-      default: return <MapPin size={16} />;
     }
   };
 
@@ -85,7 +36,7 @@ const formatTime = (startTime) => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex justify-between items-start mb-3" onClick={()=>onClick(meeting)}>
         <div>
           <h3 className="font-semibold text-gray-900 mb-1">{meeting.title}</h3>
           <Badge variant={getStatusColor(meeting.status)}>
@@ -122,7 +73,7 @@ const formatTime = (startTime) => {
         
         <div className="flex items-center space-x-2">
           <Users size={16} />
-          <span>{meeting.host?.name}</span>
+          <span>{meeting.host?.name ||'Owner'}</span>
         </div>
         <div className="flex items-center space-x-2">
           <BadgeCheck size={16} />
@@ -138,26 +89,30 @@ const formatTime = (startTime) => {
 };
 
 // Meetings List Component
-const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew }) => {
+const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew,onStatusChange,onAssigneeChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedMeeting, setSelectedMeeting] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredMeetings = meetings?.filter(meeting => {
-    const matchesSearch = meeting.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         meeting.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = meeting.title.toLowerCase().includes(searchTerm.toLowerCase())
+                         
     const matchesFilter = filterStatus === 'all' || meeting.status === filterStatus;
     
     return matchesSearch && matchesFilter;
   });
+    const handleMeetingClick = (meeting) => {
+    setSelectedMeeting(meeting);
+    setIsModalOpen(true);
+  };
 
   const statusOptions = [
     { value: 'all', label: 'All Status' },
-    { value: 'scheduled', label: 'Scheduled' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'cancelled', label: 'Cancelled' }
+ { value: 'completed', label: 'Completed'},
+    { value: 'pending', label: 'Pending'},
+    { value: 'cancelled', label: 'Cancelled'}
   ];
-
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="space-y-6">
@@ -209,9 +164,9 @@ const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew }) => {
           </div>
           <div className="bg-green-50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-green-600">
-              {meetings?.filter(m => m.status === 'confirmed').length}
+              {meetings?.filter(m => m.status === 'completed').length}
             </div>
-            <div className="text-sm text-green-700">Confirmed</div>
+            <div className="text-sm text-green-700">Completed</div>
           </div>
           <div className="bg-yellow-50 p-4 rounded-lg">
             <div className="text-2xl font-bold text-yellow-600">
@@ -220,10 +175,10 @@ const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew }) => {
             <div className="text-sm text-yellow-700">Pending</div>
           </div>
           <div className="bg-purple-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">
-              {meetings?.filter(m => new Date(m.date) >= new Date().setHours(0,0,0,0)).length}
+            <div className="text-2xl font-bold text-red-500">
+              {meetings?.filter(m => m.status === 'cancelled').length}
             </div>
-            <div className="text-sm text-purple-700">Upcoming</div>
+            <div className="text-sm text-red-500">Cancelled</div>
           </div>
         </div>
 
@@ -252,12 +207,23 @@ const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew }) => {
                 meeting={meeting}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onClick={handleMeetingClick}
               />
             ))}
           </div>
         )}
+        
       </div>
+       <MeetingDetailModal
+        meeting={selectedMeeting}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onStatusChange={onStatusChange}
+        onAssigneeChange={onAssigneeChange}
+        
+      />
     </div>
+    
   );
 };
 

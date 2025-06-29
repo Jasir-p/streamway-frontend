@@ -2,25 +2,28 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 
-export const fetchTeams = createAsyncThunk('teams/FetchTeams', async (_,{rejectWithValue}) => {
+export const fetchTeams = createAsyncThunk(
+  'teams/fetchTeams',
+  async (userId, { rejectWithValue }) => {
     try {
-        const token = localStorage.getItem("access_token");
-        const subdomain = localStorage.getItem("subdomain");
+      const params = {};
+      if (userId) {
+        params.userId = userId;
+      }
 
-        if (!token) return rejectWithValue("No token found, please log in again.");
-        if (!subdomain) return rejectWithValue("Subdomain not set.");
+      const response = await subdomainInterceptors.get('team', {
+        params
+      });
 
-        const response = await axios.get(`http://${subdomain}.localhost:8000/team/`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        console.log(response.data);
-        return response.data.teams;
+      console.log(response.data);
+      return response.data.teams;
     } catch (error) {
-        console.error("Error fetching users:", error.response?.data || error.message);
-        return rejectWithValue(error.response?.data || "Failed to fetch users");
+      console.error("Error fetching teams:", error.response?.data || error.message);
+      return rejectWithValue(error.response?.data || "Failed to fetch teams");
     }
-})
+  }
+);
+
 
 export const addTeam = createAsyncThunk('teams/AddTeam',async(data,{rejectWithValue})=>{
     try {

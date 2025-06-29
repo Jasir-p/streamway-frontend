@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useSelector } from 'react-redux';
+import { useSelector,useDispatch } from 'react-redux';
 import { X } from 'lucide-react';
+import { fetchUsers } from '../../../../../redux/slice/UsersSlice';
 
 const TeamModal = ({ 
   isOpen, 
@@ -10,10 +11,13 @@ const TeamModal = ({
   modalType, 
   loading, 
   team, 
-  members 
+  members,
+  employees 
 }) => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
-  const { users } = useSelector((state) => state.users);
+
+
+  const dispatch = useDispatch();
 
   if (!isOpen) return null;
 
@@ -21,7 +25,9 @@ const TeamModal = ({
     onSubmit(data);
     reset();
   };
-
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
   const getModalTitle = () => {
     switch (modalType) {
       case 'Member':
@@ -36,15 +42,15 @@ const TeamModal = ({
   };
 
   const getFilteredUsers = () => {
-    if (!users) return [];
+    if (!employees) return [];
 
-    return users.filter(user => {
+    return employees.filter(user => {
       if (modalType === 'Team Lead') {
         // For team lead, exclude current members
         return !members.some(member => member.id === user.id);
       } else {
         // For regular members, exclude team lead and current members
-        const isTeamLead = team.team_lead && user.id === team.team_lead.id;
+        const isTeamLead = team.team_lead && user.id === team?.team_lead.id;
         const isMember = members.some(member => member.id === user.id);
         return !isTeamLead && !isMember;
       }

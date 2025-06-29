@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useSubdomain } from "../../../Subdomain";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children}) => {
   const { isValid, isLoading } = useSubdomain();
   const location = useLocation();
 

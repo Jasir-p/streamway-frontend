@@ -4,9 +4,11 @@ import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 
 export const fetchEmails = createAsyncThunk(
     "emails/fetchEmails",
-    async (_, { rejectWithValue }) => {
+    async ({userID = null,url='/api/tenant-email/'}, { rejectWithValue }) => {
       try {
-        const response = await subdomainInterceptors.get('/api/tenant-email/');
+        const params = {}
+        if (userID) params.userId = userID
+        const response = await subdomainInterceptors.get(url,{params});
         return response.data;
       } catch (error) {
         return rejectWithValue(error.response?.data || error.message);

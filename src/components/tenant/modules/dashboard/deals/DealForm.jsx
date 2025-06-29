@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AlertCircle, DollarSign, Calendar, User, Building, Target, TrendingUp, X } from 'lucide-react';
 import { addDeal } from '../../../../../redux/slice/DealSlice';
 import { useDispatch } from 'react-redux';
-import { AccountDropdown } from '../meetings/AddMeeting';
+import { AccountDropdown } from '../meetings/components/MeetingDropDown';
 
 export default function AddDealModal({isOpen,onClose,userId,role}) {
   
@@ -13,6 +13,7 @@ export default function AddDealModal({isOpen,onClose,userId,role}) {
     status: 'new',
     stage: '',
     expected_close_date: '',
+    owner:'',
     created_by: role!=='owner'?userId:null,
     priority: ''
   });
@@ -66,7 +67,8 @@ export default function AddDealModal({isOpen,onClose,userId,role}) {
     setSelectedAccount(account);
     setFormData(prev => ({
       ...prev,
-      account_id: account.id
+      account_id: account.id,
+      owner:account.assigned_to.id
     }));
     setIsAccountDropDownOpen(false);
     

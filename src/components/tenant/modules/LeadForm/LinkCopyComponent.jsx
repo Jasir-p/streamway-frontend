@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Copy, Check, Link } from "lucide-react";
 
 const LinkCopyComponent = ({ 
-  linkUrl = "https://example.com/lead-form", 
+  linkUrl = "http://questudiopmd22v.localhost:5173//Streamway/form/", 
   linkTitle = "Lead Form Link"
 }) => {
   const [copied, setCopied] = useState(false);

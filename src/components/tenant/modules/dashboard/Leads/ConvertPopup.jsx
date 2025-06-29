@@ -1,11 +1,17 @@
 import React, { useState,useEffect } from 'react';
 import { CheckCircle } from 'lucide-react';
 import subdomainInterceptors from '../../../../../Intreceptors/getSubdomainInterceptors';
+import { useSelector } from 'react-redux';
 
 export default function ConversionOptionsPopup({ selectedLeads, onClose, onConversionComplete }) {
   const [isLoading, setIsLoading] = useState(false);
   const [convertToContact, setConvertToContact] = useState(false);
   const [convertToCustomer, setConvertToCustomer] = useState(false);
+  const[createDeal , setCreateDeal] = useState(false);
+  const [dealAmount, setDealAmount] = useState('');
+  const userId = useSelector((state) =>state.profile.id)
+  const role = useSelector((state) =>state.auth.role)
+
 
   useEffect(() => {
   if (convertToCustomer) {
@@ -15,6 +21,12 @@ export default function ConversionOptionsPopup({ selectedLeads, onClose, onConve
   }
 }, [convertToCustomer]);
 
+useEffect(() => {
+  if (!createDeal) {
+    setDealAmount('');
+  }
+}, [createDeal]);
+
   const handleCancel = () => {
     onClose();
   };
@@ -23,13 +35,17 @@ export default function ConversionOptionsPopup({ selectedLeads, onClose, onConve
     if (selectedLeads.length === 0) return;
 
     setIsLoading(true);
-
+    console.log(createDeal);
+    
     try {
       if (convertToContact || convertToCustomer) {
         const response = await subdomainInterceptors.post('/api/lead_conversion/', {
           lead: selectedLeads,
           convert_to_contact: convertToContact,
-          convert_to_customer: convertToCustomer
+          convert_to_customer: convertToCustomer,
+          create_deal: createDeal,
+          deal_amount: dealAmount,
+          assigned_by:role!=='owner'?userId:null
         });
 
         if (response.status === 200) {
@@ -82,6 +98,35 @@ export default function ConversionOptionsPopup({ selectedLeads, onClose, onConve
             />
             <label htmlFor="convertToContact" className="text-gray-700 text-sm">Convert to Contact</label>
           </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="createDeal"
+              disabled = {!convertToCustomer}
+              checked={createDeal}
+              onChange={(e) => setCreateDeal(e.target.checked)}
+              className="mr-2"
+            />
+            <label htmlFor="createDeal" className="text-gray-700 text-sm">Create Deal</label>
+          </div>
+
+          {createDeal && (
+            <div className="ml-6 mt-2">
+              <label htmlFor="dealAmount" className="block text-sm text-gray-600 mb-1">
+                Deal Amount
+              </label>
+              <input
+                type="number"
+                id="dealAmount"
+                value={dealAmount}
+                onChange={(e) => setDealAmount(e.target.value)}
+                placeholder="Enter amount"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                min="0"
+                step="0.01"
+              />
+            </div>
+          )}
 
         </div>
 

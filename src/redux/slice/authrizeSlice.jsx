@@ -9,10 +9,12 @@ const authrizeSlice = createSlice({ name:"auth",
         setUserRoleAndPermissions: (state, action) => {
             state.role = action.payload.role;
             state.permissions = action.payload.permissions;
+            state.isAuthenticated =true
           },
           clearAuth: (state) => {
             state.role = null;
             state.permissions = [];
+            state.isAuthenticated =false
           },
     }
 }

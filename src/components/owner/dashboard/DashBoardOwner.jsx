@@ -7,6 +7,7 @@ import {
   Clipboard,
   FileText,
   Award,
+  Activity
 } from 'lucide-react';
 
 import Layout from './Layout';
@@ -39,9 +40,12 @@ const CRMAdminDashboard = () => {
   const totalPaidRevenue = dashboardData?.invoices
   .filter((inv) => inv.status === 'paid')
   .reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
-
-   const overDueInvoices = dashboardData?.invoices
-  .filter((inv) => inv.status === 'Pending')
+const today = new Date();
+const overDueInvoices = dashboardData?.invoices?.filter((inv) => {
+  const dueDate = new Date(inv.tenant_billing.billing_expiry
+);
+  return inv.status === 'pending' && dueDate < today;
+});
  
 
   return (
@@ -75,26 +79,53 @@ const CRMAdminDashboard = () => {
           {/* Overdue Invoices */}
           <DashboardCard
             title="Overdue Invoices"
-            value={dashboardData?.overDueInvoices || 0}
+            value={overDueInvoices.length || 0}
             trend="↑ Needs attention"
             icon={<AlertTriangle className="w-8 h-8 text-red-500" />}
           />
 
           {/* Recent Invoices */}
-          <div className="bg-white p-4 rounded-lg shadow col-span-2">
-            <div className="flex items-center gap-2 mb-3">
-              <Clipboard className="w-5 h-5 text-blue-500" />
-              <h3 className="font-bold text-gray-700">Recent Invoices</h3>
+           <div className="bg-white p-4 rounded-lg shadow col-span-2">
+      <div className="flex items-center gap-2 mb-3">
+        <Activity className="w-5 h-5 text-green-500" />
+        <h3 className="font-bold text-gray-700">Active Logs</h3>
+      </div>
+      
+      <div className="space-y-2 max-h-64 overflow-y-auto">
+        {dashboardData?.logs?.length > 0 ? (
+          dashboardData?.logs.map((log, index) => (
+            <div 
+              key={index} 
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                  <span className="font-medium text-gray-800">
+                    {log.action}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mt-1">{log.name}</p>
+              </div>
+              
+              <div className="text-right">
+                <p className="text-xs text-gray-500">
+                  {new Date(log.timestamp).toLocaleTimeString()}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {new Date(log.timestamp).toLocaleDateString()}
+                </p>
+              </div>
             </div>
-            <ul className="mt-2 space-y-2">
-              {dashboardData?.recent_invoices?.map((invoice, index) => (
-                <li key={index} className="text-sm p-2 bg-gray-50 rounded flex justify-between items-center">
-                  <span>{`Invoice #${invoice.invoice_no} - ${invoice.tenant}`}</span>
-                  <span className="font-semibold text-green-600">₹{invoice.amount.toLocaleString()}</span>
-                </li>
-              ))}
-            </ul>
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p>No active logs available</p>
           </div>
+        )}
+      </div>
+    </div>
 
           {/* Top Paying Tenants */}
           <div className="bg-white p-4 rounded-lg shadow">

@@ -40,8 +40,8 @@ const MembersList = ({ members, onAddMember, onRemoveMember }) => {
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">{member.name || 'Unknown'}</p>
                 <p className="text-xs text-gray-500">{member.role?.name || 'No position'}</p>
-                <span className={`mt-1 inline-block text-xs px-2 py-1 rounded-full ${getStatusColor(member.status)}`}>
-                  {member.status || 'Unknown'}
+                <span className={`mt-1 inline-block text-xs px-2 py-1 rounded-full ${getStatusColor(member.is_active)}`}>
+                  {member.is_active?'active':'inactive' || 'Unknown'}
                 </span>
               </div>
               <button

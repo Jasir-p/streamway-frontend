@@ -11,7 +11,8 @@ import { setProfile } from "./redux/slice/ProfileSlice";
 
 
 const SubdomainContext = createContext(null);
-const PUBLIC_PATHS = new Set(["/", "/signup", "/otp", "/login"]);
+const PUBLIC_WITH_SUBDOMAIN = new Set(["/Streamway/form/", "/signin"]);
+const PUBLIC_WITHOUT_SUBDOMAIN = new Set(["/", "/signup", "/otp", "/login"]);
 
 export const SubdomainProvider = ({ children }) => {
   const [state, setState] = useState({
@@ -126,7 +127,7 @@ export const SubdomainProvider = ({ children }) => {
           
         }
 
-        if (PUBLIC_PATHS.has(location.pathname)) {
+        if (PUBLIC_WITHOUT_SUBDOMAIN.has(location.pathname)) {
           setState({ subdomain: null, isLoading: false, isValid: false, tenantIdentified: false });
           return;
         }
@@ -137,25 +138,25 @@ export const SubdomainProvider = ({ children }) => {
           window.location.href = "http://localhost:5173/login";
           return;
         }
-        if (!token && location.pathname === "/signin") {
+      if (PUBLIC_WITH_SUBDOMAIN.has(location.pathname)) {
           try {
-
             const tenantResponse = await axios.get(`http://${storedSubdomain}.localhost:8000/api/`);
             if (tenantResponse.data.status) {
-              console.log("Valid Tenant. Staying on employee login...");
-              setState({ isLoading: false, isValid: true });
+              console.log("Valid tenant, continuing...");
+              setState({
+                subdomain: storedSubdomain,
+                isLoading: false,
+                isValid: true,
+              });
               dispatch(setEmployeeSubdomain(storedSubdomain));
-              localStorage.setItem("subdomain", storedSubdomain);
-              
             } else {
-              console.log("Invalid Tenant. Redirecting to home...");
+              console.log("Invalid tenant. Redirecting to home...");
               setState({ isLoading: false, isValid: false });
               navigate("/", { replace: true });
             }
             return;
           } catch (error) {
-            console.error("Error checking tenant:", error);
-            localStorage.clear();
+            console.error("Tenant check failed:", error);
             setState({ isLoading: false, isValid: false });
             navigate("/", { replace: true });
             return;
