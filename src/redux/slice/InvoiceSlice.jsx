@@ -4,7 +4,10 @@ import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 
 export const fetchInVoiceStatus = createAsyncThunk('invoice/fetchStatus', async()=>{
     const response = await subdomainInterceptors.get('/api/tenant/invoice-status');
+    console.log(response.data);
     return response.data;
+    
+    
 });
 
 const initialState = {

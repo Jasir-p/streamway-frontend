@@ -6,18 +6,17 @@ const AdminRouteProtection = ({ children, redirectIfAuthenticated = false }) => 
 
   useEffect(() => {
     const accessToken = localStorage.getItem('access_token');
-    const role = localStorage.getItem('role');
 
-
-    if (!accessToken && !redirectIfAuthenticated) {
-      navigate('/admin/login', { replace: true });
-      return;
-    }
-
+    if (redirectIfAuthenticated) {
+      // For guest-only routes (like login)
+      if (accessToken) {
+        navigate('/admin/dashboard', { replace: true });
+      }
+    } else {
  
-    if (accessToken &&  redirectIfAuthenticated) {
-      navigate('/admin/dashboard', { replace: true });
-      return;
+      if (!accessToken) {
+        navigate('/admin/login', { replace: true });
+      }
     }
   }, [navigate, redirectIfAuthenticated]);
 
