@@ -53,6 +53,7 @@ import AdminRouteProtection from "./components/tenant/routes/GenarelRoute";
 import TenantAnalytics from "./components/owner/analytics/AdminAnalytics";
 import PublicRoute from "./components/tenant/routes/PublicRoute";
 import ActiveLogs from "./components/owner/activelogs/ActiveLogs";
+import NotFoundPage from "./components/common/NotFoundPage";
 
 function App() {
   const location = useLocation();
@@ -71,7 +72,8 @@ function App() {
     "/admin/billings/:billing_id", 
     "/admin/login",
     '/admin/analytics',
-    "/admin/activelogs"               
+    "/admin/activelogs",
+    '/notfound'               
   ];
 
   const shouldUseSubdomainProvider = !noSubdomainRoutes.some(route => {
@@ -123,8 +125,10 @@ function App() {
             <Route path="/dashboard/analytics" element={<ProtectedRoute><CRMAnalytics/></ProtectedRoute>} />
             
 
+            
+
             <Route path="/signin" element={<LoginEmoloye />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/notfound" replace />} />
           </Routes>
         </SubdomainProvider>
       ) : (
@@ -133,21 +137,19 @@ function App() {
           <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
           <Route path="/otp" element={<OtpPage />} />
           <Route path="/admin/login" element={
-            <AdminRouteProtection redirectIfAuthenticated={true}>
-              <AdminLogin />
-            </AdminRouteProtection>
-          } />
-
-         
-          <Route path="/admin/dashboard" element={<AdminRouteProtection><CRMAdminDashboard /></AdminRouteProtection>} />
-          <Route path="/admin/tenants" element={<AdminRouteProtection><Tenants /></AdminRouteProtection>} />
-          <Route path="/admin/tenants/:tenant_id" element={<AdminRouteProtection><TenantsDetail /></AdminRouteProtection>} />
-          <Route path="/admin/billings" element={<AdminRouteProtection><Billings/></AdminRouteProtection>}/>
-          <Route path="/admin/billings/:billing_id" element={<AdminRouteProtection><TenantBillingInvoices/></AdminRouteProtection>}/>
-          <Route path="/admin/analytics" element={<AdminRouteProtection><TenantAnalytics/></AdminRouteProtection>}/>
-          <Route path="/admin/activelogs" element={<AdminRouteProtection><ActiveLogs/></AdminRouteProtection>}/>
-      
-          <Route path="*" element={<Navigate to="/" replace />} />
+    <AdminRouteProtection redirectIfAuthenticated={true}>
+      <AdminLogin />
+    </AdminRouteProtection>
+  } />
+  <Route path="/admin/dashboard" element={<AdminRouteProtection><CRMAdminDashboard /></AdminRouteProtection>} />
+  <Route path="/admin/tenants" element={<AdminRouteProtection><Tenants /></AdminRouteProtection>} />
+  <Route path="/admin/tenants/:tenant_id" element={<AdminRouteProtection><TenantsDetail /></AdminRouteProtection>} />
+  <Route path="/admin/billings" element={<AdminRouteProtection><Billings /></AdminRouteProtection>} />
+  <Route path="/admin/billings/:billing_id" element={<AdminRouteProtection><TenantBillingInvoices /></AdminRouteProtection>} />
+  <Route path="/admin/analytics" element={<AdminRouteProtection><TenantAnalytics /></AdminRouteProtection>} />
+  <Route path="/admin/activelogs" element={<AdminRouteProtection><ActiveLogs /></AdminRouteProtection>} />
+  <Route path="/admin/*" element={<NotFoundPage />} /> {/* Catch-all for /admin/* routes */}
+  <Route path="*" element={<NotFoundPage />} /> {/* Catch-all for other routes */}
         </Routes>
       )}
     </ToastProvider>

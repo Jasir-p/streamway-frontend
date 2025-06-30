@@ -7,26 +7,21 @@ import LoadingScreen from '../../common/Loading';
 
 
 // Components for each tab
-const RoleList = () => <div>Role List Content</div>;
-const WorkSchedule = () => <div>Work Schedule Content</div>;
+
 
 const Security = () => {
     const [activeTab, setActiveTab] = useState("Hyrachie");
 
     const tabs = [
-        { id: 'Hyrachie', label: 'Role Hierarchy' },
-        { id: 'list', label: 'Role List' },
-        { id: 'schedule', label: 'Work Schedule', isBeta: true }
+        { id: 'Hyrachie', label: 'Role Hierarchy' }
+  
     ];
 
     const renderTabContent = () => {
         switch (activeTab) {
             case 'Hyrachie':
                 return <RoleForm />;
-            case 'list':
-                return <RoleList />;
-            case 'schedule':
-                return <WorkSchedule />;
+            
             default:
                 return <div>Select a valid tab</div>;
         }
