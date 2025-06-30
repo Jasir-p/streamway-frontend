@@ -8,17 +8,23 @@ import {
   CheckCircle2, 
   XCircle,
   UserPlus,
-  Briefcase
+  Briefcase,
+  Trash2Icon,
+  Trash2
+  
 } from 'lucide-react';
 import SettingsLayout from '../../settings/Settings';
 import { useDispatch, useSelector } from 'react-redux';
-import { addTeam, fetchTeams } from '../../../../redux/slice/TeamSlice';
+import { addTeam, fetchTeams,deleteTeam } from '../../../../redux/slice/TeamSlice';
 import { useForm } from 'react-hook-form';
 import userprofile from "../../../../assets/user-profile.webp";
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../common/Navbar';
 import TeamForm from './TeamForm';
 import { addRole } from '../../../../redux/slice/roleSlice';
+
+import DashboardLayout from '../../dashboard/DashbordLayout';
+
 
 
 
@@ -31,10 +37,11 @@ const TeamManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [change,setChange] =useState(false)
-
+  const role = useSelector((state) =>state.auth.role)
+  const userId = useSelector((state) =>state.profile.id)
 
   useEffect(()=>{
-    dispatch(fetchTeams())
+    dispatch(fetchTeams(role==='owner'?null:userId))
   },[dispatch,change])
 
 
@@ -45,6 +52,7 @@ const TeamManagement = () => {
     team?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     team?.team_lead?.name?.toLowerCase().includes(searchTerm.toLowerCase())
 );
+const horizontalClick = () => setIsModalOpen(true);
 
 const onSubmit = async (data) => {
   console.log(data);
@@ -77,14 +85,24 @@ const onSubmit = async (data) => {
 
 const handleClickView = (team_id)=>{
     setTimeout(()=>{
-        navigate(`/setting/team/teams/${team_id}`)
+        navigate(`/dashboard/team/teams/${team_id}`)
     },500)
+
+}
+const handleDelete = (team_id)=>{
+  try{
+    const response = dispatch(deleteTeam(team_id))
+    
+  }catch(error){
+    console.log(error)
+  }
+  
 
 }
 
 return (
-    <SettingsLayout>
-    <Navbar />
+    <DashboardLayout>
+
     <div className="bg-gray-100 min-h-screen p-6">
       <div className="container mx-auto">
         {/* Header Section */}
@@ -146,8 +164,8 @@ return (
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        <button className="text-gray-500 hover:text-blue-600">
-          <MoreHorizontal />
+        <button className="text-red-500 hover:text-blue-600" onClick={()=>handleDelete(team.id)}>
+          <Trash2 />
         </button>
       </div>
     </div>
@@ -195,7 +213,7 @@ return (
         )}
       </div>
     </div>
-    </SettingsLayout>
+    </DashboardLayout>
   );
 
  

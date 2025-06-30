@@ -18,20 +18,17 @@ const SidebarAdmin = () => {
   const menuItems = [
     { id: 'dashboard', icon: BarChart4, label: 'Dashboard', path: '/admin/dashboard' },
     { id: 'tenants', icon: Building2, label: 'Tenant Management', path: '/admin/tenants' },
-    { id: 'billing', icon: CreditCard, label: 'Billing & Subscriptions', path: '/admin/billing' },
-    { id: 'users', icon: Users, label: 'User Management', path: '/admin/users' },
-    { id: 'roles', icon: Key, label: 'Roles & Permissions', path: '/admin/roles' },
-    { id: 'workflows', icon: Layers, label: 'Workflow Settings', path: '/admin/workflows' },
-    { id: 'integrations', icon: Plug, label: 'Integrations', path: '/admin/integrations' },
-    { id: 'reports', icon: LineChart, label: 'Reports & Analytics', path: '/admin/reports' },
+    { id: 'billing', icon: CreditCard, label: 'Billing & Subscriptions', path: '/admin/billings' },
+
+    { id: 'reports', icon: LineChart, label: 'Analytics', path: '/admin/analytics' },
     { id: 'settings', icon: Settings, label: 'System Settings', path: '/admin/settings' },
-    { id: 'audit', icon: Clipboard, label: 'Audit Logs', path: '/admin/audit' },
+    { id: 'active', icon: Clipboard, label: 'Active Logs', path: '/admin/activelogs' },
   ];
 
   return (
     <div className="sticky w-64 bg-gray-800 text-white h-screen">
       <div className="p-4 border-b border-gray-700">
-        <h1 className="text-xl font-bold">CRM Admin</h1>
+        <h1 className="text-xl font-bold">StreamWay Admin</h1>
       </div>
       <nav className="mt-4">
         <ul>

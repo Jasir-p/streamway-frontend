@@ -47,3 +47,14 @@ export const deleteLeads = async (data)=>{
             return null
             }
             }
+
+export const addLeadNote = async (data)=>{
+    try{
+        const response =await subdomainInterceptors.post("/api/lead-note/",data)
+        console.log(response.data)
+        return response
+        } catch (error) {
+            console.error(error)
+            return null
+            }
+            }

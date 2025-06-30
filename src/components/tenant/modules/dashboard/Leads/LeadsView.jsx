@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../../dashboard/DashbordLayout';
-import subdomainInterceptors from '../../../../../Intreceptors/getSubdomainInterceptors';
+
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchLeadsEmployee, fetchLeadsOwner } from '../../../../../redux/slice/leadsSlice';
 import ExactToolbar from '../../../../common/ToolBar';
@@ -8,13 +8,16 @@ import userprofile from "../../../../../assets/user-profile.webp";
 import formatTimeAgo from '../../../../utils/formatTimeAgo';
 
 import { useNavigate } from 'react-router-dom';
-import { useHasPermission } from '../../../../utils/PermissionCheck';
-import ConversionPermissionPopup from './ConvertPopup';
-import StatusDropdown from '../../../../common/StatusComponent';
 import StatusUpdateConfirmation from './StatusUpdate';
+import { useDropdown } from '../../customer/contact/hooks/Contactshooks';
+import AddLeadModal from './AddLead';
+import { getUser } from '../../../../../Intreceptors/LeadsApi';
+import { useLeadPermissions } from '../../../authorization/LeadPermissions';
+
 
 const MondayStyleLeadsTable = () => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
+  const { isOpen, toggle, close } = useDropdown();
   const role = useSelector((state) => state.auth.role);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -37,22 +40,25 @@ const MondayStyleLeadsTable = () => {
     assigned_to: '',
     location: ''
   });
+const { canAddLead, canEditLead, canDeleteLead, canViewLead } = useLeadPermissions(selectedLeads);
 
-  const hasAddLeadPermission = useHasPermission('add_leads');
-  const canAddLead = hasAddLeadPermission || role === "owner";
-  const hasEditLeadsPermission = useHasPermission("edit_leads");
-  const canEditLead = selectedLeads?.length > 0 && (hasEditLeadsPermission || role === "owner");
   
-  const hasDeleteLeads = useHasPermission("delete_leads");
-  const canDeleteLead = hasDeleteLeads|| role === "owner";
-  const hasViewLeadsPermission = useHasPermission("view_leads");
- 
-  const canViewLead = hasViewLeadsPermission || role === "owner";
-
   const uniqueStatuses = [...new Set(leads.map(lead => lead.status))];
   const uniqueSources = [...new Set(leads.map(lead => lead.source))];
   const uniqueLocations = [...new Set(leads.map(lead => lead.location))];
-  const uniqueAssignees = [...new Set(leads.map(lead => lead.employee?.name))].filter(Boolean);
+  const [employees, setEmployees] = useState([]);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      const data = await getUser(role === 'owner' ? role : userId); 
+      if (data) {
+        setEmployees(data);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
+
 
   const updateLeadStatus = (success) => {
     if (success) {
@@ -87,7 +93,7 @@ const MondayStyleLeadsTable = () => {
       'Qualified': 'bg-green-500',
       'Negotiation': 'bg-orange-500',
       'converted': 'bg-emerald-500',
-      'Closed Lost': 'bg-red-500'
+      'lost': 'bg-red-500'
     };
     return statusColors[status] || 'bg-gray-500';
   };
@@ -130,23 +136,31 @@ const MondayStyleLeadsTable = () => {
     navigate (`/dashboard/sale/leads/${lead.lead_id}/`);
     };
 
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = 
-      lead.name.toLowerCase().includes(search.toLowerCase()) ||
-      lead.email.toLowerCase().includes(search.toLowerCase()) ||
-      lead.phone_number.includes(search);
-    
-    const matchesStatus = !filters.status || lead.status === filters.status;
-    
-    const matchesSource = !filters.source || lead.source === filters.source;
-    
-    const matchesAssignee = !filters.assigned_to || lead.employee?.name === filters.assigned_to;
-    
-    const matchesLocation = !filters.location || lead.location === filters.location;
-    // const isNotConverted = lead.status.toLowerCase() !== "converted";
-    
-    return matchesSearch && matchesStatus && matchesSource && matchesAssignee && matchesLocation ;
-  });
+const filteredLeads = leads.filter(lead => {
+  const name = lead?.name || '';
+  const email = lead?.email || '';
+  const phone = lead?.phone_number || '';
+
+  const matchesSearch =
+    name.toLowerCase().includes(search.toLowerCase()) ||
+    email.toLowerCase().includes(search.toLowerCase()) ||
+    phone.includes(search);
+
+  const matchesStatus = !filters.status || lead.status === filters.status;
+
+  const matchesSource = !filters.source || lead.source === filters.source;
+ 
+ 
+  const matchesAssignee =
+    !filters.assigned_to ||
+    (lead.employee?.id && String(lead.employee.id) === String(filters.assigned_to))||
+    (role === 'owner' && !lead.employee);
+
+  const matchesLocation = !filters.location || lead.location === filters.location;
+
+  return matchesSearch && matchesStatus && matchesSource && matchesAssignee && matchesLocation;
+});
+
 
   const activeFilterCount = Object.values(filters).filter(value => value !== '').length;
   const handleSelectAllChange = (event) => {
@@ -186,14 +200,7 @@ const MondayStyleLeadsTable = () => {
                 />
               )}
               
-              {selectedLeads.length>0  && (
-                <button className="bg-gray-300 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition p-5" onClick={()=>setStatus(prev=>!prev)}>
-                <span className="flex items-center">
-                  Status Update
-                </span>
-              </button>
-            )}
-
+              
               <button 
                 className={`${showFilters ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'} px-3 py-2 rounded-md text-sm font-medium transition flex items-center`}
                 onClick={toggleFilters}
@@ -217,12 +224,23 @@ const MondayStyleLeadsTable = () => {
                 </span>
               </button>
               {canAddLead && (
-                <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition">
+                <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
+                onClick={toggle}>
                   + Add Lead
                 </button>
               )}
             </div>
           </div>
+          {
+            isOpen && (
+              <AddLeadModal
+              isOpen={isOpen}
+              onClose={close}
+              onChange ={()=>setChange(true)}/>
+            )
+              
+
+          }
 
           {showFilters && (
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
@@ -251,8 +269,9 @@ const MondayStyleLeadsTable = () => {
                     onChange={(e) => handleFilterChange('assigned_to', e.target.value)}
                   >
                     <option value="">All Assignees</option>
-                    {uniqueAssignees.map((name) => (
-                      <option key={name} value={name}>{name}</option>
+                    <option value={userId}>You</option>
+                    {employees.map((user) => (
+                      <option key={user.id} value={user.id}>{user.name}</option>
                     ))}
                   </select>
                 </div>

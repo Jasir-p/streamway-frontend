@@ -4,13 +4,11 @@ import { Mail, Lock, ArrowRight } from 'lucide-react';
 import logo from "../../assets/logo.png" // Replace with your logo path
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import { setUserRoleAndPermissions } from '../../redux/slice/authrizeSlice';
-import api from '../../api';
 import { setProfile } from '../../redux/slice/ProfileSlice';
 import subdomainInterceptors from '../../Intreceptors/getSubdomainInterceptors';
-
+import { useToast } from '../common/ToastNotification';
 
 
 
@@ -21,6 +19,7 @@ const Login = () => {
   console.log(subdomain)
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const{showError} = useToast()
 
   const onSubmit = async(data) => {
     // Handle form submission
@@ -55,19 +54,14 @@ const Login = () => {
         
         // const decodedToken = jwtDecode(response.data.access_token);
         
-
-        
-        
-
-        
         navigate("/dashboard")
-      } else {
-        console.log(" Login Failed:", response.data.message);
-        navigate("/signin")
       }
     } catch (error) {
-      console.error("Login API Error:", error.response?.data || error.message);
-    }
+  console.error("Login API Error:", error.response?.data || error.message);
+  const errMsg = error.response?.data?.error || "Something went wrong!";
+  showError(errMsg);
+}
+
   };
   return (
     <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-8 xl:px-20 pt-11 mt-15 ">

@@ -1,28 +1,29 @@
 import { useState } from "react";
-import SettingsLayout from "../../settings/Settings";
 import { X } from "lucide-react";
+import LinkCopyComponent from "./LinkCopyComponent"; // Adjust path if needed
 
-const PreviewForm = ({ 
-  formConfig = {}, 
-  onSubmit, 
+const PreviewForm = ({
+  formConfig = {},
+  onSubmit,
   formTitle = "Tenant Form",
   isPreview = false
 }) => {
-
   const requiredFields = [
     { id: 'name', field_name: 'Full Name', field_type: 'text', is_required: true },
     { id: 'email', field_name: 'Email Address', field_type: 'email', is_required: true },
     { id: 'contact', field_name: 'Contact Number', field_type: 'tel', is_required: true },
     { id: 'location', field_name: 'Location', field_type: 'text', is_required: true },
+    {id: 'source', field_name: 'Source', field_type: 'select', is_required: true }
   ];
 
   const allFields = [
-    ...requiredFields, 
+    ...requiredFields,
     ...(Array.isArray(formConfig.field) ? formConfig.field : [])
   ];
 
   const [formValues, setFormValues] = useState({});
   const [errors, setErrors] = useState({});
+  const [showLinkBox, setShowLinkBox] = useState(false); // toggle state for link box
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -34,17 +35,16 @@ const PreviewForm = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Validate form
+
     const newErrors = {};
     allFields.forEach(field => {
       if (field.is_required && !formValues[field.id]) {
         newErrors[field.id] = `${field.field_name} is required`;
       }
     });
-    
+
     setErrors(newErrors);
-    
+
     if (Object.keys(newErrors).length === 0) {
       onSubmit?.(formValues);
     }
@@ -127,6 +127,7 @@ const PreviewForm = ({
   return (
     <div className="max-w-lg mx-auto p-6 bg-white rounded-md shadow-md">
       <h2 className="text-lg font-semibold mb-4">{formTitle}</h2>
+
       <form onSubmit={handleSubmit}>
         {allFields.map((field) => (
           <div key={field.id} className="mb-4">
@@ -151,6 +152,26 @@ const PreviewForm = ({
           <p className="text-gray-500 text-sm text-center">Preview Mode</p>
         )}
       </form>
+
+      {/* Toggle LinkCopyComponent */}
+      <div className="mt-6 text-center">
+        <button
+          type="button"
+          onClick={() => setShowLinkBox(!showLinkBox)}
+          className="text-blue-600 hover:underline text-sm font-medium"
+        >
+          {showLinkBox ? "Hide Shareable Link" : "Show Shareable Link"}
+        </button>
+      </div>
+
+      {showLinkBox && (
+        <div className="mt-6">
+          <LinkCopyComponent
+            linkUrl="http://questudiopmd22v.localhost:5173/Streamway/form/"
+            linkTitle="Lead Form Link"
+          />
+        </div>
+      )}
     </div>
   );
 };

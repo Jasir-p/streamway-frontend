@@ -6,12 +6,8 @@ import { data } from "react-router-dom";
 
 
 export const fetchFields = createAsyncThunk ( 'field/fetchFields', async (_,{rejectWithValue}) => {
-    const subdomain = localStorage.getItem("subdomain")
-    const token = localStorage.getItem("access_token")
     try{
-    const response = await axios.get(`http://${subdomain}.localhost:8000/api/formfield/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const response = await subdomainInterceptors.get('/api/formfield/');
       return response.data;
     }catch(error){
         return rejectWithValue(error.message)
@@ -31,6 +27,18 @@ export const addField = createAsyncThunk ( 'field/addField', async (data,{reject
                     return rejectWithValue(error.message)
                     }
                     });
+
+export const updateField = createAsyncThunk ( 'field/updateField', async (data, { rejectWithValue }) => {
+    try{
+        const response = await subdomainInterceptors.put("/api/formfield/",data)
+        return response.data
+    }catch(error){
+        return  rejectWithValue(error.message);
+
+    }
+})
+
+
 export const deleteField = createAsyncThunk ( 'field/deleteField', async (id,{rejectWithValue})=> {
    
     try{

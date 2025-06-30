@@ -2,16 +2,22 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFields } from "../../../../../redux/slice/LeadFormSlice";
 import subdomainInterceptors from "../../../../../Intreceptors/getSubdomainInterceptors";
+import { useToast } from "../../../../common/ToastNotification";
 
-const addEnquiry = async (data) => {
-    try {
-      const response = await subdomainInterceptors.post("/api/webenquiry/", data);
-      return response.data;
-    } catch (error) {
-      console.error("API Error:", error?.response?.data || error.message);
-      throw error; // forward error to handleSubmit
-    }
-  };
+const addEnquiry = async (data, showSuccess, showError) => {
+  try {
+    const response = await subdomainInterceptors.post("/api/webenquiry/", data);
+    showSuccess(response.data.message); 
+    return response.data;
+  } catch (error) {
+    const errorMessage =
+      error?.response?.data?.detail || error?.message || "Something went wrong";
+    showError(errorMessage); 
+    console.error("API Error:", error?.response?.data || error.message);
+    throw error; 
+  }
+};
+
   
 
 const EnquiryForm = () => {
@@ -19,6 +25,8 @@ const EnquiryForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const { showSuccess, showError, showWarning } = useToast();
+
 
 
   useEffect(() => {
@@ -33,12 +41,23 @@ const EnquiryForm = () => {
     { id: "name", field_name: "Full Name", field_type: "text", is_required: true },
     { id: "email", field_name: "Email Address", field_type: "email", is_required: true },
     { id: "phone_number", field_name: "Contact Number", field_type: "tel", is_required: true },
+     {id:'source', field_name: 'Source', field_type: 'select', is_required: true,
+       options: [
+      { value: 'website', label: 'Website' },
+      { value: 'whatsapp', label: 'WhatsApp' },
+      { value: 'facebook', label: 'Facebook' },
+      { value: 'instagram', label: 'Instagram' },
+      { value: 'google_ads', label: 'Google Ads' },
+      { value: 'referral', label: 'Referral' },
+      { value: 'other', label: 'Other' }
+    ]},
     { id: "location", field_name: "Location", field_type: "text", is_required: true },
+      
   ];
 
 
-  const contactFields = requiredFields.slice(0, 3);
-  const locationFields = [requiredFields[3]];
+  const contactFields = requiredFields.slice(0, 4);
+  const locationFields = [requiredFields[4]];
   const additionalFields = formfields;
 
 
@@ -110,7 +129,7 @@ const EnquiryForm = () => {
       console.log("Submitted Data:", readableFormData);
   
 
-      const response = await addEnquiry(readableFormData);
+      const response = await addEnquiry(readableFormData,showSuccess,showError);
       console.log("Server response:", response);
   
       setSubmitSuccess(true);
@@ -121,6 +140,8 @@ const EnquiryForm = () => {
       }, 5000);
   
     } catch (error) {
+      showError(error.message)
+      
       console.error("Submission error:", error);
     } finally {
       setIsSubmitting(false);
@@ -128,7 +149,6 @@ const EnquiryForm = () => {
   };
   
 
-  // Render different field types
   const renderField = (field) => {
     const { id, field_name, field_type, is_required, options = [] } = field;
     const hasError = formErrors[id];

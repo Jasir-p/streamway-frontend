@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async (_, { rejectWithValue }) => {
     try {
@@ -68,6 +69,19 @@ export const deleteUser = createAsyncThunk('users/DeleteUsers', async(user_id, {
         return rejectWithValue(error.response?.data || "Failed to delete user");
     }
 })
+export const editUser = createAsyncThunk('users/EditUser', async ({ user_id, user_data }, { rejectWithValue }) => {
+    console.log(user_id);
+    
+    const data = { user_id,user_data };
+    try{
+        const response = await subdomainInterceptors.put( "/employee/",data)
+        return response.data
+    
+    } catch (error) {
+        return rejectWithValue(error.response?.data || "Failed to edit user");
+    }
+})
+
 
 const userListSlice = createSlice({
     name: "users",

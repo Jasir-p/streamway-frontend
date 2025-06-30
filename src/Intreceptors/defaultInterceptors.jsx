@@ -75,8 +75,10 @@ defaultInterceptor.interceptors.response.use(
 
 
 const handleAuthenticationFailure = () => {
+     const isAdminRoute = window.location.pathname.startsWith('/admin');
     localStorage.clear();
-    window.location.href = "/login";
+    const loginPath = (isAdminRoute) ? '/admin/login' : '/login';
+    window.location.href = loginPath;
     return Promise.reject(new Error("Authentication failed"));
 };
 

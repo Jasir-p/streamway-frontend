@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutGrid } from 'lucide-react';
+import { LayoutGrid, ArrowLeft, Home } from 'lucide-react';
 import { Settings, Users, Shield, Link2, CreditCard, BarChart2, Archive, Lock, Copy } from 'lucide-react';
 
 function SettingSidebar() {
@@ -12,22 +12,17 @@ function SettingSidebar() {
   
   const menuItems = [
     { id: 'general', icon: Settings, label: 'General', path: "/setting/genaral" },
-    { id: 'customization', icon: LayoutGrid, label: 'Customization', path: "" },
     { id: 'users', icon: Users, label: 'Users', path: "/setting/users" },
     { id: 'security', icon: Shield, label: 'Security', path: '/setting/security' },
-    { id: 'connections', icon: Link2, label: 'Connections', path: "" },
-    { id: 'billing', icon: CreditCard, label: 'Billing', path: "" },
+    { id: 'billing', icon: CreditCard, label: 'Billing', path: "/setting/payment" },
     { id: 'usage', icon: BarChart2, label: 'Usage Stats', path: "" },
-    { id: 'cleanup', icon: Archive, label: 'Tidy Up', path: "" },
     { id: 'lead_form', icon: LayoutGrid, label: 'Lead Form', path: "/setting/lead_form" },
-    { id: 'Team', icon: Lock, label: 'Team', path: "/setting/team" },
-    { id: 'copier', icon: Copy, label: 'Cross Account Copier', path: "" }
   ];
   
   const sections = [
-    { title: 'General', items: menuItems.slice(0, 4) },
-    { title: 'Account', items: menuItems.slice(4, 7) },
-    { title: 'Management', items: menuItems.slice(7) }
+    { title: 'General', items: menuItems.slice(0, 3) },
+    { title: 'Account', items: menuItems.slice(3, 5) },
+    { title: 'Management', items: menuItems.slice(5 ) }
   ];
 
   return (
@@ -37,6 +32,17 @@ function SettingSidebar() {
           <Settings className="h-5 w-5 mr-2 text-yellow-400" />
           Settings
         </h1>
+      </div>
+
+      {/* Dashboard Button */}
+      <div className="p-3 border-b border-blue-600/30">
+        <Link
+          to="/dashboard"
+          className="flex items-center px-3 py-2 text-sm rounded-md transition-all duration-150 text-blue-100 hover:bg-white/10 hover:text-white group"
+        >
+          <ArrowLeft className="h-4 w-4 mr-3 text-blue-200 group-hover:text-yellow-400 transition-colors duration-150" />
+          <span>Back to Dashboard</span>
+        </Link>
       </div>
 
       <div className="space-y-4 p-3 flex-1 overflow-y-auto">

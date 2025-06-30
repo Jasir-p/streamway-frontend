@@ -1,47 +1,102 @@
-import React from 'react';
-import Sidebar from './Slidebar';
-import { Users, Sparkles, ShoppingBag, Briefcase, Search, Bell, Settings2Icon, Settings } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
-import Navbar from '../../common/Navbar';
-import { useSelector } from 'react-redux';
+import { DealsCard } from "./components/DealsCard";
+import { QuickActions } from "./components/QuickActions";
+import { UpcomingMeetings } from "./components/UpcomingMeetings";
+import { StatCard } from "./components/StatCard";
+import { TaskCard } from "./components/TaskCard";
+import { RecentLeadsTable } from "./components/RecentLeadsTable";
+import { useDashboard } from "./hooks/useDashboard";
+
+import React, { useState, useEffect } from 'react';
+import { 
+  Users, 
+  TrendingUp, 
+  Clock, 
+  Calendar, 
+  DollarSign, 
+  ChevronDown
+} from 'lucide-react';
+import DashboardLayout from "./DashbordLayout";
 
 
-
-
-
-function Dashboard() {
-  const role=useSelector((state)=>state.auth.role)
-  const permission = useSelector((state) => state.auth.permissions);
-  const profile = useSelector((state) => state.profile.name);
-  const sub = localStorage.getItem("subdomain")
-  console.log("jasir",sub)
-  const navigate = useNavigate();
-  const stats = [
-    { icon: Users, title: 'Active Leads', value: '178+', color: 'bg-blue-500' },
-    { icon: Sparkles, title: 'Opportunities in Progress', value: '20+', color: 'bg-yellow-500' },
-    { icon: ShoppingBag, title: 'Sales Products', value: '190+', color: 'bg-red-500' },
-    { icon: Briefcase, title: 'Job Application', value: '12+', color: 'bg-purple-500' },
-  ];
+const CRMHomePage = () => {
+  const { dashboardData, isLoading, error } = useDashboard();
+  const [dateRange, setDateRange] = useState('This Month');
+  
+  // Sample data
+  // const dashboardData = {
+  //   totalLeadsThisMonth: 142,
+  //   activeOpportunities: 28,
+  //   pendingTasks: 15,
+  //   upcomingMeetings: 8,
+  //   totalDealValue: '₹12,45,000'
+  // };
 
   return (
-    <div className="flex min-h-screen bg-white">
-      <Sidebar />
-      
-      <div className="flex-1">
+    <DashboardLayout>
+    <div className="min-h-screen p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <Navbar/>
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-600 mt-1">Welcome back! Here's what's happening with your sales.</p>
+            </div>
+            
+            {/* Date Range Filter */}
+            {/* <div className="relative">
+              <select 
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value)}
+                className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option>Today</option>
+                <option>This Week</option>
+                <option>This Month</option>
+                <option>Custom</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div> */}
+          </div>
+        </div>
 
-        
-        <h1>welcome{profile}
-          {role}
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard icon={<Users />} label="New Leads" value={dashboardData.leadCount} trend="12" />
+          <StatCard icon={<TrendingUp />} label="Deals" value={dashboardData.dealCount} trend="8" />
+          <StatCard icon={<Clock />} label="Pending Tasks" value={dashboardData.pendingTaskCount} />
+          <StatCard icon={<Calendar />} label="Upcoming Meetings" value={dashboardData.upcomingMeetingsCount} />
+          {/* <StatCard icon={<DollarSign />} label="Pipeline Value" value={dashboardData.totalDealValue} trend="15" /> */}
+        </div>
+
+        {/* Quick Actions */}
+        {/* <div className="mb-8">
+          <QuickActions />
+        </div> */}
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Active Deals */}
+          <DealsCard deals={dashboardData?.recentDeals} />
           
-        </h1>
+          {/* Upcoming Meetings */}
+          <UpcomingMeetings meetings={dashboardData.upcomingMeetings} />
+        </div>
+
+        {/* Tasks Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <TaskCard title="Overdue Tasks" tasks={dashboardData.overdueTasks} isOverdue={true} />
+          <TaskCard title="Today's Tasks" tasks={dashboardData.dueTodayTasks} />
+        </div>
+
+        {/* Recent Leads Table */}
+        <div className="mb-8">
+          <RecentLeadsTable leads={dashboardData.recentLeads} />
+        </div>
       </div>
     </div>
+    </DashboardLayout>
   );
-}
+};
 
-
-
-export default Dashboard;
+export default CRMHomePage;

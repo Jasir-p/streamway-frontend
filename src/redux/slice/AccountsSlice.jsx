@@ -12,7 +12,15 @@ export const fetchAccounts = createAsyncThunk('accounts/fetchAccounts', async (u
         }
         }
     )
-
+export const deleteAccounts = createAsyncThunk('accounts/deleteAccount',async(accountIds,{rejectWithValue})=>{
+    console.log(accountIds)
+    try {
+        const response = await subdomainInterceptors.delete('/api/accounts/',{data:{account_ids:accountIds}})
+        return accountIds
+    }catch(error){
+        return rejectWithValue(error.message)
+    }
+})
 
 const initialState = {
     accounts: [],
@@ -41,7 +49,21 @@ const accountsSlice = createSlice({
             state.loading = false
             state.error = action.payload
             })
+        .addCase(deleteAccounts.pending,(state)=>{
+            state.loading = true
+            state.error = null
+            })
+        .addCase(deleteAccounts.fulfilled,(state,action)=>{
+            state.loading = false
+            const deletedIds = action.payload
+            state.accounts=state.accounts.filter(account=>!deletedIds.includes(account.id))
+            })
+        .addCase(deleteAccounts.rejected,(state,action)=>{
+            state.loading= false
+            state.error= action.payload
+        })
             }
             })
+        
 
 export default accountsSlice.reducer

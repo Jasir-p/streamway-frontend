@@ -16,6 +16,12 @@ import leadsSliceReducer from "./slice/leadsSlice";
 import enquirySliceReducer from "./slice/EnquirySlice";
 import contactSliceReducer from "./slice/contactSlice";
 import accountsReducer from "./slice/AccountsSlice";
+import taskReducer from "./slice/TaskSlice";
+import invoiceSliceReducer from "./slice/InvoiceSlice";
+import emailSliceReducer from "./slice/EmailSlice";
+import billingSliceReducer from "./slice/projectadmin/tenantsBillingsSlice.jsx";
+import meetingSliceReducer from "./slice/MeetingSlice";
+import dealSliceReducer from "./slice/DealSlice";
 
 
 const persistConfigAuth = {
@@ -61,7 +67,13 @@ const store = configureStore({
     leads:leadsSliceReducer,
     enquiry:enquirySliceReducer,
     contacts:contactSliceReducer,
-    accounts:accountsReducer
+    accounts:accountsReducer,
+    tasks:taskReducer,
+    invoice:invoiceSliceReducer,
+    emails:emailSliceReducer,
+    billing :billingSliceReducer,
+    meeting :meetingSliceReducer,
+    deals:dealSliceReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

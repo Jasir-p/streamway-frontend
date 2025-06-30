@@ -16,14 +16,20 @@ import {
   FileText,
   Search,
   Bell,
-  HelpCircle
+  HelpCircle,
+  UserCog
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import userProfile from '../../../assets/user-profile.webp';
+
 
 
 function Sidebar() {
   const [activeItem, setActiveItem] = useState("Dashboard");
   const [expandedSection, setExpandedSection] = useState("Main");
+  const name = useSelector((state) =>state.profile.name)
+  const role = useSelector((state) =>state.auth.role)
   const navigate = useNavigate();
 
   const handleClick = (item) => {
@@ -39,8 +45,8 @@ function Sidebar() {
     {
       title: "Main",
       items: [
-        { icon: LayoutDashboard, text: 'Dashboard' },
-        { icon: PieChart, text: 'Analytics' }
+        { icon: LayoutDashboard, text: 'Dashboard', path:"/dashboard" },
+        { icon: PieChart, text: 'Analytics',path:"/dashboard/analytics" }
       ]
     },
     {
@@ -48,8 +54,8 @@ function Sidebar() {
       items: [
         { icon: Users, text: 'Web Enquiry', path:"/dashboard/sale/enquiry" },
         { icon: Users, text: 'Leads', path:"/dashboard/sale/leads" },
-        { icon: Sparkles, text: 'Opportunities' },
-        { icon: BarChart3, text: 'Sales Pipeline' },
+        { icon: Sparkles, text: 'Deals', path:'/dashboard/sale/deals' },
+        { icon: BarChart3, text: 'Sales Pipeline',path:'/dashboard/sale/salespipeline' },
       ]
     },
     {
@@ -57,22 +63,23 @@ function Sidebar() {
       items: [
         { icon: UserCircle, text: 'Contacts', path:"/dashboard/customer/contacts" },
         { icon: Users, text: 'Accounts', path:"/dashboard/customer/accounts" },
-        { icon: FileText, text: 'Contracts' }
+       
       ]
     },
     {
       title: "Activities",
       items: [
         { icon: CheckSquare, text: 'Tasks', path: "/dashboard/activity/task" },
-        { icon: Calendar, text: 'Meetings' },
+        { icon: Calendar, text: 'Meetings',path:"/dashboard/activity/meetings" },
         { icon: PhoneCall, text: 'Calls' },
-        { icon: Mail, text: 'Emails' }
+        { icon: Mail, text: 'Emails', path: "/dashboard/activity/email" },
       ]
     },
     {
       title: "Teamwork",
       items: [
-        { icon: Share2, text: 'Collaboration' }
+        { icon: Share2, text: 'Collaboration', path: "/dashboard/collabration/chat" },
+        { icon: UserCog, text: 'Team', path: "/dashboard/team" },
       ]
     }
   ];
@@ -159,15 +166,15 @@ function Sidebar() {
         <div className="flex items-center space-x-3">
           <div className="relative">
             <img
-              src="/api/placeholder/40/40"
+              src={userProfile}
               alt="Profile"
-              className="w-8 h-8 rounded-full border border-white/30"
+              className="w-10 h-10 rounded-full border border-white/30"
             />
             <span className="absolute bottom-0 right-0 h-2 w-2 bg-green-400 rounded-full border border-blue-800"></span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">John Doe</p>
-            <p className="text-xs text-blue-200 truncate">Sales Manager</p>
+            <p className="text-sm font-medium text-white truncate">{name}</p>
+            <p className="text-xs text-blue-200 truncate">{role.toUpperCase()}</p>
           </div>
           <div className="flex space-x-1">
             <button className="p-1 rounded-full hover:bg-white/10 text-blue-200 hover:text-white">

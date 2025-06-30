@@ -17,33 +17,35 @@ const ToolbarButton = ({ Icon, label, onClick, isActive, disabled }) => (
   </div>
 );
 
-const UserDropdown = ({ isOpen, onSelect, onClose }) => {
+
+
+export const UserDropdown = ({ isOpen, onSelect, onClose, selectedUser, placeholder, className = '' }) => {
   const dropdownRef = useRef(null);
   const role = useSelector((state) => state.auth.role);
   const profile = useSelector((state) => state.profile);
-  const [user, setUser] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUsers = async () => {
       setLoading(true);
       try {
         const response = await getUser(role === 'owner' ? role : profile.id);
-        if (response) {
-          setUser(response);
-        }
+        // Ensure response is an array
+        setUsers(Array.isArray(response) ? response : response ? [response] : []);
       } catch (error) {
-        console.log(error);
+        console.error('Error fetching users:', error);
+        setUsers([]);
       } finally {
         setLoading(false);
       }
     };
     
     if (isOpen) {
-      fetchUser();
+      fetchUsers();
     }
   }, [isOpen, role, profile.id]);
-  
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -65,10 +67,10 @@ const UserDropdown = ({ isOpen, onSelect, onClose }) => {
   return (
     <div 
       ref={dropdownRef}
-      className="absolute top-12 mt-1 w-64 bg-white rounded-lg shadow-lg text-gray-800 z-10 py-2"
+      className={`absolute top-12 mt-1 w-64 bg-white rounded-lg shadow-lg text-gray-800 z-50 py-2 ${className}`}
     >
       <div className="px-3 py-2 text-sm font-medium text-gray-500 border-b">
-        Select user to assign
+        {placeholder || 'Select user to assign'}
       </div>
       
       {loading ? (
@@ -77,11 +79,13 @@ const UserDropdown = ({ isOpen, onSelect, onClose }) => {
         </div>
       ) : (
         <div className="max-h-64 overflow-y-auto">
-          {user && user.length > 0 ? (
-            user.map(user => (
+          {users.length > 0 ? (
+            users.map(user => (
               <div 
                 key={user.id}
-                className="px-3 py-2 flex items-center hover:bg-gray-100 cursor-pointer"
+                className={`px-3 py-2 flex items-center hover:bg-gray-100 cursor-pointer ${
+                  selectedUser?.id === user.id ? 'bg-blue-50 font-medium' : ''
+                }`}
                 onClick={() => onSelect(user)}
               >
                 <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center mr-2">

@@ -1,11 +1,37 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState,useMemo } from 'react'
 import { User, Edit, Mail, Phone, Shield, Briefcase,Trash2 } from 'lucide-react';
-import { useDispatch } from 'react-redux';
+import { useDispatch,useSelector } from 'react-redux';
 import { deleteUser } from '../../../../redux/slice/UsersSlice';
+import { fetchRoles } from '../../../../redux/slice/roleSlice';
+import { editUser } from '../../../../redux/slice/UsersSlice';
+
 
 const UserDetails = ({ users,changes }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [role, setRole]= useState([])
   const dispatch = useDispatch();
+  const roles = useSelector((state) => state.roles.roles);
+  const [selectedRole, setSelectedRole] = useState(users.role?.id || null);
+  console.log(users.id)
+  const [update,setUpdate]= useState(false);
+  useEffect(()=>{
+    dispatch(fetchRoles());
+    setRole(roles)
+  },[isEditing,update])
+
+  const getAllRoles = (roles) => {
+    let result = [];
+    roles.forEach((role) => {
+      result.push({ id: role.id, name: role.name, level: role.level });
+      if (role.children?.length > 0) {
+        result = result.concat(getAllRoles(role.children));
+      }
+    });
+    return result;
+  };
+  const allRoles = useMemo(() => getAllRoles(roles), [roles]);
+  console.log(selectedRole);
+  
 
   const renderDetailRow = (icon, label, value) => (
     <div className="flex items-center space-x-3 py-2 border-b border-gray-200 last:border-b-0">
@@ -21,6 +47,20 @@ const UserDetails = ({ users,changes }) => {
     changes()
     };
   
+    const handleEditUser = () => {
+      if (selectedRole === users.role?.id) {
+       
+        setIsEditing(false);
+        return;
+      }
+      const user_data = {...users, role: selectedRole}
+      dispatch(editUser({ user_id: users.id, user_data: user_data })).unwrap();
+      setUpdate(true)
+      changes()
+      setIsEditing(false);
+      
+    }
+
 
 
 
@@ -96,9 +136,30 @@ const UserDetails = ({ users,changes }) => {
           )}
           
           {renderDetailRow(
-            <Shield className='w-5 h-5 text-red-500' />, 
-            'Role', 
-            users.role?.name
+            <Shield className='w-5 h-5 text-red-500' />,
+            'Role',
+            isEditing ? (
+              <select
+                  className="border p-1 rounded"
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(Number(e.target.value))}
+                >
+                  <option value="">Select a role</option>
+                  {allRoles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+            ) : (
+              users.role?.name
+            ),
+            <button
+              className="ml-2 text-blue-500 underline"
+              onClick={() => setIsEditing((prev) => !prev)}
+            >
+              {isEditing ? "Save" : "Edit"}
+            </button>
           )}
           
           {renderDetailRow(
@@ -120,6 +181,7 @@ const UserDetails = ({ users,changes }) => {
           </button>
           <button 
             className='px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 transition'
+            onClick={handleEditUser}
           >
             Save Changes
           </button>

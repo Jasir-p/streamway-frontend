@@ -1,7 +1,8 @@
 import React from 'react';
 import SettingsLayout from './Settings';
 import Navbar from '../../common/Navbar';
-import Company from '../modules/Genaral/company';
+// import Company from '../../tenant/modules/Genaral/Company'
+import Company from '../../tenant/modules/Genaral/Company';
 import { 
   Building, Shield, Zap, CheckCircle, 
   Users, Briefcase, Settings, ExternalLink
@@ -64,19 +65,6 @@ const Genaral = () => {
                   Company Settings
                 </h2>
                 <p className="text-gray-600 mt-1">Manage your organization's information and appearance</p>
-              </div>
-              
-              <div className="mt-4 md:mt-0 flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className={`w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold ${
-                      ['bg-blue-500', 'bg-green-500', 'bg-purple-500'][i]
-                    } text-white`}>
-                      {['JD', 'AM', 'TR'][i]}
-                    </div>
-                  ))}
-                </div>
-                <span className="text-sm text-gray-500 ml-2">+2 viewing</span>
               </div>
             </div>
             

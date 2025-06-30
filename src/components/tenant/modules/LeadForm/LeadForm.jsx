@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import SettingsLayout from '../../settings/Settings';
 import PreviewForm from './Preview';
 import { useSelector, useDispatch } from 'react-redux';
-import { addField, fetchFields, deleteField } from '../../../../redux/slice/LeadFormSlice';
+import { addField, fetchFields, deleteField,updateField } from '../../../../redux/slice/LeadFormSlice';
 import { Pencil, Trash2 } from 'lucide-react';
-
+import isEqual from 'lodash/isEqual';;
+import { useToast } from '../../../common/ToastNotification';
 
 const FormBuilder = () => {
   const [activeTab, setActiveTab] = useState('builder');
@@ -13,6 +14,8 @@ const FormBuilder = () => {
   const [changeTracker, setChangeTracker] = useState(false);
   const dispatch = useDispatch();
   const { field, loading, error } = useSelector((state) => state.fields);
+  const [originaField, setOriginaField]=useState()
+  const { showSuccess, showError, showWarning } = useToast();
 
 
   useEffect(() => {
@@ -67,9 +70,14 @@ const FormBuilder = () => {
 
     try {
       if (editingFieldId) {
+        if(isEqual(newField,originaField)){
+          showWarning("NO changes made.")
+          return
+
+        }
 
         await dispatch(updateField({
-          id: editingFieldId,
+          field_id: editingFieldId,
           field_name: newField.field_name,
           field_type: newField.field_type,
           is_required: newField.is_required,
@@ -110,6 +118,13 @@ const FormBuilder = () => {
       is_required: fieldToEdit.is_required,
       options: fieldToEdit.options || [{ value: 'option1', label: 'Option 1' }]
     });
+    setOriginaField({
+      field_name: fieldToEdit.field_name,
+      field_type: fieldToEdit.field_type,
+      is_required: fieldToEdit.is_required,
+      options: fieldToEdit.options || [{ value: 'option1', label: 'Option 1' }]
+    })
+    
   };
 
   const handleDeleteField = async (fieldId) => {
