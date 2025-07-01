@@ -11,6 +11,7 @@ import { setTenantEmail } from '../redux/slice/TenantEmailSlice';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import defaultInterceptor from '../Intreceptors/defaultInterceptors';
 
 
 const RegistrationForm = () => {
@@ -27,16 +28,9 @@ const RegistrationForm = () => {
     console.log("Form submitted:", data);
 
     try {
-      const response = await axios.post(
-        `https://api.streamway.solutions/action/`, 
+      const response = await defaultInterceptor.post('/action/', 
         
           data,
-        
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
       );
 
       if (response.status === 200) {
