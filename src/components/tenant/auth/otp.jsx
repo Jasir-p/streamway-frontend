@@ -78,11 +78,7 @@ function OtpCheck() {
     
     try {
       const data = { "email": tenantEmail };
-      const response = await axios.post(`http://localhost:8000/resend-otp/`, data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await defaultInterceptor.post('/resend-otp/', data);
       
       if (response.status === 200) {
         setCounter(120);

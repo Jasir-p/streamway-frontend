@@ -48,7 +48,7 @@ function LoginForm() {
         
 
         const profileData = encodeURIComponent(JSON.stringify(response.data.profile));
-        window.location.href = `http://${subdomain}.localhost:5173/dashboard?access=${response.data.access_token}&refresh=${response.data.refresh_token}&profile=${profileData}`;
+        window.location.href = `http://${subdomain}.streamway.solutions/dashboard?access=${response.data.access_token}&refresh=${response.data.refresh_token}&profile=${profileData}`;
       } else {
         console.log(" Login Failed:", response.data.message);
       }
