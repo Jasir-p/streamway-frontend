@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addLeadNote } from '../../../../../Intreceptors/LeadsApi';
 import ComposeEmailModal from '../email/AddMail';
 import { useDropdown } from '../../customer/contact/hooks/Contactshooks';
+import { useLeadPermissions } from '../../../authorization/LeadPermissions';
 const fetchLeadById = async (lead_id) => {
     try {
         const response = await subdomainInterceptors.get("api/lead-overview/",
@@ -32,6 +33,7 @@ export default function LeadDetailPage() {
   const {lead_id} = useParams();
   const dispatch = useDispatch();
   const { isOpen, toggle, open, close } = useDropdown();
+  const {canEditLead}=useLeadPermissions()
   
   // Initialize leadData with proper structure
   const [leadData, setLeadData] = useState({
@@ -314,7 +316,7 @@ export default function LeadDetailPage() {
                 )}
 
                 {/* Edit Tab */}
-                {activeTab === 'edit' && (
+                {activeTab === 'edit' && canEditLead &&  (
                   <div>
                     <form className="grid grid-cols-1 md:grid-cols-3 gap-4" onSubmit={handleEdit}>
                       <div>

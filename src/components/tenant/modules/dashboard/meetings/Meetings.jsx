@@ -3,9 +3,10 @@ import { Calendar, Clock, Users, Edit, Trash2, MapPin, Video, Phone, Search, Fil
 import { Button } from './components/UiComponent';
 import { Badge } from './components/UiComponent';
 import { MeetingDetailModal } from './MeetingDetail';
+import { useMeetingPermissions } from '../../../authorization/useMeetingPermissions';
 
 // Meeting Card Component
-const MeetingCard = ({ meeting, onEdit, onDelete,onClick }) => {
+const MeetingCard = ({ meeting, onEdit, onDelete,onClick,canDelete,canEdit }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'success';
@@ -44,12 +45,13 @@ const formatTime = (startTime) => {
           </Badge>
         </div>
         <div className="flex space-x-1">
-          <Button variant="ghost" size="sm" onClick={() => onEdit(meeting)}>
+          {canEdit &&(<Button variant="ghost" size="sm" onClick={() => onEdit(meeting)}>
             <Edit size={16} />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => onDelete(meeting.id)}>
+          </Button>)}
+          {canDelete &&(<Button variant="ghost" size="sm" onClick={() => onDelete(meeting.id)}>
             <Trash2 size={16} />
-          </Button>
+          </Button>)}
+          
         </div>
       </div>
       
@@ -94,6 +96,7 @@ const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew,onStatusChange,o
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const {canAdd,canDelete,canEdit}=useMeetingPermissions()
 
   const filteredMeetings = meetings?.filter(meeting => {
     const matchesSearch = meeting.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -122,10 +125,11 @@ const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew,onStatusChange,o
             <h1 className="text-2xl font-bold text-gray-900">Meetings</h1>
             <p className="text-gray-600">Manage your meeting schedule</p>
           </div>
-          <Button onClick={onCreateNew} className="flex items-center space-x-2">
+          {canAdd &&(<Button onClick={onCreateNew} className="flex items-center space-x-2">
             <Plus size={20} />
             <span>New Meeting</span>
-          </Button>
+          </Button>)}
+          
         </div>
 
         {/* Filters */}
@@ -195,7 +199,7 @@ const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew,onStatusChange,o
                 : 'Get started by creating your first meeting.'
               }
             </p>
-            {!searchTerm && filterStatus === 'all' && (
+            {!searchTerm && filterStatus === 'all' && canAdd && (
               <Button onClick={onCreateNew}>Create Meeting</Button>
             )}
           </div>
@@ -208,6 +212,8 @@ const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew,onStatusChange,o
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onClick={handleMeetingClick}
+                canDelete={canDelete}
+                canEdit={canEdit}
               />
             ))}
           </div>
@@ -220,6 +226,8 @@ const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew,onStatusChange,o
         onClose={() => setIsModalOpen(false)}
         onStatusChange={onStatusChange}
         onAssigneeChange={onAssigneeChange}
+        canEdit ={canEdit}
+        
         
       />
     </div>

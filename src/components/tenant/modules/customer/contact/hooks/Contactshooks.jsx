@@ -164,19 +164,38 @@ export const useContactSelection = () => {
 
 export const useModal = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [contact, setContact] = useState(null);
+  const [isEdit, setIsEdit] = useState(false);
 
-  const openModal = () => setIsOpen(true);
-  const closeModal = () => setIsOpen(false);
-  const toggleModal = () => setIsOpen(!isOpen);
+  const openModal = (contactData = null) => {
+    setContact(contactData);
+    setIsEdit(!!contactData); // true if contactData exists, false otherwise
+    setIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsOpen(false);
+    setContact(null);
+    setIsEdit(false);
+  };
+
+  const toggleModal = (contactData = null) => {
+    if (isOpen) {
+      closeModal();
+    } else {
+      openModal(contactData);
+    }
+  };
 
   return {
     isOpen,
+    contact,
+    isEdit,
     openModal,
     closeModal,
     toggleModal
   };
 };
-
 
 
 export const useDropdown = () => {

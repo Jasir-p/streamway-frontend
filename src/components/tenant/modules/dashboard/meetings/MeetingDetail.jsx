@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 
 
 // Meeting Detail Modal Component
-export const MeetingDetailModal = ({ meeting, isOpen, onClose, onStatusChange, onAssigneeChange, availableEmployees }) => {
+export const MeetingDetailModal = ({ meeting, isOpen, onClose, onStatusChange, onAssigneeChange, availableEmployees,canEdit }) => {
   const [isEditing, setIsEditing] = useState(false);
  
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -223,7 +223,7 @@ export const MeetingDetailModal = ({ meeting, isOpen, onClose, onStatusChange, o
                   </div>
 
                   {/* Change Host */}
-                  {meeting.status!=='completed' &&(<div>
+                  {meeting.status!=='completed'  && canEdit &&(<div>
                     <div className="text-sm font-medium text-gray-700 mb-2">Change Host</div>
                     <div className="relative">
                       <button

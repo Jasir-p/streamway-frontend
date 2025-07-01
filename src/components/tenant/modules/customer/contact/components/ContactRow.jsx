@@ -1,9 +1,9 @@
 import React from 'react';
-import { Mail, Phone, Star, StarOff, Eye, Edit, MoreHorizontal } from 'lucide-react';
+import { Mail, Phone, Star, StarOff, Edit, MoreHorizontal } from 'lucide-react';
 import userprofile from "../../../../../../assets/user-profile.webp";
 import { updateContact } from '../../../../../../redux/slice/contactSlice';
 import { useDispatch } from 'react-redux';
-
+import { useNavigate } from 'react-router-dom';
 
 const ContactRow = ({ 
   contact, 
@@ -12,19 +12,32 @@ const ContactRow = ({
   onToggleFavorite, 
   showActionDropdown, 
   onShowActionDropdown,
-  onChange
+  onChange,
+  onEdit // New prop for handling edit
 }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const handleStatusChange = (contact)=>{
+  const handleStatusChange = (contact) => {
     const data = {
       id: contact.id,
-      status: contact.status === 'active' ? 'inactive' : 'active'}
-      dispatch( updateContact(data) );
-      onChange()
-      onShowActionDropdown(null)
-      
-}
+      status: contact.status === 'active' ? 'inactive' : 'active'
+    };
+    dispatch(updateContact(data));
+    onChange();
+    onShowActionDropdown(null);
+  };
+
+  const handleScheduleClick = () => {
+    navigate("/dashboard/activity/meetings");
+  };
+
+  const handleEditClick = () => {
+    if (onEdit) {
+      onEdit.openModal(contact);
+    }
+    onShowActionDropdown(null); // Close dropdown if open
+  };
 
   return (
     <tr className="hover:bg-gray-50 transition-colors">
@@ -41,19 +54,16 @@ const ContactRow = ({
       <td className="px-4 py-4 whitespace-nowrap">
         <div className="flex items-center">
           <div className="h-10 w-10 flex-shrink-0 mr-3 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center font-medium">
-            {contact.name ? contact.name.split(' ').map(n => n[0]).join('').toUpperCase() : ''}
+            {contact.name ? contact?.name?.split(' ').map(n => n[0]).join('').toUpperCase() : ''}
           </div>
           <div className="font-medium text-gray-900 flex items-center">
             {contact?.name}
-            <button 
-              className="ml-2 text-gray-400 hover:text-yellow-500"
-              onClick={() => onToggleFavorite(contact.id)}
-            >
-              {contact.favorite ? 
-                <Star size={16} className="fill-yellow-400 text-yellow-400" /> : 
-                <StarOff size={16} />
-              }
-            </button>
+            {contact.is_primary_contact && (
+              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                Primary
+              </span>
+            )}
+            
           </div>
         </div>
       </td>
@@ -117,10 +127,11 @@ const ContactRow = ({
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium relative">
         <div className="flex items-center justify-end space-x-2">
-          {/* <button className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
-            <Eye size={18} />
-          </button> */}
-          <button className="p-1 text-indigo-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50">
+          <button 
+            className="p-1 text-indigo-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50"
+            onClick={handleEditClick}
+            title="Edit Contact"
+          >
             <Edit size={18} />
           </button>
           
@@ -133,14 +144,27 @@ const ContactRow = ({
             </button>
 
             {showActionDropdown === contact.id && (
-              <div className="relative overflow-visible right-0 mt-2 z-20 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1">
-                  <button className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
-                        contact.status === 'active' ? 'text-red-600' : 'text-green-600'
-                      }`} onClick={()=>handleStatusChange(contact)}>
-                  {contact.status ==='active'?'Inactive':'Active'}
+              <div className="absolute right-0 mt-2 z-20 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1">
+                <button 
+                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
+                    contact.status === 'active' ? 'text-red-600' : 'text-green-600'
+                  }`} 
+                  onClick={() => handleStatusChange(contact)}
+                >
+                  {contact.status === 'active' ? 'Inactive' : 'Active'}
                 </button>
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <button 
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                  onClick={handleScheduleClick}
+                >
                   Schedule Meeting
+                </button>
+                
+                <button 
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                  onClick={handleEditClick}
+                >
+                  Edit Contact
                 </button>
               </div>
             )}

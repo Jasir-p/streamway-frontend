@@ -13,10 +13,11 @@ const ContactTable = ({
   onToggleFavorite,
   showActionDropdown,
   setShowActionDropdown,
-  onChange
+  onChange,
+  onEdit
 }) => {
   return (
-    <div className="border border-gray-50 rounded-lg overflow-hidden shadow-sm">
+    <div className="border border-gray-50 rounded-lg  shadow-sm">
       <table className="min-w-full divide-y divide-gray-200">
         <ContactTableHeader
           sortBy={sortBy}
@@ -37,6 +38,7 @@ const ContactTable = ({
                 showActionDropdown={showActionDropdown}
                 onShowActionDropdown={setShowActionDropdown}
                 onChange = {onChange}
+                onEdit={onEdit}
 
               />
             ))

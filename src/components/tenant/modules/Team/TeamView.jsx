@@ -24,6 +24,7 @@ import TeamForm from './TeamForm';
 import { addRole } from '../../../../redux/slice/roleSlice';
 
 import DashboardLayout from '../../dashboard/DashbordLayout';
+import { useTeamPermissions } from '../../authorization/useTeamPermissions';
 
 
 
@@ -39,6 +40,7 @@ const TeamManagement = () => {
   const [change,setChange] =useState(false)
   const role = useSelector((state) =>state.auth.role)
   const userId = useSelector((state) =>state.profile.id)
+  const {canAdd,canDelete,canEdit,canView}= useTeamPermissions()
 
   useEffect(()=>{
     dispatch(fetchTeams(role==='owner'?null:userId))
@@ -123,12 +125,13 @@ return (
             </div>
 
             {/* Create Team Button */}
-            <button 
+            {canAdd &&(<button 
               onClick={() => setIsModalOpen(true)}
               className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Plus className="mr-2" /> Create Team
-            </button>
+            </button>)}
+            
           </div>
         </div>
 
@@ -164,9 +167,10 @@ return (
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        <button className="text-red-500 hover:text-blue-600" onClick={()=>handleDelete(team.id)}>
+        {canDelete &&(<button className="text-red-500 hover:text-blue-600" onClick={()=>handleDelete(team.id)}>
           <Trash2 />
-        </button>
+        </button>)}
+        
       </div>
     </div>
 

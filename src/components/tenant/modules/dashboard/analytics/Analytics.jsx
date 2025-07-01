@@ -9,68 +9,10 @@ import { TeamsKPA } from './components/sections/TeamsKPA';
 import { AdminKPA } from './components/sections/AdminKPA';
 import { EmployeesKPA } from './components/sections/EmployeesKPA';
 import { useAnalytics } from './hooks/useAnalytics';
+import { useAnalysePermissions } from '../../../authorization/useAnalysePermissions';
 
-
-// Mock data generator (replace with actual API)
 export const getMockData = (filters, activeTab) => {
-  // Sample data for Teams KPA
-  const teamTaskData = [
-    { team: 'Sales Team A', assigned: 45, completed: 38, pending: 7, overdue: 3 },
-    { team: 'Sales Team B', assigned: 52, completed: 44, pending: 8, overdue: 2 },
-    { team: 'Marketing', assigned: 28, completed: 25, pending: 3, overdue: 1 },
-    { team: 'Customer Success', assigned: 35, completed: 32, pending: 3, overdue: 0 },
-    { team: 'Sales Team C', assigned: 40, completed: 38, pending: 7, overdue: 3 },
-    { team: 'Sales Team D', assigned: 51, completed: 44, pending: 8, overdue: 2 },
-    { team: 'Market', assigned: 29, completed: 25, pending: 3, overdue: 1 },
-    { team: 'Customer', assigned: 30, completed: 32, pending: 3, overdue: 0 }
-  ];
 
-  const taskStatusData = [
-    { name: 'Completed', value: 139, color: '#10B981' },
-    { name: 'Pending', value: 21, color: '#F59E0B' },
-    { name: 'Overdue', value: 6, color: '#EF4444' }
-  ];
-
-  const employeeData = [
-    { 
-      name: 'John Smith', 
-      role: 'Manager',
-      ownLeads: 15, subordinateLeads: 10, totalLeads: 25,
-      ownConversions: 12, subordinateConversions: 6, totalConversions: 18,
-      ownDeals: 8, subordinateDeals: 4, totalDeals: 12,
-      ownMeetings: 20, subordinateMeetings: 15, totalMeetings: 35,
-      ownTasks: 12, subordinateTasks: 10, totalTasks: 22,
-      ownAccounts: 5, subordinateAccounts: 3, totalAccounts: 8,
-      ownRevenue: 30000, subordinateRevenue: 15000, totalRevenue: 45000
-    },
-    { 
-      name: 'Sarah Johnson', 
-      role: 'Senior Manager',
-      ownLeads: 18, subordinateLeads: 14, totalLeads: 32,
-      ownConversions: 15, subordinateConversions: 9, totalConversions: 24,
-      ownDeals: 11, subordinateDeals: 8, totalDeals: 19,
-      ownMeetings: 25, subordinateMeetings: 17, totalMeetings: 42,
-      ownTasks: 16, subordinateTasks: 12, totalTasks: 28,
-      ownAccounts: 7, subordinateAccounts: 5, totalAccounts: 12,
-      ownRevenue: 40000, subordinateRevenue: 22000, totalRevenue: 62000
-    }
-  ];
-
-  const radarData = [
-    { subject: 'Leads', A: 120, B: 110, fullMark: 150 },
-    { subject: 'Conversions', A: 98, B: 130, fullMark: 150 },
-    { subject: 'Deals', A: 86, B: 130, fullMark: 150 },
-    { subject: 'Meetings', A: 99, B: 100, fullMark: 150 },
-    { subject: 'Tasks', A: 85, B: 90, fullMark: 150 },
-    { subject: 'Accounts', A: 65, B: 85, fullMark: 150 }
-  ];
-
-  const funnelData = [
-    { name: 'Leads', value: 400, fill: '#3B82F6' },
-    { name: 'Qualified', value: 280, fill: '#10B981' },
-    { name: 'Proposals', value: 180, fill: '#F59E0B' },
-    { name: 'Closed Deals', value: 120, fill: '#8B5CF6' }
-  ];
 
   const revenueData = [
     { month: 'Jan', revenue: 45000, deals: 8 },
@@ -82,11 +24,6 @@ export const getMockData = (filters, activeTab) => {
   ];
 
   return {
-    teamTaskData,
-    taskStatusData,
-    employeeData,
-    radarData,
-    funnelData,
     revenueData
   };
 };
@@ -222,14 +159,32 @@ const FilterSection = ({ filters, onFiltersChange, onApplyFilters }) => {
 };
 
 const CRMAnalytics = () => {
-  const [activeTab, setActiveTab] = useState('teams');
+  const { canViewAll, canViewEmployees, canViewTeam } = useAnalysePermissions();
+  
+  // Function to get the default tab based on permissions
+  const getDefaultTab = () => {
+    if (canViewTeam) return 'teams';
+    if (canViewEmployees) return 'employees';
+    if (canViewAll) return 'admin';
+    return null; // No permissions
+  };
+
+  const [activeTab, setActiveTab] = useState(getDefaultTab());
   const [filters, setFilters] = useState({
     type: 'month',
     startDate: '',
     endDate: ''
   });
 
-  // Use the analytics hook
+  // Update activeTab when permissions change
+  useEffect(() => {
+    const defaultTab = getDefaultTab();
+    if (defaultTab && !activeTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [canViewAll, canViewEmployees, canViewTeam, activeTab]);
+
+  // Use the analytics hook only if we have a valid tab
   const { data, loading, error } = useAnalytics(filters, activeTab);
 
   const handleFiltersChange = (newFilters) => {
@@ -245,6 +200,25 @@ const CRMAnalytics = () => {
     // Export functionality
     console.log('Exporting data with filters:', filters);
   };
+
+  // Check if user has any permissions
+  const hasAnyPermission = canViewAll || canViewEmployees || canViewTeam;
+
+  // No permissions - show access denied
+  if (!hasAnyPermission) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-gray-400 text-6xl mb-4">🔒</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+            <p className="text-gray-600">You don't have permission to view analytics data.</p>
+            <p className="text-gray-500 text-sm mt-2">Please contact your administrator for access.</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (error) {
     return (
@@ -270,65 +244,77 @@ const CRMAnalytics = () => {
                 <h1 className="text-3xl font-bold text-gray-900">Stream Way CRM Analytics</h1>
                 <p className="text-gray-600 mt-1">Track performance across teams, employees, and business metrics</p>
               </div>
-              <div className="flex items-center space-x-3 mt-4 sm:mt-0">
-                <button 
-                  onClick={exportData}
-                  className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Export</span>
-                </button>
+              {activeTab && (
+                <div className="flex items-center space-x-3 mt-4 sm:mt-0">
+                  <button 
+                    onClick={exportData}
+                    className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Export</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Enhanced Filter Section - Only show if user has valid tab */}
+          {activeTab && (
+            <FilterSection 
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              onApplyFilters={handleApplyFilters}
+            />
+          )}
+
+          {/* Navigation Tabs - Only show if user has permissions */}
+          {activeTab && (
+            <div className="mb-6">
+              <div className="border-b border-gray-200">
+                <nav className="-mb-px flex space-x-8">
+                  {canViewTeam && (
+                    <button
+                      onClick={() => setActiveTab('teams')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                        activeTab === 'teams'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      🟩 Teams KPA
+                    </button>
+                  )}
+                  {canViewEmployees && (
+                    <button
+                      onClick={() => setActiveTab('employees')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                        activeTab === 'employees'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      🟨 Employees KPA
+                    </button>
+                  )}
+                  {canViewAll && (
+                    <button
+                      onClick={() => setActiveTab('admin')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                        activeTab === 'admin'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      🟦 Overall KPA Performance Summary
+                    </button>
+                  )}
+                </nav>
               </div>
             </div>
-          </div>
-
-          {/* Enhanced Filter Section */}
-          <FilterSection 
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            onApplyFilters={handleApplyFilters}
-          />
-
-          {/* Navigation Tabs */}
-          <div className="mb-6">
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8">
-                <button
-                  onClick={() => setActiveTab('teams')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'teams'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  🟩 Teams KPA
-                </button>
-                <button
-                  onClick={() => setActiveTab('employees')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'employees'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  🟨 Employees KPA
-                </button>
-                <button
-                  onClick={() => setActiveTab('admin')}
-                  className={`py-2 px-1 border-medium text-sm transition-colors ${
-                    activeTab === 'admin'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  🟦  Overall KPA Performance Summary
-                </button>
-              </nav>
-            </div>
-          </div>
+          )}
 
           {/* Loading State */}
-          {loading && (
+          {loading && activeTab && (
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center space-x-3">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -338,7 +324,7 @@ const CRMAnalytics = () => {
           )}
 
           {/* Content */}
-          {!loading && (
+          {!loading && activeTab && (
             <div>
               {activeTab === 'teams' && (
                 <TeamsKPA 
@@ -355,7 +341,6 @@ const CRMAnalytics = () => {
               {activeTab === 'admin' && (
                 <AdminKPA 
                   tenantData={data.tenantData} 
-                  
                 />
               )}
             </div>

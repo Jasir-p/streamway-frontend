@@ -9,6 +9,7 @@ import formatTimeAgo from '../../../../utils/formatTimeAgo';
 import userprofile from "../../../../../assets/user-profile.webp";
 import { addLeads } from '../../../../../redux/slice/leadsSlice';
 import EnquiryDetails from './EnqueryDetail';
+import { useEnquiryPermissions } from '../../../authorization/useEnquiryPermissions';
 
 const WebEnquirerComponent = () => {
   const dispatch = useDispatch();
@@ -25,6 +26,7 @@ const WebEnquirerComponent = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isEnquiryDetails, setIsEnquiryDetails] = useState(false);
+  const {canAdd,canEdit,canDelete,canView}=useEnquiryPermissions()
 
 
   useEffect(() => {
@@ -153,7 +155,7 @@ const WebEnquirerComponent = () => {
             {/* Toolbar */}
             <div className="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <button
+                {canAdd &&(<button
                   onClick={() => handleCreateLeads()}
                   disabled={selectedEnquiries.length === 0 || selectedEnquiries.some(id => {
                     const enquiry = filteredEnquiries.find(e => e.web_id === id);
@@ -170,9 +172,9 @@ const WebEnquirerComponent = () => {
                 >
                   <UserPlus size={16} />
                   Create Lead
-                </button>
+                </button>)}
                 
-                <button 
+                {canDelete &&(<button 
                   onClick={() => handleDelete()}
                   disabled={selectedEnquiries.length === 0}
                   className={`flex items-center gap-2 px-4 py-2 rounded-md ${
@@ -183,7 +185,8 @@ const WebEnquirerComponent = () => {
                 >
                   <Trash2 size={16} />
                   Delete
-                </button>
+                </button>)}
+                
               </div>
 
               <div className="relative">
@@ -272,7 +275,7 @@ const WebEnquirerComponent = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-gray-500">{formatTimeAgo(enquiry.created_at)}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex items-center space-x-3">
-                            {!enquiry.lead_created && (
+                            {!enquiry.lead_created && canAdd &&(
                               <button 
                                 className="text-blue-600 hover:text-blue-900 flex items-center"
                                 onClick={() => handleCreateLeads(enquiry.web_id)}
@@ -280,12 +283,12 @@ const WebEnquirerComponent = () => {
                                 <UserPlus size={16} />
                               </button>
                             )}
-                            <button 
+                            {canDelete &&(<button 
                               className="text-red-600 hover:text-red-900 flex items-center"
                               onClick={() => handleDelete(enquiry.web_id)}
                             >
                               <Trash2 size={16} />
-                            </button>
+                            </button>)}
                             <button 
                               className="text-blue-500 hover:text-blue-700 flex items-center"
                               onClick={() => {
@@ -332,7 +335,7 @@ const WebEnquirerComponent = () => {
         
         {/* Assign Modal */}
         {showAssignModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
               <div className="p-6 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-800">Assign Lead{currentEnquiry ? '' : 's'}</h3>

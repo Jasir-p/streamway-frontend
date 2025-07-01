@@ -167,6 +167,7 @@ const ContactView = () => {
           showActionDropdown={showActionDropdown}
           setShowActionDropdown={setShowActionDropdown}
           onChange = {refreshContacts}
+          onEdit={contactModal}
         />
 
         {/* Pagination */}
@@ -185,6 +186,8 @@ const ContactView = () => {
             isOpen={contactModal.isOpen} 
             onClose={contactModal.closeModal} 
             onChange={refreshContacts}
+            contact={contactModal.contact}
+            isEdit={contactModal.isEdit}
           />
         )}
 

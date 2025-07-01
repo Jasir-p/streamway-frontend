@@ -12,7 +12,7 @@ export const useMeetingPermissions = (selectedItems = []) => {
 
   return {
     canAdd: hasAdd || isOwner,
-    canEdit: selectedItems.length > 0 && (hasEdit || isOwner),
+    canEdit:  (hasEdit || isOwner),
     canDelete: hasDelete || isOwner,
     canView: hasView || isOwner,
   };

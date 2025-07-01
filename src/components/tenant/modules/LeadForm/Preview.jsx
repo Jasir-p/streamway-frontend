@@ -8,6 +8,9 @@ const PreviewForm = ({
   formTitle = "Tenant Form",
   isPreview = false
 }) => {
+  const subdomain = localStorage.getItem("subdomain")
+  console.log(subdomain);
+  
   const requiredFields = [
     { id: 'name', field_name: 'Full Name', field_type: 'text', is_required: true },
     { id: 'email', field_name: 'Email Address', field_type: 'email', is_required: true },
@@ -167,7 +170,7 @@ const PreviewForm = ({
       {showLinkBox && (
         <div className="mt-6">
           <LinkCopyComponent
-            linkUrl="http://questudiopmd22v.localhost:5173/Streamway/form/"
+            linkUrl={`http://${subdomain}.localhost:5173/Streamway/form/`}
             linkTitle="Lead Form Link"
           />
         </div>

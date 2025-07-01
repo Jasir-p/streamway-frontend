@@ -14,6 +14,7 @@ import MembersList from './components/MembersList';
 import TabNavigation from './components/TabNavigation';
 import TabContent from './components/TabContent';
 import TeamModal from './components/TeamModal';
+import { useTeamPermissions } from '../../authorization/useTeamPermissions';
 
 
 
@@ -23,6 +24,7 @@ const TeamDetailView = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [modalType, setModalType] = useState(null);
   const [selectedMemberId, setSelectedMemberId] = useState(null);
+    const {canAdd,canDelete,canEdit,canView}= useTeamPermissions()
 
   const { team, members,tasks, loading, fetchTeam, team_id,employees,completeCount,pendingCount,completionRatio } = useTeam();
   const { 
@@ -87,7 +89,7 @@ const TeamDetailView = () => {
         <div className="flex flex-col sm:flex-row sm:space-x-6">
           <div className="w-full sm:w-3/4">
             <div className="bg-white rounded-lg shadow-md">
-              <TeamHeader team={team} onEditClick={() => setIsEditModalOpen(true)} />
+              <TeamHeader team={team} onEditClick={() => setIsEditModalOpen(true) } canEdit={canEdit} />
               <TeamStats team={team} 
               completeCount={completeCount}
               pendingCount={pendingCount}
@@ -95,6 +97,7 @@ const TeamDetailView = () => {
               <TeamLead 
                 teamLead={team.team_lead} 
                 onChangeTeamLead={() => handleModal('Team Lead')}
+                canEdit={canEdit} 
                 
               />
             </div>
@@ -105,6 +108,7 @@ const TeamDetailView = () => {
               members={members}
               onAddMember={() => handleModal('Member')}
               onRemoveMember={(memberId) => handleModal('Remove Member', memberId)}
+              canEdit={canEdit}
             />
           </div>
         </div>
@@ -119,6 +123,7 @@ const TeamDetailView = () => {
               tasks={tasks}
               onChangeTeamLead={() => handleModal('Team Lead')}
               onRemoveMember={(memberId) => handleModal('Remove Member', memberId)}
+              canEdit ={canEdit}
             />
           </div>
         </div>

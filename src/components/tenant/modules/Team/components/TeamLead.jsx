@@ -1,4 +1,4 @@
-const TeamLead = ({ teamLead, onChangeTeamLead }) => {
+const TeamLead = ({ teamLead, onChangeTeamLead,canEdit }) => {
   return (
     <div className="mt-6 p-4 bg-gray-50 rounded-lg">
       <h3 className="text-lg font-medium text-gray-800">Team Lead</h3>
@@ -26,12 +26,13 @@ const TeamLead = ({ teamLead, onChangeTeamLead }) => {
       ) : (
         <p className="text-gray-500 mt-2">No team lead assigned</p>
       )}
-      <button
+      {canEdit &&(<button
         onClick={onChangeTeamLead}
         className="mt-3 text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
       >
         Change Team Lead
-      </button>
+      </button>)}
+      
     </div>
   );
 };

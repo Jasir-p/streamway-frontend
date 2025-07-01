@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addMeeting, fetchMeeting,deleteMeeting,patchMeeting } from '../../../../../redux/slice/MeetingSlice';
 import Swal from 'sweetalert2';
 import ConfirmationModal from './components/ConfirmationModal';
+import { useMeetingPermissions } from '../../../authorization/useMeetingPermissions';
 
 
 const MeetingApp = () => {

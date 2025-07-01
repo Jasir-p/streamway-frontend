@@ -15,7 +15,7 @@ export const useDealPermissions = (selectedLeads = []) => {
 
   return {
     canAddLead: hasAddLead || isOwner,
-    canEditLead: selectedLeads.length > 0 && (hasEditLead || isOwner),
+    canEditLead:  (hasEditLead || isOwner),
     canDeleteLead: hasDeleteLead || isOwner,
     canViewLead: hasViewLead || isOwner,
   };
