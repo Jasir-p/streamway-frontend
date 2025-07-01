@@ -46,8 +46,8 @@ export const SubdomainProvider = ({ children }) => {
   
     const refreshEndpoint =
       user_role === "owner"
-        ? `http://${storedSubdomain}.localhost:8000/api/token/refresh/`
-        : `http://${storedSubdomain}.localhost:8000/api/token/employee_refresh/`;
+        ? `http://${storedSubdomain}.streamway.solutions/api/token/refresh/`
+        : `http://${storedSubdomain}.streamway.solutions/api/token/employee_refresh/`;
   
     try {
       const response = await axios.post(refreshEndpoint, {
@@ -68,7 +68,7 @@ export const SubdomainProvider = ({ children }) => {
       console.error("Failed to refresh token:", error);
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
-      window.location.href = "http://localhost:5173/login";
+      window.location.href = "http://streamway.solutions/login";
       return null;
     }
   };
@@ -135,12 +135,12 @@ export const SubdomainProvider = ({ children }) => {
         if (!storedSubdomain) {
           console.log("No subdomain found. Redirecting to public login...");
           setState({ isLoading: false, isValid: false });
-          window.location.href = "http://localhost:5173/login";
+          window.location.href = "http://streamway.solutions/login";
           return;
         }
       if (PUBLIC_WITH_SUBDOMAIN.has(location.pathname)) {
           try {
-            const tenantResponse = await axios.get(`http://${storedSubdomain}.localhost:8000/api/`);
+            const tenantResponse = await axios.get(`http://${storedSubdomain}.streamway.solutions/api/`);
             if (tenantResponse.data.status) {
               console.log("Valid tenant, continuing...");
               setState({
@@ -171,13 +171,13 @@ export const SubdomainProvider = ({ children }) => {
             if (!token) {
 
               setState({ isLoading: false, isValid: false });
-              window.location.href = "http://localhost:5173/login";
+              window.location.href = "http://streamway.solutions/login";
               return;
             }
           } else {
 
             setState({ isLoading: false, isValid: false });
-            window.location.href = "http://localhost:5173/login";
+            window.location.href = "http://streamway.solutions/login";
             return;
           }
         }
@@ -193,7 +193,7 @@ export const SubdomainProvider = ({ children }) => {
 
           if (window.location.hostname !== `${storedSubdomain}.localhost` && 
               window.location.hostname !== "localhost") {
-            window.location.href = `http://${storedSubdomain}.localhost:5173/dashboard`;
+            window.location.href = `http://${storedSubdomain}.streamway.solutions/dashboard`;
           }
           return;
         }
@@ -203,7 +203,7 @@ export const SubdomainProvider = ({ children }) => {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         setState({ isLoading: false, isValid: false });
-        window.location.href = "http://localhost:5173/login";
+        window.location.href = "http://streamway.solutions/login";
       }
     };
   
