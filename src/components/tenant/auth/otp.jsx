@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../common/ToastNotification';
 import api from '../../../api';
+import defaultInterceptor from "../../../Intreceptors/defaultInterceptors";
 
 function OtpCheck() {
   const {
@@ -44,11 +45,7 @@ function OtpCheck() {
         "email": tenantEmail
       };
       
-      const response = await axios.post(`http://localhost:8000/register/`, requestData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await defaultInterceptor.post('/register/', requestData);
       
       if (response.status === 201) {
         setVerificationStatus(response.data.message);
