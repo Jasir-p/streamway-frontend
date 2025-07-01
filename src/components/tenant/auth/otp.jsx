@@ -107,7 +107,7 @@ function OtpCheck() {
       <nav className="container mx-auto px-6 py-4">
         <div className="flex items-center">
           <Building2 className="h-8 w-8 text-white" />
-          <span className="ml-2 text-2xl font-bold text-white">CRMPro</span>
+          <span className="ml-2 text-2xl font-bold text-white">StreamWay</span>
         </div>
       </nav>
 
