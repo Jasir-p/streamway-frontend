@@ -149,6 +149,10 @@ export const SubdomainProvider = ({ children }) => {
 
       // Handle URL parameters first
       const urlSubdomain = handleURLParams();
+      if (urlSubdomain) {
+      await new Promise((resolve) => setTimeout(resolve, 200));  // 200ms delay
+    }
+
       
       // Handle public routes without subdomain
       if (PUBLIC_WITHOUT_SUBDOMAIN.has(location.pathname)) {
