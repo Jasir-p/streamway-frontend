@@ -28,7 +28,7 @@ const RegistrationForm = () => {
 
     try {
       const response = await axios.post(
-        `http://api.streamway.solutions/action/`, 
+        `https://api.streamway.solutions/action/`, 
         
           data,
         
