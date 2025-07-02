@@ -2,17 +2,16 @@ import React, { useState } from "react";
 import { BarChart3, Mail, Lock, ArrowRight } from "lucide-react";
 import logo from "../../../assets/logo.png";
 import { useForm } from "react-hook-form";
-import useSubdomain from "../../common/CurrentSubdomain";
 import axios from "axios"; 
 import { useNavigate } from "react-router-dom"; 
 import { jwtDecode } from "jwt-decode"; 
-import api from "../../../api";
 import defaultInterceptor from "../../../Intreceptors/defaultInterceptors";
 
-
 function LoginForm() {
- 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  
   const {
     register,
     handleSubmit,
@@ -20,7 +19,9 @@ function LoginForm() {
   } = useForm();
 
   const onSubmit = async (data) => {
-    console.log("Form submitted:", data);
+    console.log("🔐 Form submitted:", { email: data.email });
+    setIsLoading(true);
+    setError("");
 
     try {
       const response = await defaultInterceptor.post(
@@ -37,23 +38,42 @@ function LoginForm() {
       );
 
       if (response.data.access_token) {
-        console.log(" Login Successful:", response.data);
+        console.log("✅ Login Successful");
 
-        
         const decodedToken = jwtDecode(response.data.access_token);
-        
-
         const subdomain = decodedToken.subdomain; 
-        console.log(subdomain)
         
-
+        console.log("🏢 Subdomain:", subdomain);
+        
+        // Ensure profile data is properly encoded
         const profileData = encodeURIComponent(JSON.stringify(response.data.profile));
-        window.location.href = `https://${subdomain}.streamway.solutions/dashboard?access=${response.data.access_token}&refresh=${response.data.refresh_token}&profile=${profileData}`;
+        
+        // Use a more reliable redirect method
+        const redirectUrl = `https://${subdomain}.streamway.solutions/dashboard?access=${response.data.access_token}&refresh=${response.data.refresh_token}&profile=${profileData}`;
+        
+        console.log("🔄 Redirecting to:", redirectUrl);
+        
+        // Add a small delay to ensure the state is set
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 100);
+        
       } else {
-        console.log(" Login Failed:", response.data.message);
+        console.log("❌ Login Failed:", response.data.message);
+        setError(response.data.message || "Login failed. Please try again.");
       }
     } catch (error) {
-      console.error("Login API Error:", error.response?.data || error.message);
+      console.error("❌ Login API Error:", error.response?.data || error.message);
+      
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else if (error.response?.data?.detail) {
+        setError(error.response.data.detail);
+      } else {
+        setError("Login failed. Please check your credentials and try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,6 +95,13 @@ function LoginForm() {
             </p>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
           {/* Login Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
@@ -89,6 +116,7 @@ function LoginForm() {
                   id="email"
                   type="email"
                   autoComplete="email"
+                  disabled={isLoading}
                   {...register("email", {
                     required: "Email is required",
                     pattern: {
@@ -96,10 +124,10 @@ function LoginForm() {
                       message: "Enter a valid email address",
                     },
                   })}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 text-sm"
+                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 text-sm disabled:bg-gray-50 disabled:text-gray-500"
                   placeholder="Enter your email"
                 />
-                {errors.email && <span className="text-red-500 text-sm">{errors.email.message}</span>}
+                {errors.email && <span className="text-red-500 text-sm mt-1">{errors.email.message}</span>}
               </div>
             </div>
 
@@ -116,11 +144,12 @@ function LoginForm() {
                   name="password"
                   type="password"
                   autoComplete="current-password"
+                  disabled={isLoading}
                   {...register("password", { required: "Password is required" })}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 text-sm"
+                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 text-sm disabled:bg-gray-50 disabled:text-gray-500"
                   placeholder="Enter your password"
                 />
-                {errors.password && <span className="text-red-500 text-sm">{errors.password.message}</span>}
+                {errors.password && <span className="text-red-500 text-sm mt-1">{errors.password.message}</span>}
               </div>
             </div>
 
@@ -130,7 +159,8 @@ function LoginForm() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  disabled={isLoading}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                   Remember me
@@ -144,10 +174,23 @@ function LoginForm() {
 
             <button
               type="submit"
-              className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              disabled={isLoading}
+              className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign in
-              <ArrowRight className="ml-2 h-4 w-4" />
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
             </button>
           </form>
 

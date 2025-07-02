@@ -24,6 +24,7 @@ export const SubdomainProvider = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const initializationRef = useRef(false);
+  const urlProcessedRef = useRef(false);
   const user_role = useSelector((state) => state.auth.role);
 
   const isTokenExpired = useCallback((token) => {
@@ -36,18 +37,18 @@ export const SubdomainProvider = ({ children }) => {
     }
   }, []);
 
-  // IMMEDIATE URL processing - runs synchronously on module load
-  const processURLParamsImmediately = useCallback(() => {
+  // SYNCHRONOUS URL processing - runs immediately
+  const processURLParamsSync = useCallback(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessToken = urlParams.get("access");
     const refreshToken = urlParams.get("refresh");
     const profileParam = urlParams.get("profile");
 
     if (accessToken && refreshToken && profileParam) {
-      console.log("Processing URL params immediately...");
+      console.log("🔄 Processing URL params synchronously...");
       
       try {
-        const profile = JSON.parse(profileParam);
+        const profile = JSON.parse(decodeURIComponent(profileParam));
         const decodedToken = jwtDecode(accessToken);
         
         // Store tokens and subdomain IMMEDIATELY
@@ -55,10 +56,11 @@ export const SubdomainProvider = ({ children }) => {
         localStorage.setItem("refresh_token", refreshToken);
         localStorage.setItem("subdomain", decodedToken.subdomain);
         
-        console.log("Tokens stored immediately:", {
+        console.log("✅ Tokens stored successfully:", {
           subdomain: decodedToken.subdomain,
           hasAccess: !!accessToken,
-          hasRefresh: !!refreshToken
+          hasRefresh: !!refreshToken,
+          tokenExp: new Date(decodedToken.exp * 1000).toISOString()
         });
         
         // Update interceptor base URL immediately
@@ -82,25 +84,23 @@ export const SubdomainProvider = ({ children }) => {
 
         dispatch(setEmployeeSubdomain(decodedToken.subdomain));
         
-        // Clean URL
-        window.history.replaceState(null, null, window.location.pathname);
+        // Clean URL - remove query parameters
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState(null, null, cleanUrl);
         
+        urlProcessedRef.current = true;
         return decodedToken.subdomain;
       } catch (error) {
-        console.error("Error processing URL parameters immediately:", error);
+        console.error("❌ Error processing URL parameters:", error);
+        // Clear potentially corrupted data
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("subdomain");
         return null;
       }
     }
     return null;
   }, [dispatch]);
-
-  // Process URL params immediately when component mounts
-  useEffect(() => {
-    const urlSubdomain = processURLParamsImmediately();
-    if (urlSubdomain) {
-      console.log("URL subdomain processed immediately:", urlSubdomain);
-    }
-  }, []); // Run only once on mount
 
   const refreshAccessToken = useCallback(async (refreshToken, storedSubdomain) => {
     if (!refreshToken) {
@@ -114,13 +114,14 @@ export const SubdomainProvider = ({ children }) => {
         : `https://${storedSubdomain}.streamway.solutions/api/token/employee_refresh/`;
 
     try {
+      console.log("🔄 Refreshing token...");
       const response = await axios.post(refreshEndpoint, {
         refresh: refreshToken,
       });
 
       const newAccessToken = response.data.access;
       localStorage.setItem("access_token", newAccessToken);
-      console.log("Access token refreshed");
+      console.log("✅ Access token refreshed");
 
       const decodedToken = jwtDecode(newAccessToken);
       const role = decodedToken.role;
@@ -129,11 +130,10 @@ export const SubdomainProvider = ({ children }) => {
 
       return newAccessToken;
     } catch (error) {
-      console.error("Failed to refresh token:", error);
+      console.error("❌ Failed to refresh token:", error);
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("subdomain");
-      window.location.href = "https://streamway.solutions/login";
       return null;
     }
   }, [dispatch, user_role]);
@@ -150,15 +150,18 @@ export const SubdomainProvider = ({ children }) => {
 
   const validateTenant = useCallback(async (subdomain) => {
     try {
+      console.log(`🔍 Validating tenant: ${subdomain}`);
       const tenantResponse = await axios.get(`https://${subdomain}.streamway.solutions/api/`);
+      console.log("✅ Tenant validation successful");
       return tenantResponse.data.status;
     } catch (error) {
-      console.error("Tenant validation failed:", error);
+      console.error("❌ Tenant validation failed:", error);
       return false;
     }
   }, []);
 
   const redirectToLogin = useCallback(() => {
+    console.log("🔄 Redirecting to login...");
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("subdomain");
@@ -170,10 +173,14 @@ export const SubdomainProvider = ({ children }) => {
     initializationRef.current = true;
 
     try {
-      console.log("Initializing authentication...");
+      console.log("🚀 Initializing authentication...");
 
-      // Handle public routes without subdomain first
+      // First, process URL parameters if they exist
+      const urlSubdomain = processURLParamsSync();
+      
+      // Handle public routes without subdomain
       if (PUBLIC_WITHOUT_SUBDOMAIN.has(location.pathname)) {
+        console.log("📍 Public route without subdomain");
         setState({
           subdomain: null,
           isLoading: false,
@@ -183,20 +190,21 @@ export const SubdomainProvider = ({ children }) => {
         return;
       }
 
-      // Get subdomain (should already be processed from URL params)
-      let subdomain = localStorage.getItem("subdomain") || extractSubdomainFromURL();
+      // Get subdomain from storage or URL
+      let subdomain = localStorage.getItem("subdomain") || urlSubdomain || extractSubdomainFromURL();
 
       if (!subdomain) {
-        console.log("No subdomain found. Redirecting to login...");
+        console.log("❌ No subdomain found. Redirecting to login...");
         setState({ subdomain: null, isLoading: false, isValid: false, tenantIdentified: false });
         redirectToLogin();
         return;
       }
 
-      console.log("Using subdomain:", subdomain);
+      console.log("🏢 Using subdomain:", subdomain);
 
       // Handle public routes with subdomain
       if (PUBLIC_WITH_SUBDOMAIN.has(location.pathname)) {
+        console.log("📍 Public route with subdomain");
         const isValidTenant = await validateTenant(subdomain);
         if (isValidTenant) {
           setState({
@@ -217,24 +225,28 @@ export const SubdomainProvider = ({ children }) => {
       let accessToken = localStorage.getItem("access_token");
       const refreshToken = localStorage.getItem("refresh_token");
 
-      console.log("Auth check:", {
+      console.log("🔐 Auth check:", {
         hasAccess: !!accessToken,
         hasRefresh: !!refreshToken,
-        subdomain: subdomain
+        subdomain: subdomain,
+        urlProcessed: urlProcessedRef.current
       });
 
-      if (!accessToken || isTokenExpired(accessToken)) {
+      // If we just processed URL params, tokens should be fresh
+      if (urlProcessedRef.current && accessToken) {
+        console.log("✅ Fresh tokens from URL processing");
+      } else if (!accessToken || isTokenExpired(accessToken)) {
         if (refreshToken && !isTokenExpired(refreshToken)) {
-          console.log("Token expired, attempting to refresh...");
+          console.log("🔄 Token expired, attempting to refresh...");
           accessToken = await refreshAccessToken(refreshToken, subdomain);
           
           if (!accessToken) {
-            console.log("Token refresh failed, redirecting to login");
+            console.log("❌ Token refresh failed, redirecting to login");
             redirectToLogin();
             return;
           }
         } else {
-          console.log("No valid refresh token, redirecting to login");
+          console.log("❌ No valid tokens, redirecting to login");
           redirectToLogin();
           return;
         }
@@ -243,14 +255,14 @@ export const SubdomainProvider = ({ children }) => {
       // Validate tenant
       const isValidTenant = await validateTenant(subdomain);
       if (!isValidTenant) {
-        console.log("Invalid tenant, redirecting to login");
+        console.log("❌ Invalid tenant, redirecting to login");
         setState({ subdomain: null, isLoading: false, isValid: false, tenantIdentified: false });
         redirectToLogin();
         return;
       }
 
       // Success - user is authenticated and tenant is valid
-      console.log("Authentication successful for subdomain:", subdomain);
+      console.log("🎉 Authentication successful for subdomain:", subdomain);
       setState({
         subdomain,
         isLoading: false,
@@ -260,22 +272,25 @@ export const SubdomainProvider = ({ children }) => {
 
       dispatch(setEmployeeSubdomain(subdomain));
 
-      // Redirect to correct subdomain if needed
+      // Redirect to correct subdomain if needed (only for production)
       const currentHostname = window.location.hostname;
       const expectedHostname = `${subdomain}.streamway.solutions`;
       
-      if (currentHostname !== expectedHostname && !currentHostname.includes('localhost')) {
-        console.log("Redirecting to correct subdomain:", expectedHostname);
+      if (currentHostname !== expectedHostname && 
+          !currentHostname.includes('localhost') && 
+          !currentHostname.includes('127.0.0.1')) {
+        console.log("🔄 Redirecting to correct subdomain:", expectedHostname);
         window.location.href = `https://${expectedHostname}/dashboard`;
       }
 
     } catch (error) {
-      console.error("Authentication initialization error:", error);
+      console.error("❌ Authentication initialization error:", error);
       setState({ subdomain: null, isLoading: false, isValid: false, tenantIdentified: false });
       redirectToLogin();
     }
   }, [
     location.pathname,
+    processURLParamsSync,
     extractSubdomainFromURL,
     validateTenant,
     isTokenExpired,
@@ -285,14 +300,26 @@ export const SubdomainProvider = ({ children }) => {
     dispatch
   ]);
 
+  // Initialize immediately when component mounts
   useEffect(() => {
-    // Small delay to ensure URL params are processed first
+    initializeAuth();
+  }, [initializeAuth]);
+
+  // Re-initialize when location changes (for navigation)
+  useEffect(() => {
+    if (!initializationRef.current) return;
+    
+    // Reset initialization flag for new route
+    initializationRef.current = false;
+    urlProcessedRef.current = false;
+    
+    // Small delay to allow for any pending operations
     const timer = setTimeout(() => {
       initializeAuth();
-    }, 100);
+    }, 50);
     
     return () => clearTimeout(timer);
-  }, [initializeAuth]);
+  }, [location.pathname]);
 
   const contextValue = useMemo(() => ({
     subdomain: state.subdomain,
@@ -303,8 +330,11 @@ export const SubdomainProvider = ({ children }) => {
 
   if (state.isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Authenticating...</p>
+        </div>
       </div>
     );
   }

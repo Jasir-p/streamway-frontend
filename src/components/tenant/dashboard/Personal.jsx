@@ -9,6 +9,7 @@ import { useSelector,useDispatch } from 'react-redux';
 import api from '../../../api';
 import { useToast } from '../../common/ToastNotification';
 import { updateProfile } from '../../../redux/slice/ProfileSlice';
+import subdomainInterceptors from '../../../Intreceptors/getSubdomainInterceptors';
 
 
 
@@ -77,7 +78,7 @@ const Personal = () => {
         }
         
         
-        const response = await api.put("/profile_update/", { ...profileData, userId,role })
+        const response = await subdomainInterceptors.put("/profile_update/", { ...profileData, userId,role })
         
         if (response.status === 200) {
           dispatch(updateProfile(profileData))
