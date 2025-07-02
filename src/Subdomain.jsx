@@ -82,7 +82,8 @@ export const SubdomainProvider = ({ children }) => {
     return null;
   }, []);
 
-  const handleURLParams = useCallback(() => {
+  // Enhanced handleURLParams with better error handling and verification
+  const handleURLParams = useCallback(async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessToken = urlParams.get("access");
     const refreshToken = urlParams.get("refresh");
@@ -91,13 +92,27 @@ export const SubdomainProvider = ({ children }) => {
     if (accessToken && refreshToken && profileParam) {
       try {
         const profile = JSON.parse(profileParam);
+        const decodedToken = jwtDecode(accessToken);
         
+        // Store tokens and subdomain
         localStorage.setItem("access_token", accessToken);
         localStorage.setItem("refresh_token", refreshToken);
-        
-        const decodedToken = jwtDecode(accessToken);
         localStorage.setItem("subdomain", decodedToken.subdomain);
         
+        // Wait for localStorage to persist (especially important in production)
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Verify tokens were stored correctly
+        const storedAccess = localStorage.getItem("access_token");
+        const storedRefresh = localStorage.getItem("refresh_token");
+        const storedSubdomain = localStorage.getItem("subdomain");
+        
+        if (!storedAccess || !storedRefresh || !storedSubdomain) {
+          console.error("Failed to store tokens in localStorage");
+          throw new Error("LocalStorage failed to persist data");
+        }
+        
+        // Dispatch Redux actions
         dispatch(setProfile({
           id: profile.id,
           name: profile.owner_name,
@@ -113,11 +128,20 @@ export const SubdomainProvider = ({ children }) => {
           permissions: decodedToken.permissions || []
         }));
 
-        // Clean URL
-        window.history.replaceState(null, null, window.location.pathname);
+        console.log("URL parameters processed successfully, tokens stored");
+        
+        // Clean URL after successful processing
+        const newUrl = window.location.pathname;
+        window.history.replaceState(null, null, newUrl);
+        
         return decodedToken.subdomain;
       } catch (error) {
         console.error("Error processing URL parameters:", error);
+        // Clean up on error
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("subdomain");
+        return null;
       }
     }
     return null;
@@ -147,14 +171,7 @@ export const SubdomainProvider = ({ children }) => {
     try {
       console.log("Initializing authentication...");
 
-      // Handle URL parameters first
-      const urlSubdomain = handleURLParams();
-      if (urlSubdomain) {
-      await new Promise((resolve) => setTimeout(resolve, 200));  // 200ms delay
-    }
-
-      
-      // Handle public routes without subdomain
+      // Handle public routes without subdomain first
       if (PUBLIC_WITHOUT_SUBDOMAIN.has(location.pathname)) {
         setState({
           subdomain: null,
@@ -163,6 +180,14 @@ export const SubdomainProvider = ({ children }) => {
           tenantIdentified: false
         });
         return;
+      }
+
+      // Handle URL parameters with proper waiting
+      const urlSubdomain = await handleURLParams();
+      if (urlSubdomain) {
+        console.log("URL parameters processed, subdomain:", urlSubdomain);
+        // Give more time for localStorage to persist in production
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
       // Get subdomain from storage or URL
@@ -175,7 +200,7 @@ export const SubdomainProvider = ({ children }) => {
         return;
       }
 
-      // Store subdomain
+      // Ensure subdomain is stored
       localStorage.setItem("subdomain", subdomain);
 
       // Handle public routes with subdomain
@@ -200,30 +225,37 @@ export const SubdomainProvider = ({ children }) => {
       let accessToken = localStorage.getItem("access_token");
       const refreshToken = localStorage.getItem("refresh_token");
 
+      console.log("Auth check - AccessToken exists:", !!accessToken);
+      console.log("Auth check - RefreshToken exists:", !!refreshToken);
+
       if (!accessToken || isTokenExpired(accessToken)) {
-        if (refreshToken) {
+        if (refreshToken && !isTokenExpired(refreshToken)) {
           console.log("Token expired, attempting to refresh...");
           accessToken = await refreshAccessToken(refreshToken, subdomain);
           
           if (!accessToken) {
+            console.log("Token refresh failed, redirecting to login");
             redirectToLogin();
             return;
           }
         } else {
+          console.log("No valid refresh token, redirecting to login");
           redirectToLogin();
           return;
         }
       }
 
-      // Validate tenant and set final state
+      // Validate tenant
       const isValidTenant = await validateTenant(subdomain);
       if (!isValidTenant) {
+        console.log("Invalid tenant, redirecting to login");
         setState({ subdomain: null, isLoading: false, isValid: false, tenantIdentified: false });
         redirectToLogin();
         return;
       }
 
       // Success - user is authenticated and tenant is valid
+      console.log("Authentication successful for subdomain:", subdomain);
       setState({
         subdomain,
         isLoading: false,
@@ -238,6 +270,7 @@ export const SubdomainProvider = ({ children }) => {
       const expectedHostname = `${subdomain}.streamway.solutions`;
       
       if (currentHostname !== expectedHostname && !currentHostname.includes('localhost')) {
+        console.log("Redirecting to correct subdomain:", expectedHostname);
         window.location.href = `https://${expectedHostname}/dashboard`;
       }
 
