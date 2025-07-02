@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setEmployeeSubdomain } from "./redux/slice/EmployeeSlice";
 import { setUserRoleAndPermissions } from "./redux/slice/authrizeSlice";
 import { setProfile } from "./redux/slice/ProfileSlice";
-import api from "./api";
+import { updateSubdomainBaseUrl } from "./Intreceptors/getSubdomainInterceptors";
 
 const SubdomainContext = createContext(null);
 const PUBLIC_WITH_SUBDOMAIN = new Set(["/Streamway/form/", "/signin"]);
@@ -35,6 +35,72 @@ export const SubdomainProvider = ({ children }) => {
       return true;
     }
   }, []);
+
+  // IMMEDIATE URL processing - runs synchronously on module load
+  const processURLParamsImmediately = useCallback(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get("access");
+    const refreshToken = urlParams.get("refresh");
+    const profileParam = urlParams.get("profile");
+
+    if (accessToken && refreshToken && profileParam) {
+      console.log("Processing URL params immediately...");
+      
+      try {
+        const profile = JSON.parse(profileParam);
+        const decodedToken = jwtDecode(accessToken);
+        
+        // Store tokens and subdomain IMMEDIATELY
+        localStorage.setItem("access_token", accessToken);
+        localStorage.setItem("refresh_token", refreshToken);
+        localStorage.setItem("subdomain", decodedToken.subdomain);
+        
+        console.log("Tokens stored immediately:", {
+          subdomain: decodedToken.subdomain,
+          hasAccess: !!accessToken,
+          hasRefresh: !!refreshToken
+        });
+        
+        // Update interceptor base URL immediately
+        updateSubdomainBaseUrl();
+        
+        // Dispatch Redux actions
+        dispatch(setProfile({
+          id: profile.id,
+          name: profile.owner_name,
+          email: profile.email,
+          phone: profile.contact,
+          role: decodedToken.role || 'User',
+          company: profile.company || 'Unknown',
+          joined_date: profile.created_on,
+        }));
+        
+        dispatch(setUserRoleAndPermissions({
+          role: decodedToken.role,
+          permissions: decodedToken.permissions || []
+        }));
+
+        dispatch(setEmployeeSubdomain(decodedToken.subdomain));
+        
+        // Clean URL
+        window.history.replaceState(null, null, window.location.pathname);
+        
+        return decodedToken.subdomain;
+      } catch (error) {
+        console.error("Error processing URL parameters immediately:", error);
+        return null;
+      }
+    }
+    return null;
+  }, [dispatch]);
+
+  // Process URL params immediately when component mounts
+  useEffect(() => {
+    const urlSubdomain = processURLParamsImmediately();
+    if (urlSubdomain) {
+      console.log("URL subdomain processed immediately:", urlSubdomain);
+    }
+  }, []); // Run only once on mount
 
   const refreshAccessToken = useCallback(async (refreshToken, storedSubdomain) => {
     if (!refreshToken) {
@@ -82,71 +148,6 @@ export const SubdomainProvider = ({ children }) => {
     return null;
   }, []);
 
-  // Enhanced handleURLParams with better error handling and verification
-  const handleURLParams = useCallback(async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get("access");
-    const refreshToken = urlParams.get("refresh");
-    const profileParam = urlParams.get("profile");
-
-    if (accessToken && refreshToken && profileParam) {
-      try {
-        const profile = JSON.parse(profileParam);
-        const decodedToken = jwtDecode(accessToken);
-        
-        // Store tokens and subdomain
-        localStorage.setItem("access_token", accessToken);
-        localStorage.setItem("refresh_token", refreshToken);
-        localStorage.setItem("subdomain", decodedToken.subdomain);
-        
-        // Wait for localStorage to persist (especially important in production)
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Verify tokens were stored correctly
-        const storedAccess = localStorage.getItem("access_token");
-        const storedRefresh = localStorage.getItem("refresh_token");
-        const storedSubdomain = localStorage.getItem("subdomain");
-        
-        if (!storedAccess || !storedRefresh || !storedSubdomain) {
-          console.error("Failed to store tokens in localStorage");
-          throw new Error("LocalStorage failed to persist data");
-        }
-        
-        // Dispatch Redux actions
-        dispatch(setProfile({
-          id: profile.id,
-          name: profile.owner_name,
-          email: profile.email,
-          phone: profile.contact,
-          role: decodedToken.role || 'User',
-          company: profile.company || 'Unknown',
-          joined_date: profile.created_on,
-        }));
-        
-        dispatch(setUserRoleAndPermissions({
-          role: decodedToken.role,
-          permissions: decodedToken.permissions || []
-        }));
-
-        console.log("URL parameters processed successfully, tokens stored");
-        
-        // Clean URL after successful processing
-        const newUrl = window.location.pathname;
-        window.history.replaceState(null, null, newUrl);
-        
-        return decodedToken.subdomain;
-      } catch (error) {
-        console.error("Error processing URL parameters:", error);
-        // Clean up on error
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("subdomain");
-        return null;
-      }
-    }
-    return null;
-  }, [dispatch]);
-
   const validateTenant = useCallback(async (subdomain) => {
     try {
       const tenantResponse = await axios.get(`https://${subdomain}.streamway.solutions/api/`);
@@ -182,16 +183,8 @@ export const SubdomainProvider = ({ children }) => {
         return;
       }
 
-      // Handle URL parameters with proper waiting
-      const urlSubdomain = await handleURLParams();
-      if (urlSubdomain) {
-        console.log("URL parameters processed, subdomain:", urlSubdomain);
-        // Give more time for localStorage to persist in production
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-
-      // Get subdomain from storage or URL
-      let subdomain = urlSubdomain || localStorage.getItem("subdomain") || extractSubdomainFromURL();
+      // Get subdomain (should already be processed from URL params)
+      let subdomain = localStorage.getItem("subdomain") || extractSubdomainFromURL();
 
       if (!subdomain) {
         console.log("No subdomain found. Redirecting to login...");
@@ -200,8 +193,7 @@ export const SubdomainProvider = ({ children }) => {
         return;
       }
 
-      // Ensure subdomain is stored
-      localStorage.setItem("subdomain", subdomain);
+      console.log("Using subdomain:", subdomain);
 
       // Handle public routes with subdomain
       if (PUBLIC_WITH_SUBDOMAIN.has(location.pathname)) {
@@ -225,8 +217,11 @@ export const SubdomainProvider = ({ children }) => {
       let accessToken = localStorage.getItem("access_token");
       const refreshToken = localStorage.getItem("refresh_token");
 
-      console.log("Auth check - AccessToken exists:", !!accessToken);
-      console.log("Auth check - RefreshToken exists:", !!refreshToken);
+      console.log("Auth check:", {
+        hasAccess: !!accessToken,
+        hasRefresh: !!refreshToken,
+        subdomain: subdomain
+      });
 
       if (!accessToken || isTokenExpired(accessToken)) {
         if (refreshToken && !isTokenExpired(refreshToken)) {
@@ -281,7 +276,6 @@ export const SubdomainProvider = ({ children }) => {
     }
   }, [
     location.pathname,
-    handleURLParams,
     extractSubdomainFromURL,
     validateTenant,
     isTokenExpired,
@@ -292,7 +286,12 @@ export const SubdomainProvider = ({ children }) => {
   ]);
 
   useEffect(() => {
-    initializeAuth();
+    // Small delay to ensure URL params are processed first
+    const timer = setTimeout(() => {
+      initializeAuth();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [initializeAuth]);
 
   const contextValue = useMemo(() => ({
