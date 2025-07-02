@@ -189,7 +189,6 @@ subdomainInterceptors.interceptors.response.use(
             }
         }
 
-        // If it's a subdomain-related error, try to redirect properly
         if (error.response?.status === 404 && error.config?.baseURL?.includes('streamway.solutions')) {
             console.error("Subdomain API endpoint not found:", error.config.baseURL);
         }
@@ -198,7 +197,6 @@ subdomainInterceptors.interceptors.response.use(
     }
 );
 
-// Function to manually update base URL when subdomain is confirmed
 export const updateSubdomainBaseUrl = () => {
     const subdomain = localStorage.getItem("subdomain");
     if (subdomain) {
@@ -210,7 +208,6 @@ export const updateSubdomainBaseUrl = () => {
     return null;
 };
 
-// Export a ready promise that resolves when subdomain is available
 export const subdomainReady = () => waitForSubdomain();
 
 export default subdomainInterceptors;
