@@ -10,7 +10,7 @@ const ProtectedRoute = ({ children}) => {
   }
 
   if (!isValid) {
-     window.location.href = "https://streamway.soloutions/login";
+     window.location.href = "https://streamway.solutions/login";
   }
   console.log("helooooo")
   return children;
