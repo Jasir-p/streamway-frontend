@@ -149,16 +149,17 @@ export const SubdomainProvider = ({ children }) => {
   }, []);
 
   const validateTenant = useCallback(async (subdomain) => {
-  try {
-    console.log(`🔍 Validating tenant: ${subdomain}`);
-    const tenantResponse = await axios.get(`https://${subdomain}.streamway.solutions/api/`);
-    console.log("✅ Tenant validation successful");
-    return true; // If API responds, tenant is valid
-  } catch (error) {
-    console.error("❌ Tenant validation failed:", error);
-    return false;
-  }
-}, []);
+    try {
+      console.log(`🔍 Validating tenant: ${subdomain}`);
+      const tenantResponse = await axios.get(`https://${subdomain}.streamway.solutions/api/`);
+      console.log("✅ Tenant validation successful");
+      return tenantResponse.data.status;
+    } catch (error) {
+      console.error("❌ Tenant validation failed:", error);
+      return false;
+    }
+  }, []);
+
   const redirectToLogin = useCallback(() => {
     console.log("🔄 Redirecting to login...");
     localStorage.removeItem("access_token");
