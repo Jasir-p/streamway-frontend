@@ -10,7 +10,7 @@ const ProtectedRoute = ({ children}) => {
   }
 
   if (!isValid) {
-     window.location.href = "http://localhost:5173/login";
+     window.location.href = "https://streamway.soloutions/login";
   }
   console.log("helooooo")
   return children;
