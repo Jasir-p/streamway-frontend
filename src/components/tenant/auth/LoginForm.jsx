@@ -79,7 +79,7 @@ const onSubmit = async (data) => {
 
 
       // ✅ Redirect to dashboard using subdomain as subfolder
-      const redirectUrl = `http://localhost:5173/${subdomain}/dashboard`;
+      const redirectUrl = `/${subdomain}/dashboard`;
       console.log("🔄 Redirecting to:", redirectUrl);
 
       setTimeout(() => {
