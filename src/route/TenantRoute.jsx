@@ -35,12 +35,13 @@ import Dashboard from "../components/tenant/dashboard/Dashbord";
 import NotFoundPage from "../components/common/NotFoundPage";
 import SubdomainCaptureRoute from "../components/tenant/routes/CheckRoute";
 import LoginEmoloye from "../pages/tenant/auth/LoginEmoloye";
+import PendingRoute from "../components/tenant/routes/PendingRoute";
 
 
 const TenantRouter = () => {
   return (
     <Routes>
-      <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="dashboard" element={<ProtectedRoute><PendingRoute><Dashboard /></PendingRoute></ProtectedRoute>} />
       <Route path="setting" element={<ProtectedRoute><SettingsLayout /></ProtectedRoute>} />
       <Route path="setting/security" element={<ProtectedRoute><Security /></ProtectedRoute>} />
       <Route path="setting/security/role/:role_id/" element={<ProtectedRoute><RoleDetails /></ProtectedRoute>} />
