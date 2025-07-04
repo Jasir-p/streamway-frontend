@@ -1,6 +1,7 @@
 
 import api from "../../../api";
 import defaultInterceptor from "../../../Intreceptors/defaultInterceptors";
+import subdomainInterceptors from "../../../Intreceptors/getSubdomainInterceptors";
 
 
 
@@ -17,7 +18,7 @@ import defaultInterceptor from "../../../Intreceptors/defaultInterceptors";
             return;
         }
 
-        const response = await api.post(
+        const response = await defaultInterceptor.post(
             '/logout/', 
             { refresh_token: refreshToken },  // Send refresh token to backend
             {
@@ -31,12 +32,13 @@ import defaultInterceptor from "../../../Intreceptors/defaultInterceptors";
         console.log(response.data);
 
         // Clear stored tokens
+        const subdomain = localStorage.getItem("subdomain");
         localStorage.clear();
         if (role==="owner"){
-            window.location.href = "http://localhost:5173/login";
+            navigate('/login')
         }
         else{
-            navigate("/signin")}
+            navigate(`/${subdomain}/signin`)}
         
 
         

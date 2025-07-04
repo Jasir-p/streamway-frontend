@@ -8,18 +8,21 @@ export const fetchTeams = createAsyncThunk(
     try {
       const params = {};
       if (userId) {
-        params.userId = userId;
+        params.userId = userId; 
+
+
+        console.log("Fetching teams for user:", userId);
       }
 
-      const response = await subdomainInterceptors.get('team', {
-        params
-      });
+      const response = await subdomainInterceptors.get('team/', { params });
+      console.log("Teams fetched:", response.data);
 
-      console.log(response.data);
       return response.data.teams;
     } catch (error) {
       console.error("Error fetching teams:", error.response?.data || error.message);
-      return rejectWithValue(error.response?.data || "Failed to fetch teams");
+      return rejectWithValue(
+        error.response?.data?.detail || error.message || "Failed to fetch teams"
+      );
     }
   }
 );
@@ -27,11 +30,8 @@ export const fetchTeams = createAsyncThunk(
 
 export const addTeam = createAsyncThunk('teams/AddTeam',async(data,{rejectWithValue})=>{
     try {
-        const token = localStorage.getItem("access_token");
-        const subdomain = localStorage.getItem("subdomain");
-        const response = await axios.post(`http://${subdomain}.localhost:8000/team/`,data,{
-            headers: { Authorization: `Bearer ${token}` },
-            });
+        
+        const response = await subdomainInterceptors.post('team/',data);
             return response.data.team;
 
         }catch(error){

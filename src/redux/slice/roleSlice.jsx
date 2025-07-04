@@ -37,12 +37,8 @@ export const addRole = createAsyncThunk("roles/addRole", async (roleData, { reje
     const subdomain = localStorage.getItem("subdomain");
     const token = localStorage.getItem("access_token");
 
-    const response = await axios.post(
-      `http://${subdomain}.localhost:8000/role/`, 
+    const response = await subdomainInterceptors.post('/role/', 
       roleData,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
     );
 
     return response.data; // Return the newly created role

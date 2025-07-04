@@ -11,24 +11,13 @@ import { useNavigate } from 'react-router-dom';
 
 
 
-
-// Sample invoice data
-const sampleInvoice = {
-  id: "INV-2023-001",
-  amount: 249.99,
-  currency: "USD",
-  issueDate: "2025-04-20",
-  dueDate: "2025-06-08", // Today's date from the context
-  status: "pending", // can be "paid" or "pending"
-  
-};
-
 export default function InvoiceModal({onClose,invoices}) {
   const [isOpen, setIsOpen] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
   const [invoice, setInvoice] = useState(invoices);
   const [showForm, setShowForm] = useState(false);
   const {invoiceStatus}= useSelector((state)=>state.invoice)
+  const subdomain = localStorage.getItem("subdomain")
   const Navigate = useNavigate()
   if (!invoice){
     return null
@@ -119,7 +108,7 @@ export default function InvoiceModal({onClose,invoices}) {
             {invoice.status === "pending" && (
               <button 
                 className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-md flex items-center justify-center"
-                onClick={()=>Navigate(`/setting/payment/invoice/${invoice.id}/pay`)}
+                onClick={()=>Navigate(`/${subdomain}/setting/payment/invoice/${invoice.id}/pay`)}
               >
                 {isExpired ? "Pay Overdue Invoice" : "Pay Now"}
                 <ArrowRight size={16} className="ml-2" />

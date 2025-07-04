@@ -6,11 +6,15 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom"; 
 import { jwtDecode } from "jwt-decode"; 
 import defaultInterceptor from "../../../Intreceptors/defaultInterceptors";
+import { useDispatch } from "react-redux";
+import { setProfile } from "../../../redux/slice/ProfileSlice";
+import { setUserRoleAndPermissions } from "../../../redux/slice/authrizeSlice";
 
 function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   
   const {
     register,
@@ -18,64 +22,89 @@ function LoginForm() {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = async (data) => {
-    console.log("🔐 Form submitted:", { email: data.email });
-    setIsLoading(true);
-    setError("");
+const onSubmit = async (data) => {
+  console.log("🔐 Form submitted:", { email: data.email });
+  setIsLoading(true);
+  setError("");
 
-    try {
-      const response = await defaultInterceptor.post(
-        "/login/", 
-        {
-          username: data.email, 
-          password: data.password, 
+  try {
+    const response = await defaultInterceptor.post(
+      "/login/",
+      {
+        username: data.email,
+        password: data.password,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.data.access_token) {
-        console.log("✅ Login Successful");
-
-        const decodedToken = jwtDecode(response.data.access_token);
-        const subdomain = decodedToken.subdomain; 
-        
-        console.log("🏢 Subdomain:", subdomain);
-        
-        // Ensure profile data is properly encoded
-        const profileData = encodeURIComponent(JSON.stringify(response.data.profile));
-        
-        // Use a more reliable redirect method
-        const redirectUrl = `https://${subdomain}.streamway.solutions/dashboard?access=${response.data.access_token}&refresh=${response.data.refresh_token}&profile=${profileData}`;
-        
-        console.log("🔄 Redirecting to:", redirectUrl);
-        
-        // Add a small delay to ensure the state is set
-        setTimeout(() => {
-          window.location.href = redirectUrl;
-        }, 100);
-        
-      } else {
-        console.log("❌ Login Failed:", response.data.message);
-        setError(response.data.message || "Login failed. Please try again.");
+        withCredentials: true,
       }
-    } catch (error) {
-      console.error("❌ Login API Error:", error.response?.data || error.message);
-      
-      if (error.response?.data?.message) {
-        setError(error.response.data.message);
-      } else if (error.response?.data?.detail) {
-        setError(error.response.data.detail);
-      } else {
-        setError("Login failed. Please check your credentials and try again.");
+    );
+
+    const { access_token, refresh_token } = response.data;
+
+    if (access_token && refresh_token) {
+      console.log("✅ Login Successful");
+
+      // Decode access token to get subdomain
+      const decodedToken = jwtDecode(access_token);
+      const subdomain = decodedToken.subdomain || decodedToken.tenant;
+
+      if (!subdomain) {
+        throw new Error("Subdomain not found in token.");
       }
-    } finally {
-      setIsLoading(false);
+
+      console.log("🌐 Subdomain:", subdomain);
+
+      // ✅ Save tokens and subdomain to localStorage
+      localStorage.setItem("access_token", access_token);
+      localStorage.setItem("refresh_token", refresh_token);
+      localStorage.setItem("subdomain", subdomain);
+      const profile =response.data.profile
+      dispatch(setProfile({
+            id : profile.id,
+            name: profile.owner_name,
+            email: profile.email,
+            phone: profile.contact, 
+            role:decodedToken.role || 'User',
+            company: profile.company || 'Unknown', 
+            joined_date: profile.created_on,
+          }));
+          dispatch(setUserRoleAndPermissions({ 
+            role: decodedToken.role, 
+            permissions: decodedToken.permissions || [] 
+          }));
+
+
+
+      // ✅ Redirect to dashboard using subdomain as subfolder
+      const redirectUrl = `http://localhost:5173/${subdomain}/dashboard`;
+      console.log("🔄 Redirecting to:", redirectUrl);
+
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 100);
+    } else {
+      console.log("❌ Login Failed:", response.data.message);
+      setError(response.data.message || "Login failed. Please try again.");
     }
-  };
+  } catch (error) {
+    console.error("❌ Login API Error:", error.response?.data || error.message);
+
+    if (error.response?.data?.message) {
+      setError(error.response.data.message);
+    } else if (error.response?.data?.detail) {
+      setError(error.response.data.detail);
+    } else {
+      setError("Login failed. Please check your credentials and try again.");
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
 
   return (
     <div className="min-h-screen flex">

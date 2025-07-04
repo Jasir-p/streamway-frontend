@@ -170,7 +170,7 @@ const PreviewForm = ({
       {showLinkBox && (
         <div className="mt-6">
           <LinkCopyComponent
-            linkUrl={`http://${subdomain}.localhost:5173/Streamway/form/`}
+            linkUrl={`http://localhost:5173/${subdomain}/Streamway/form/`}
             linkTitle="Lead Form Link"
           />
         </div>

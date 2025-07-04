@@ -10,9 +10,7 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async (_, { rejec
         if (!token) return rejectWithValue("No token found, please log in again.");
         if (!subdomain) return rejectWithValue("Subdomain not set.");
 
-        const response = await axios.get(`http://${subdomain}.localhost:8000/employee/`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await subdomainInterceptors.get('/employee/');
 
         console.log(response.data);
         return response.data.employee;
@@ -30,12 +28,7 @@ export const addUsers = createAsyncThunk('users/AddUsers', async (data, { reject
         if (!token) return rejectWithValue("No token found, please log in again.");
         if (!subdomain) return rejectWithValue("Subdomain not set.");
 
-        const response = await axios.post(`http://${subdomain}.localhost:8000/employee/`, data, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const response = await subdomainInterceptors.post('/employee/', data);
 
         console.log(response.data);
         return response.data;
@@ -55,11 +48,7 @@ export const deleteUser = createAsyncThunk('users/DeleteUsers', async(user_id, {
 
         if (!token) return rejectWithValue("No token found, please log in again.");
         if (!subdomain) return rejectWithValue("Subdomain not set.");
-        const response = await axios.delete(`http://${subdomain}.localhost:8000/employee/`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
+        const response = await subdomainInterceptors.delete('employee/',{
             data:data
         });
         console.log(response.data);

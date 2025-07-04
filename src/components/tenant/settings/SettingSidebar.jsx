@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutGrid, ArrowLeft, Home } from 'lucide-react';
-import { Settings, Users, Shield, Link2, CreditCard, BarChart2, Archive, Lock, Copy } from 'lucide-react';
+import { LayoutGrid, ArrowLeft, Settings, Users, Shield, CreditCard, BarChart2 } from 'lucide-react';
 
 function SettingSidebar() {
   const [isActive, setActive] = useState('general');
-  
+  const subdomain = localStorage.getItem("subdomain") || "";
+
   const handleClick = (text) => {
     setActive(text);
   };
-  
+
   const menuItems = [
     { id: 'general', icon: Settings, label: 'General', path: "/setting/genaral" },
     { id: 'users', icon: Users, label: 'Users', path: "/setting/users" },
@@ -18,11 +18,11 @@ function SettingSidebar() {
     { id: 'usage', icon: BarChart2, label: 'Usage Stats', path: "" },
     { id: 'lead_form', icon: LayoutGrid, label: 'Lead Form', path: "/setting/lead_form" },
   ];
-  
+
   const sections = [
     { title: 'General', items: menuItems.slice(0, 3) },
     { title: 'Account', items: menuItems.slice(3, 5) },
-    { title: 'Management', items: menuItems.slice(5 ) }
+    { title: 'Management', items: menuItems.slice(5) }
   ];
 
   return (
@@ -37,7 +37,7 @@ function SettingSidebar() {
       {/* Dashboard Button */}
       <div className="p-3 border-b border-blue-600/30">
         <Link
-          to="/dashboard"
+          to={`/${subdomain}/dashboard`}
           className="flex items-center px-3 py-2 text-sm rounded-md transition-all duration-150 text-blue-100 hover:bg-white/10 hover:text-white group"
         >
           <ArrowLeft className="h-4 w-4 mr-3 text-blue-200 group-hover:text-yellow-400 transition-colors duration-150" />
@@ -58,7 +58,7 @@ function SettingSidebar() {
               {section.items.map((item) => (
                 <Link
                   key={item.id}
-                  to={item.path}
+                  to={`/${subdomain}${item.path}`}
                   className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-150 ${
                     item.id === isActive
                       ? 'bg-white/20 backdrop-blur-sm text-white font-medium border-l-2 border-yellow-400'
@@ -78,7 +78,7 @@ function SettingSidebar() {
           </div>
         ))}
       </div>
-      
+
       <div className="p-3 border-t border-blue-600/30 bg-blue-800/40 backdrop-blur-sm">
         <div className="flex items-center space-x-2">
           <div className="bg-white/10 backdrop-blur-sm rounded-md p-2 w-full">

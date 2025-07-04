@@ -113,15 +113,15 @@ const TaskForm = ({ onClose, task, isEditing }) => {
 
   // Memoized options
   const options = useMemo(() => ({
-    employee: employee.map(member => ({ 
+    employee: employee?.map(member => ({ 
       id: member.id, 
       name: `${member.name} (${member.role.name})` 
     })),
-    leads: leads.map(lead => ({ 
+    leads: leads?.map(lead => ({ 
       id: lead.lead_id, 
       name: `${lead.name}(${lead.lead_id})` 
     })),
-    teams: teams.map(team => ({ 
+    teams: teams?.map(team => ({ 
       id: team.id, 
       name: `${team.name} (${team.members.length + 1} members)` 
     }))
@@ -333,7 +333,7 @@ const TaskForm = ({ onClose, task, isEditing }) => {
         </div>
 
         {/* Attachments */}
-        <div className="p-4 bg-gray-50 rounded-md">
+        {/* <div className="p-4 bg-gray-50 rounded-md">
           <h3 className="font-medium text-gray-800 mb-4">Attachments</h3>
           <div className="mb-3">
             <label
@@ -369,7 +369,7 @@ const TaskForm = ({ onClose, task, isEditing }) => {
               </span>
             )}
           </div>
-        </div>
+        </div> */}
         
         {/* Tags */}
         <div>

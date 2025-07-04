@@ -18,10 +18,8 @@ export const addField = createAsyncThunk ( 'field/addField', async (data,{reject
     const subdomain = localStorage.getItem("subdomain")
     const token = localStorage.getItem("access_token")
     try{
-        const response = await axios.post(`http://${subdomain}.localhost:8000/api/formfield/
-            `, data, {
-                headers: { Authorization: `Bearer ${token}` },
-                });
+        const response = await subdomainInterceptors.post('/api/formfield/'
+            , data,)
                 return response.data;
                 }catch(error){
                     return rejectWithValue(error.message)

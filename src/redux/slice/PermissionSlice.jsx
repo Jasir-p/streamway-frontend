@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 
 // Async thunk for fetching permissions
 export const fetchPermission = createAsyncThunk(
@@ -8,9 +9,7 @@ export const fetchPermission = createAsyncThunk(
     try {
       const subdomain = localStorage.getItem("subdomain");
       const token = localStorage.getItem("access_token");
-      const response = await axios.get(`http://${subdomain}.localhost:8000/permission/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await subdomainInterceptors.get('/permission/');
       console.log(response.data)
       return response.data; 
       

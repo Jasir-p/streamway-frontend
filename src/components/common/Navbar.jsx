@@ -1,27 +1,27 @@
 import React, { useState, useRef } from 'react'
-import { Users, Sparkles, ShoppingBag, Briefcase, Search, Bell, Settings2Icon, Settings } from 'lucide-react';
+import { Search, Bell, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ProfileModal from '../tenant/dashboard/ProfileIcon';
 import NotificationsModal from '../tenant/modules/dashboard/notifications/Notifications';
 import userProfile from '../../assets/user-profile.webp';
 
-
 const Navbar = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const role = useSelector((state) => state.auth.role);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [bellOpen, setBellOpen] = useState(false)
+  const [bellOpen, setBellOpen] = useState(false);
   const profileRef = useRef(null);
-  const [UnreadCount,setUnreadCount] = useState(0);
-  
-  // You can make this dynamic by getting the count from your state/props
-  const unreadNotificationCount = 12;
+  const [UnreadCount, setUnreadCount] = useState(0);
+
+  const subdomain = localStorage.getItem("subdomain") || "";
 
   return (
-    <div className="flex justify-center py-4 bg-white "> {/* Centering the navbar */}
-      <header className=" bg-blue-200 max-w-3xl w-full rounded-2xl shadow-md">
+    <div className="flex justify-center py-4 bg-white">
+      <header className="bg-blue-200 max-w-3xl w-full rounded-2xl shadow-md">
         <div className="flex items-center justify-between px-6 py-3">
+          
+          {/* 🔍 Search Input */}
           <div className="flex items-center bg-gray-50 rounded-full px-4 py-2 flex-1 max-w-md">
             <Search className="h-5 w-5 text-gray-400" />
             <input
@@ -30,8 +30,10 @@ const Navbar = () => {
               className="ml-2 bg-transparent outline-none w-full"
             />
           </div>
+
+          {/* Right Side Icons */}
           <div className="flex items-center space-x-4">
-            {/* Bell button with notification badge */}
+            {/* 🔔 Notifications */}
             <button 
               className="p-2 hover:bg-gray-700 rounded-full relative"
               onClick={() => setBellOpen(true)}
@@ -43,33 +45,40 @@ const Navbar = () => {
                 </span>
               )}
             </button>
-            
+
             <NotificationsModal
               isOpen={bellOpen}
               onClose={() => setBellOpen(false)}
-              setCount ={setUnreadCount}
+              setCount={setUnreadCount}
             />
-       
+
+            {/* ⚙️ Settings - only for owners */}
             {role === "owner" && (
-              <button className="p-2 hover:bg-gray-700 rounded-full" onClick={() => navigate('/setting/genaral')}>
+              <button
+                className="p-2 hover:bg-gray-700 rounded-full"
+                onClick={() => navigate(`/${subdomain}/setting/genaral`)}
+              >
                 <Settings className="h-5 w-5 text-white" />
               </button>
             )}
-            
+
+            {/* Divider */}
             <div className="h-8 w-px bg-gray-200" />
             <div className="h-8 w-px bg-gray-200" />
+
+            {/* 🧑 Profile */}
             <img
               src={userProfile}
               alt="Profile"
               className="w-12 h-12 rounded-full border-2 border-gray-500 cursor-pointer"
-              onClick={() => setProfileOpen(true)} 
+              onClick={() => setProfileOpen(true)}
             />
           </div>
-          
-          {/* Modal that will appear near the icon */}
+
+          {/* Profile Modal */}
           <ProfileModal 
-            open={profileOpen} 
-            setOpen={setProfileOpen} 
+            open={profileOpen}
+            setOpen={setProfileOpen}
             anchorRef={profileRef}
           />
         </div>

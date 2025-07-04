@@ -73,8 +73,8 @@ export const useWebSocket = () => {
 
     // Build WebSocket URL based on whether roomId exists
     const wsUrl = roomId
-      ? `ws://${subdomain}.localhost:8000/ws/${type}/${roomId}/?token=${token}`
-      : `ws://${subdomain}.localhost:8000/ws/${type}/?token=${token}`;
+      ? `ws://localhost:8000/${subdomain}/ws/${type}/${roomId}/?token=${token}`
+      : `ws://localhost:8000/${subdomain}/ws/${type}/?token=${token}`;
 
     console.log('🌐 WebSocket URL:', wsUrl);
 

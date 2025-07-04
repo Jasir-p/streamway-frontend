@@ -13,15 +13,17 @@ import RoleModal from "./RoleUseform";
 import { updateRole,deleteRole } from "../../../../redux/slice/roleSlice";
 import LoadingScreen from "../../../common/Loading";
 import api from "../../../../api";
+import subdomainInterceptors from "../../../../Intreceptors/getSubdomainInterceptors";
+
 
 
 
 const fetchRoleById = async (role_id) => {
-  const subdomain = localStorage.getItem("subdomain");
+  
   const token = localStorage.getItem("access_token");
 
   try {
-    const response = await api.get("/role/", {
+    const response = await subdomainInterceptors.get("/role/", {
       params: { role_id }
     });
     console.log("fetch", response.data);
@@ -41,6 +43,7 @@ const RoleDetails = () => {
   const [activeTab, setActiveTab] = useState("Associate Users");
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const subdomain = localStorage.getItem("subdomain");
   
   const dispatch = useDispatch();
 
@@ -86,7 +89,7 @@ const RoleDetails = () => {
   const handleDelete =()=>{
     console.log(role_id)
     dispatch(deleteRole(role_id))
-    navigate("/setting/security")
+    navigate(`/${subdomain}/setting/security`)
   }
 
   if (loading) return <div><LoadingScreen/></div>;

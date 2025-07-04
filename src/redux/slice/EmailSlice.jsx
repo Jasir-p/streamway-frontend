@@ -1,23 +1,31 @@
-import { createAsyncThunk,createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 
 
-export const fetchEmails = createAsyncThunk(
-    "emails/fetchEmails",
-    async ({userID = null,url='/api/tenant-email/'}, { rejectWithValue }) => {
-      try {
-        const params = {}
-        if (userID) params.userId = userID
-        const response = await subdomainInterceptors.get(url,{params});
-        return response.data;
-      } catch (error) {
-        return rejectWithValue(error.response?.data || error.message);
-      }
-    }
-  );
-  
 
-  export const addEmail = createAsyncThunk("emails/addEmail",
+export const fetchEmails = createAsyncThunk(
+  "emails/fetchEmails",
+  async ({ userID = null, url = "/api/tenant-email/" }, { rejectWithValue }) => {
+    try {
+      const params = {};
+      
+      if (userID) {
+        params.user_id = userID; 
+      }
+
+      const response = await subdomainInterceptors.get(url, { params });
+      console.log("📥 Emails fetched:", response.data);
+
+      return response.data;
+    } catch (error) {
+      console.error("❌ Fetch emails error:", error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+
+export const addEmail = createAsyncThunk("emails/addEmail",
     async (data, { rejectWithValue }) => {
       console.log(data);
       try {
@@ -27,17 +35,34 @@ export const fetchEmails = createAsyncThunk(
         return rejectWithValue(error.response?.data || error.message);
       }
     }
-  );
+);
 
-
-  const emailSlice = createSlice({
+const emailSlice = createSlice({
     name: 'emails',
     initialState: {
       emails: [],
       error: null,
       loading: false,
+      currentPage: 1,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+      totalCount: 0,
     },
-    reducers: {},
+    reducers: {
+      resetEmailState: (state) => {
+        state.emails = [];
+        state.currentPage = 1;
+        state.totalPages = 1;
+        state.hasNext = false;
+        state.hasPrevious = false;
+        state.totalCount = 0;
+        state.error = null;
+      },
+      setCurrentPage: (state, action) => {
+        state.currentPage = action.payload;
+      }
+    },
     extraReducers: (builder) => {
       builder
         .addCase(fetchEmails.pending, (state) => {
@@ -46,13 +71,31 @@ export const fetchEmails = createAsyncThunk(
         })
         .addCase(fetchEmails.fulfilled, (state, action) => {
           state.loading = false;
-          state.emails = action.payload;
+          
+          // Handle paginated response
+          if (action.payload.results) {
+            state.emails = action.payload.results;
+            state.totalCount = action.payload.count;
+            state.hasNext = !!action.payload.next;
+            state.hasPrevious = !!action.payload.previous;
+            
+            // Calculate total pages if page_size is available
+            if (action.payload.page_size) {
+              state.totalPages = Math.ceil(action.payload.count / action.payload.page_size);
+            }
+          } else {
+            // Handle non-paginated response (backward compatibility)
+            state.emails = action.payload;
+            state.totalCount = action.payload.length;
+            state.hasNext = false;
+            state.hasPrevious = false;
+            state.totalPages = 1;
+          }
         })
         .addCase(fetchEmails.rejected, (state, action) => {
           state.loading = false;
           state.error = action.payload || 'Failed to fetch emails';
         })
-  
 
         .addCase(addEmail.pending, (state) => {
           state.loading = true;
@@ -60,13 +103,15 @@ export const fetchEmails = createAsyncThunk(
         })
         .addCase(addEmail.fulfilled, (state, action) => {
           state.loading = false;
-          state.emails.push(action.payload);
+          state.emails.unshift(action.payload); // Add new email at the beginning
+          state.totalCount += 1;
         })
         .addCase(addEmail.rejected, (state, action) => {
           state.loading = false;
           state.error = action.payload || 'Failed to add email';
         });
     },
-  });
-  
-  export default emailSlice.reducer;
+});
+
+export const { resetEmailState, setCurrentPage } = emailSlice.actions;
+export default emailSlice.reducer;

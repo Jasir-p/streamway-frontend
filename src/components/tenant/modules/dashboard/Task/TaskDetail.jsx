@@ -8,6 +8,7 @@ import { getUser } from '../../../../../Intreceptors/LeadsApi';
 import { getMembers } from '../../Team/api/teamapi';
 import { getDueDateLabel } from './utlis/taskUtlity';
 
+
 // Constants
 const STATUS_OPTIONS = [
   { value: 'TODO', label: 'To Do' },
@@ -180,6 +181,7 @@ const TaskDetailView = ({
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
+  const subdomain = localStorage.getItem('subdomain')
 console.log(task.assigned_to_team?.id);
 
   useEffect(() => {
@@ -233,7 +235,7 @@ console.log(task.assigned_to_team?.id);
   const handleNavigation = useCallback((type, id) => {
     try {
       const route = NAVIGATION_ROUTES[type](id);
-      navigate(route);
+      navigate(`/${subdomain}/route`);
       onClose();
     } catch (error) {
       console.error('Navigation error:', error);

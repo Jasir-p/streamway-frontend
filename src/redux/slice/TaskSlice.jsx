@@ -36,7 +36,7 @@ export const  addTask =  createAsyncThunk('task/addTask', async (taskData, {reje
     
         
     
-        const response = await axios.post(`http://${subdomain}.localhost:8000/api/tasks/`, taskData, {
+        const response = await axios.post(`http://localhost:8000/${subdomain}/api/tasks/`, taskData, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "multipart/form-data",
@@ -73,7 +73,7 @@ export const editTask = createAsyncThunk(
       if (!subdomain) return rejectWithValue("Subdomain not set.");
 
       const response = await axios.patch(
-        `http://${subdomain}.localhost:8000/api/tasks/`,
+        `http://localhost:8000/${subdomain}/api/tasks/`,
         taskData,
         {
           params: { task_id: task_id },  // Matches your Django patch logic: request.data.get("id")

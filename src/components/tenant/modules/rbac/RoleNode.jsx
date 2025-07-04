@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 const RoleNode = ({ role, onAddSubrole }) => {
   if (!role) return null; // Ensure role is defined
+  const subdomain = localStorage.getItem("subdomain");
   const [showDetails,setShowDetails]= useState(false)
   const [isExpanded, setIsExpanded] = useState(true);
   const hasChildren = Array.isArray(role.children) && role.children.length > 0;
@@ -24,7 +25,7 @@ const RoleNode = ({ role, onAddSubrole }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/setting/security/role/${role.id}`);
+    navigate(`/${subdomain}/setting/security/role/${role.id}`);
   };
   
   return (

@@ -54,7 +54,7 @@ const Login = () => {
         
         // const decodedToken = jwtDecode(response.data.access_token);
         
-        navigate("/dashboard")
+        navigate(`/${subdomain}/dashboard`)
       }
     } catch (error) {
   console.error("Login API Error:", error.response?.data || error.message);

@@ -69,12 +69,13 @@ export const useNotificationWebSocket = () => {
     setConnectionStatus('connecting');
 
     // Build Notification WebSocket URL (no roomId required)
-    const wsUrl = `ws://${subdomain}.localhost:8000/ws/${type}/?token=${token}`;
+    const wsUrl = `ws://localhost:8000/${subdomain}/ws/${type}/?token=${token}`;
 
     console.log('🌐 Notification WebSocket URL:', wsUrl);
 
     try {
       socketRef.current = new WebSocket(wsUrl);
+      // socketRef.current=null
 
       socketRef.current.onopen = () => {
         console.log(`✅ Notification WebSocket Connected`);

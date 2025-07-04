@@ -21,6 +21,7 @@ import { leadStages, dealStages } from './api/mockData';
 
 const SalesPipelineDashboard = () => {
   const [activeTab, setActiveTab] = useState('leads');
+  const subdomain = localStorage.getItem('subdomain')
 
   const {
     dateFilter,
@@ -167,8 +168,8 @@ const SalesPipelineDashboard = () => {
               <Link
                 to={
                   activeTab === 'leads'
-                    ? '/dashboard/sale/leads'
-                    : '/dashboard/sale/deals'
+                    ? `/${subdomain}/dashboard/sale/leads`
+                    : `/${subdomain}/dashboard/sale/deals`
                 }
                 className="text-sm text-blue-600 hover:underline"
               >

@@ -44,8 +44,17 @@ export default function EmailManagementUI() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(fetchEmails(role!='owner'?userID:null));
-  }, []);
+    const fetchData = () => {
+      const params = {
+        userID: role !== 'owner' ? userID : null,
+
+      };
+      dispatch(fetchEmails(params));
+    };
+    
+    fetchData();
+  }, [dispatch, role, userID]);
+  
 
   const emailCategories = [
     { id: 'all', name: 'All Emails', count: 256 },

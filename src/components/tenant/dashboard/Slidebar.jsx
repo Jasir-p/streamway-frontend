@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import { 
   LayoutDashboard, 
   Users, 
@@ -31,11 +32,14 @@ function Sidebar() {
   const name = useSelector((state) =>state.profile.name)
   const role = useSelector((state) =>state.auth.role)
   const navigate = useNavigate();
+  const subdomain = localStorage.getItem("subdomain") || "";
+  const getPrefixedPath = (path) => (subdomain ? `/${subdomain}${path}` : path);
 
-  const handleClick = (item) => {
-    setActiveItem(item.text);
-    navigate(item.path);
-  };
+const handleClick = (item) => {
+  setActiveItem(item.text);
+  navigate(getPrefixedPath(item.path));
+};
+
 
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -173,8 +177,8 @@ function Sidebar() {
             <span className="absolute bottom-0 right-0 h-2 w-2 bg-green-400 rounded-full border border-blue-800"></span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">{name}</p>
-            <p className="text-xs text-blue-200 truncate">{role.toUpperCase()}</p>
+            <p className="text-sm font-medium text-white truncate">{name?name:null}</p>
+            <p className="text-xs text-blue-200 truncate">{role?.toUpperCase()}</p>
           </div>
           <div className="flex space-x-1">
             <button className="p-1 rounded-full hover:bg-white/10 text-blue-200 hover:text-white">

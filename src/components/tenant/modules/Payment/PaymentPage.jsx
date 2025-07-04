@@ -49,7 +49,7 @@ const PaymentPage = () => {
             
             {/* Action Button */}
             <button 
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(`${subdomain}/dashboard`)}
               className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg"
             >
               Go to Dashboard

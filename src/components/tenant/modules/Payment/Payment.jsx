@@ -10,6 +10,7 @@ const BillingDashboard = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const subdomain = localStorage.getItem("subdomain")
   const [showEditModal, setShowEditModal] = useState(false);
   const Navigate = useNavigate();
   const [editForm, setEditForm] = useState({
@@ -282,7 +283,7 @@ const BillingDashboard = () => {
                     )}
                     {inv.status !== "paid" ? (
                       <button
-                        onClick={()=>Navigate(`/setting/payment/invoice/${inv.id}/pay`)}
+                        onClick={()=>Navigate(`/${subdomain}/setting/payment/invoice/${inv.id}/pay`)}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
                       >
                         <CreditCard size={16} />

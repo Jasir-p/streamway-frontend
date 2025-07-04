@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPermission } from "../../../../redux/slice/PermissionSlice";
 import axios from "axios";
+import subdomainInterceptors from "../../../../Intreceptors/getSubdomainInterceptors";
+subdomainInterceptors
 
 const roleAccess = async (role, perm_id) => {
   const subdomain = localStorage.getItem("subdomain");
@@ -16,15 +18,7 @@ const roleAccess = async (role, perm_id) => {
   };
 
   try {
-    const response = await axios.post(
-      `http://${subdomain}.localhost:8000/roleacess/`,
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await subdomainInterceptors.post('/roleacess/',data);
     return response.data;
   } catch (error) {
     console.log("Error assigning permission", error.response?.data || error.message);
@@ -40,24 +34,16 @@ const roleAccessDelete = async (role, perm_id) => {
     role: role,
     Permission: perm_id,
   };
-
-  try {
-    const response = await axios.delete(
-      `http://${subdomain}.localhost:8000/roleacess/`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        data,
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.log("Error deleting permission", error.response?.data || error.message);
-    throw error;
+    try {
+      const response = await subdomainInterceptors.delete('/roleacess/', {
+        data: data,
+      });
+      return response.data;
+    } catch (error) {
+      console.log("Error deleting permission", error.response?.data || error.message);
+      throw error;
+    }
   }
-};
 
 export default function PermissionsTable({ permission, role_id }) {
   const dispatch = useDispatch();

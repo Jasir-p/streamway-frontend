@@ -10,13 +10,12 @@ export const taskChange = async (task_id,data)=> {
 
 }
 
-export const selectContactByAccount = async (account_id)=>{
-    try{
-        const response = await subdomainInterceptors.get(`/api/get-contacts-by-account/${account_id}`)
-        return response.data
-        
-        }catch(error){
-            return error.message
-            }
-            }
+export const selectContactByAccount = async (account_id) => {
+  try {
+    const response = await subdomainInterceptors.get(`api/get-contacts-by-account/${account_id}/`);
+    return response.data;
+  } catch (error) {
+    return error.message;
+  }
+};
 

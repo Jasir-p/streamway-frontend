@@ -227,7 +227,7 @@ export const ContactDropdown = ({ isOpen, onSelect, onClose, selectedContact, ac
               onClick={() => onSelect(contact)}
             >
               <div className="bg-purple-100 text-purple-800 rounded-full w-8 h-8 flex items-center justify-center mr-2">
-                {contact.name.charAt(0)}
+                {contact.name?.charAt(0)}
               </div>
               <div>
                 <div className="text-sm font-medium">{contact.name}</div>

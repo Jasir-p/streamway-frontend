@@ -4,7 +4,8 @@ import { AlertCircle, Clock, CheckCircle, XCircle, Handshake, FileText, Tag, Mor
 import { useNavigate } from 'react-router-dom';
 
 const PipelineCard = ({ item, isDeals = false }) => {
-  const navigate = useNavigate();
+  const subdomain = localStorage.getItem('subdomain')
+    const navigate = useNavigate();
   const getStatusIcon = (statusOrStage) => {
   const icons = {
 
@@ -104,7 +105,7 @@ const PipelineCard = ({ item, isDeals = false }) => {
           </>
         ) : (
           <div 
-            onClick={() => navigate(`/dashboard/sale/leads/${item.lead_id}/`)}
+            onClick={() => navigate(`/${subdomain}/dashboard/sale/leads/${item.lead_id}/`)}
             className="cursor-pointer hover:bg-gray-50 p-2 rounded"
           >  
             <div className="flex justify-between text-sm">
