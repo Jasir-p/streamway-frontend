@@ -15,7 +15,7 @@ export default function ProfileDropdown({ open, setOpen }) {
   const navigate = useNavigate();
   const role = useSelector((state) => state.auth.role);
   const profile = useSelector((state) =>state.profile)
-  const subdomian = localStorage.getItem("subdomian")
+  const subdomian = localStorage.getItem("subdomain")
 
   const [showModal, setShowModal] = useState(false);
   const [activeSection, setActiveSection] = useState("personal"); // To handle sections
