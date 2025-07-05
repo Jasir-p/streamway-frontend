@@ -21,7 +21,7 @@ export const fetchCompany = createAsyncThunk("companyDetails/fetchCompany", asyn
         async ({userId, data}, {rejectWithValue}) => {
           console.log("helloo")
           try {
-            const response = await api.put(`/company_details/${userId}`, data);
+            const response = await subdomainInterceptors.put(`/company_details/${userId}`, data);
             return response.data;
           } catch (error) {
             console.log(error);

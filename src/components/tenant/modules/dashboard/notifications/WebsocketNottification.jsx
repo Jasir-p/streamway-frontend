@@ -69,7 +69,7 @@ export const useNotificationWebSocket = () => {
     setConnectionStatus('connecting');
 
     // Build Notification WebSocket URL (no roomId required)
-    const wsUrl = `ws://localhost:8000/${subdomain}/ws/${type}/?token=${token}`;
+    const wsUrl = `wss://streamway.solutions/${subdomain}/ws/${type}/?token=${token}`;
 
     console.log('🌐 Notification WebSocket URL:', wsUrl);
 
