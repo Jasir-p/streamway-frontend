@@ -73,8 +73,8 @@ export const useWebSocket = () => {
 
     // Build WebSocket URL based on whether roomId exists
     const wsUrl = roomId
-      ? `wss://streamway.solutions/${subdomain}/ws/${type}/${roomId}/?token=${token}`
-      : `wss://streamway.solutions/${subdomain}/ws/${type}/?token=${token}`;
+      ? `wss://api.streamway.solutions/${subdomain}/ws/${type}/${roomId}/?token=${token}`
+      : `wss://api.streamway.solutions/${subdomain}/ws/${type}/?token=${token}`;
 
     console.log('🌐 WebSocket URL:', wsUrl);
 

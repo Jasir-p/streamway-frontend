@@ -13,29 +13,11 @@ const response = await subdomainInterceptors.get("/role/");
   return response.data;
 });
 
-// export const fetchRoles = createAsyncThunk("roles/fetchRoles", async (_, { rejectWithValue }) => {
-//   try {
-//     // Ensure authentication is properly set
-//     const subdomain = localStorage.getItem("subdomain");
-//     const token = localStorage.getItem("access_token");
-    
-//     // Use the same explicit authentication as your other functions
-//     const response = await axios.get(`http://${subdomain}.localhost:8000/role/`, {
-//       headers: { Authorization: `Bearer ${token}` },
-//     });
-    
-//     console.log("Roles fetched successfully:", response.data);
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error fetching roles:", error);
-//     return rejectWithValue(error.response?.data || "Error fetching roles");
-//   }
-// });
+
 
 export const addRole = createAsyncThunk("roles/addRole", async (roleData, { rejectWithValue }) => {
   try {
-    const subdomain = localStorage.getItem("subdomain");
-    const token = localStorage.getItem("access_token");
+
 
     const response = await subdomainInterceptors.post('/role/', 
       roleData,
@@ -49,7 +31,7 @@ export const addRole = createAsyncThunk("roles/addRole", async (roleData, { reje
 export const updateRole = createAsyncThunk("roles/updateRole", async (roleData, { rejectWithValue }) => {
   try {
     const role_id = roleData.id;
-    const response = await api.put("/role/", roleData, {
+    const response = await subdomainInterceptors.put("/role/", roleData, {
       params: { role_id }
     });
     return response.data;
@@ -63,7 +45,7 @@ export const deleteRole = createAsyncThunk("roles/deleteRole", async (role_id, {
     try {
       const subdomain = localStorage.getItem("subdomain");
       const token = localStorage.getItem("access_token");
-      const response = await axios.delete(`http://${subdomain}.localhost:8000/role/`, {
+      const response = await axios.delete(`https://api.streamway.solutions/${subdomain}/role/`, {
         params: { role_id },
         headers: {
           Authorization: `Bearer ${token}`,

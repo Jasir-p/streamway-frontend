@@ -43,7 +43,7 @@ export const fetchGroupMessage = async (roomId) => {
 
   try {
     const response = await axios.get(
-      `http://localhost:8000/${subdomain}/api/rooms/${roomId}/messages/`,
+      `https://api.streamway.solutions/${subdomain}/api/rooms/${roomId}/messages/`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

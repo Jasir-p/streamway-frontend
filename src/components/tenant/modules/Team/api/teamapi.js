@@ -6,7 +6,7 @@ export const fetchTeamById = async (team_id) => {
   const token = localStorage.getItem("access_token");
 
   try {
-    const response = await axios.get(`http://${subdomain}.localhost:8000/team/`, {
+    const response = await axios.get(`https://api.streamway.solutions/${subdomain}/team/`, {
       params: { team_id },
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -23,7 +23,7 @@ export const addMember = async (team_id, user_id) => {
   
   try {
     const response = await axios.post(
-      `http://${subdomain}.localhost:8000/team_members/`, 
+      `https://api.streamway.solutions/${subdomain}/team_members/`, 
       { team: team_id, employee: user_id },
       { headers: { Authorization: `Bearer ${token}` } }
     );
