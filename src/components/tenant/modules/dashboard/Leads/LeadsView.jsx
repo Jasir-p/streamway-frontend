@@ -19,6 +19,7 @@ const MondayStyleLeadsTable = () => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
   const { isOpen, toggle, close } = useDropdown();
   const role = useSelector((state) => state.auth.role);
+  const subdomain = localStorage.getItem("subdomain")
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { leads, loading, error, next, previous } = useSelector((state) => state.leads);
@@ -133,7 +134,7 @@ const { canAddLead, canEditLead, canDeleteLead, canViewLead } = useLeadPermissio
   };
 
   const handleLeadOverView = (lead) => {
-    navigate (`/dashboard/sale/leads/${lead.lead_id}/`);
+    navigate (`/${subdomain}/dashboard/sale/leads/${lead.lead_id}/`);
     };
 
 const filteredLeads = leads.filter(lead => {

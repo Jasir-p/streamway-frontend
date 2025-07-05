@@ -41,6 +41,7 @@ const TeamManagement = () => {
   const role = useSelector((state) =>state.auth.role)
   const userId = useSelector((state) =>state.profile.id)
   const {canAdd,canDelete,canEdit,canView}= useTeamPermissions()
+  const subdomain = localStorage.getItem("subdomain")
 
   useEffect(()=>{
     dispatch(fetchTeams(role==='owner'?null:userId))
@@ -87,7 +88,7 @@ const onSubmit = async (data) => {
 
 const handleClickView = (team_id)=>{
     setTimeout(()=>{
-        navigate(`/dashboard/team/teams/${team_id}`)
+        navigate(`/${subdomain}/dashboard/team/teams/${team_id}`)
     },500)
 
 }

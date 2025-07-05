@@ -31,6 +31,7 @@ export default function AccountList() {
   const { showSuccess, showError } = useToast();
   const [emailCategory, setEmailCategory] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('')
+  const subdomain = localStorage.getItem("subdomain")
 
   const dispatch = useDispatch();
   const navigate = useNavigate()
@@ -204,7 +205,7 @@ export default function AccountList() {
     };
     }
   const handleAccountDetail = (account)=>{
-    navigate(`/dashboard/customer/accounts/${account.id}/`)
+    navigate(`/${subdomain}/dashboard/customer/accounts/${account.id}/`)
   }
   
   const selctMailCategory = (category)=>{

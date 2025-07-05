@@ -17,6 +17,7 @@ const ContactRow = ({
 }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const subdomain = localStorage.getItem("subdomain")
 
   const handleStatusChange = (contact) => {
     const data = {
@@ -29,7 +30,7 @@ const ContactRow = ({
   };
 
   const handleScheduleClick = () => {
-    navigate("/dashboard/activity/meetings");
+    navigate(`/${subdomain}/dashboard/activity/meetings`);
   };
 
   const handleEditClick = () => {

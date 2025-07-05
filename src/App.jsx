@@ -32,7 +32,7 @@ function App() {
   return (
     <ToastProvider>
       <Routes>
-        {/* ✅ Public & Auth Routes */}
+        {/*  Public & Auth Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/otp" element={<OtpPage />} />
@@ -55,7 +55,7 @@ function App() {
         {/*  Tenant Routes with prefix */}
         <Route path="/:prefix/*" element={<TenantRouter />} />
 
-        {/* ✅ Fallback */}
+      
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ToastProvider>

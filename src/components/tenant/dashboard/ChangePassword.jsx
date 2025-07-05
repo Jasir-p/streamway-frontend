@@ -6,40 +6,16 @@ import { useToast } from '../../common/ToastNotification';
 import api from '../../../api';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import subdomainInterceptors from '../../../Intreceptors/getSubdomainInterceptors';
+
 
 
 
 const passwordSet = async(data)=>{
-    const response = await api.post('password/', data);
+    const response = await subdomainInterceptors.post('password/', data);
     return response .data;
 }
 
-// const passwordSet = async(data)=>{
-//     console.log(data)
-    
-//     const subdomain = localStorage.getItem("subdomain");
-//     const token = localStorage.getItem("access_token");
-  
-   
-  
-//     try {
-//       const response = await axios.post(
-//         `http://${subdomain}.localhost:8000/password/`,
-//         data,
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//           },
-//         }
-//       );
-//       return response.data;
-//     } catch (error) {
-//       console.log("Error assigning permission", error.response?.data || error.message);
-//       throw error;
-//     }
-    
-            
-//     }
 
 const passwordVerify = async(data)=>{
     const response = await api.post('verfiy_password/', data);
@@ -53,6 +29,7 @@ const ChangePassword = () => {
   const [isOtpStep, setIsOtpStep] = useState(false);
   const email = useSelector((state)=>state.profile.email)
   console.log(email)
+  const {showError,showSuccess} = useToast()
   
   // Password form
   const { 
@@ -81,23 +58,23 @@ const ChangePassword = () => {
     const requestData = { ...data, email };
     console.log(requestData)
     try {
-      await passwordSet(requestData); // Ensure the function accepts 'data' if required
-      setIsOtpStep(true); // Proceed to OTP step after successful password change
+      await passwordSet(requestData); 
+      setIsOtpStep(true); 
     } catch (error) {
-      console.error('Password change failed:', error);
+      showError('Password change failed:', error);
     }
 }
 
   const onSubmitOtp =async (data) => {
-    // Here you would handle OTP verification
-    console.log('OTP submitted:', data);
+
+    showError('OTP submitted');
     const requestData = { otp:data.otp, 
         email:email };
     console.log(requestData)
     await passwordVerify(requestData);
     setIsOtpStep(false); // Proceed to password change step after OTP verification
     // You would typically verify OTP and complete the password change
-    alert('Password changed successfully!');
+    showSuccess('Password changed successfully!');
   };
 
   return (

@@ -15,6 +15,7 @@ export const DealsTable = ({
   onDelete
 }) => {
     const navigate = useNavigate();
+    const subdomain = localStorage.getItem("subdomain")
    const getStatusIcon = (status) => {
     const icons = {
     "discovery": <AlertCircle className="w-4 h-4" />,
@@ -69,7 +70,7 @@ export const DealsTable = ({
                 </td>
                 
                 {/* Deal Column */}
-                <td className="px-4 py-4" onClick={()=>navigate(`/dashboard/sale/deals/${deal.deal_id}/`)}>
+                <td className="px-4 py-4" onClick={()=>navigate(`/${subdomain}/dashboard/sale/deals/${deal.deal_id}/`)}>
                   <div className="font-medium text-gray-900">{deal.title}</div>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${dealsUtils.getPriorityColor(deal.priority)}`}>

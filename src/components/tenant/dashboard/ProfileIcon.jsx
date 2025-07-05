@@ -8,15 +8,14 @@ import userProfile from '../../../assets/user-profile.webp';
 
 
 
-// import ChangePassword from "../modules/Genaral/ChangePassword";
-// import Notifications from "../modules/Genaral/Notifications";
-// import HelpSupport from "../modules/Genaral/HelpSupport";
+
 
 export default function ProfileDropdown({ open, setOpen }) {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const role = useSelector((state) => state.auth.role);
   const profile = useSelector((state) =>state.profile)
+  const subdomian = localStorage.getItem("subdomian")
 
   const [showModal, setShowModal] = useState(false);
   const [activeSection, setActiveSection] = useState("personal"); // To handle sections
@@ -87,13 +86,13 @@ export default function ProfileDropdown({ open, setOpen }) {
                 <span className="font-medium">Change Password</span>
               </button>
 
-              <button
+              {/* <button
                 className="w-full flex items-center justify-start gap-3 p-3 rounded-lg hover:bg-gray-50"
                 onClick={() => handleSectionChange("notifications")}
               >
                 <Bell className="w-5 h-5 text-gray-600" />
                 <span className="font-medium">Notifications</span>
-              </button>
+              </button> */}
 
               <button
                 className="w-full flex items-center justify-start gap-3 p-3 rounded-lg hover:bg-gray-50"
@@ -133,9 +132,8 @@ export default function ProfileDropdown({ open, setOpen }) {
             </button>
 
             {/* Section Rendering */}
-            {activeSection === "personal" && navigate('/dashboard/profile/personal')}
-            {activeSection === "changePassword" && navigate('/dashboard/profile/password')}
-            {activeSection === "notifications"}
+            {activeSection === "personal" && navigate(`/${subdomian}/dashboard/profile/personal`)}
+            {activeSection === "changePassword" && navigate(`/${subdomian}/dashboard/profile/password`)}
             {activeSection === "helpSupport" }
           </div>
         </div>
