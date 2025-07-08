@@ -327,18 +327,17 @@ function Landingmain() {
                   <span className="text-6xl font-bold text-gray-900">$10</span>
                   <span className="text-2xl text-gray-600 ml-2 mb-2">/user/month</span>
                 </div>
-                <p className="text-gray-600">Billed monthly • Cancel anytime</p>
+                <p className="text-gray-600">Billed monthly</p>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4 mb-8">
                 {[
                   "Unlimited contacts",
                   "Advanced analytics & reporting",
-                  "Email & SMS integration",
+                  "Email integration",
                   "Custom dashboards",
                   "Team collaboration tools",
                   "Mobile app access",
-                  "API access",
                   "Priority support",
                   "Data export & backup",
                   "Custom fields & workflows",
@@ -360,7 +359,7 @@ function Landingmain() {
                   Start Your Free Trial
                 </a>
                 <p className="text-sm text-gray-600">
-                  14-day free trial • No credit card required
+                  30-day free trial • No credit card required
                 </p>
               </div>
             </div>

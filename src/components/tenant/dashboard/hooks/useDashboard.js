@@ -43,18 +43,21 @@ export const useDashboard = () => {
           .slice(0, 5);
 
         const pendingTasks = data.tasks.filter(task => {
-          const dueDate = dayjs(task.duedate);
-          return dueDate.isSame(today, 'day') && task.status.toLowerCase() !== 'COMPLETED';
-        });
-        const pendingTasksCount =data.tasks.filter(task => {
-          
-          return  task.status.toLowerCase() !== 'COMPLETED';
-        });
+        const dueDate = dayjs(task.duedate);
+        return dueDate.isSame(today, 'day') && task.status.toLowerCase() !== 'completed';
+      });
 
-        const overdueTasks = data.tasks.filter(task => {
+      const pendingTasksCount = data.tasks.filter(task => {
+        return task.status.toLowerCase() !== 'completed';
+      }).length;  // assuming you want count — not a filtered list
+
+      const overdueTasks = data.tasks
+        .filter(task => {
           const dueDate = dayjs(task.duedate);
-          return dueDate.isBefore(today) && task.status.toLowerCase() !== 'COMPLETED';
-        }).slice(0, 5);
+          return dueDate.isBefore(today, 'day') && task.status.toLowerCase() !== 'completed';
+        })
+        .slice(0, 5);  // show only first 5 overdue
+
 
         const recentLeads = data.leads.slice(0, 5);
         const recentDeals = activeDeals.slice(0, 5);
