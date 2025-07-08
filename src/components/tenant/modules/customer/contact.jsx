@@ -109,7 +109,7 @@ const ContactView = () => {
 
   const toggleFavorite = (id) => {
     // Implementation for toggling favorite
-    console.log('Toggle favorite for:', id);
+    
   };
 
   if (loading) {

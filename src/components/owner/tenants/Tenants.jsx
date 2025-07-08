@@ -20,7 +20,7 @@ const Tenants = () => {
   }, [dispatch]);
 
   const viewTenantDetails = (tenantId) => {
-    console.log('Navigating to:', `/admin/tenants/${tenantId}`)
+    
     navigate(`/admin/tenants/${tenantId}`)
   };
 
@@ -39,7 +39,7 @@ const Tenants = () => {
 
   // Status Label
   const StatusLabel = ({ isActive }) => {
-    console.log(isActive);
+    
     
     const statusClasses = isActive === true
       ? 'bg-green-100 text-green-800'

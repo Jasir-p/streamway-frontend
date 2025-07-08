@@ -11,15 +11,15 @@ export const fetchTeams = createAsyncThunk(
         params.userId = userId; 
 
 
-        console.log("Fetching teams for user:", userId);
+        
       }
 
       const response = await subdomainInterceptors.get('team/', { params });
-      console.log("Teams fetched:", response.data);
+      
 
       return response.data.teams;
     } catch (error) {
-      console.error("Error fetching teams:", error.response?.data || error.message);
+      
       return rejectWithValue(
         error.response?.data?.detail || error.message || "Failed to fetch teams"
       );
@@ -35,7 +35,7 @@ export const addTeam = createAsyncThunk('teams/AddTeam',async(data,{rejectWithVa
             return response.data.team;
 
         }catch(error){
-            console.error("Error adding team:", error.response?.data || error.message);
+            
             return rejectWithValue(error.response?.data || "Failed to add team");
             
         }
@@ -44,10 +44,10 @@ export const addTeam = createAsyncThunk('teams/AddTeam',async(data,{rejectWithVa
                 
 })
 export const updateTeam = createAsyncThunk('teams/Updateteam', async(data,{rejectWithValue})=>{
-    console.log(data)
+    
     try{
         const response = await subdomainInterceptors.put('/team/',data)
-        console.log("check",response)
+        
         return response.data
         
     }catch(error){
@@ -68,7 +68,7 @@ export const partialUpdateTeam = createAsyncThunk('teams/PartialUpdateTeam', asy
 
 
 export const deleteTeam = createAsyncThunk('teams/DeleteTeam', async(team_id,{rejectWithValue})=>{
-    console.log(team_id);
+    
     
     try {
         const response = await subdomainInterceptors.delete('/team/',{data:{"team_id":team_id}})

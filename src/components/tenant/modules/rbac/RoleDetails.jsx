@@ -26,10 +26,10 @@ const fetchRoleById = async (role_id) => {
     const response = await subdomainInterceptors.get("/role/", {
       params: { role_id }
     });
-    console.log("fetch", response.data);
+    
     return response.data;
   } catch (error) {
-    console.log("error fetching role", error.response?.data || error.message);
+    
   }
 };
 
@@ -87,13 +87,13 @@ const RoleDetails = () => {
     setShowModal(false)
   }
   const handleDelete =()=>{
-    console.log(role_id)
+    
     dispatch(deleteRole(role_id))
     navigate(`/${subdomain}/setting/security`)
   }
 
   if (loading) return <div><LoadingScreen/></div>;
-  console.log(roleData.roles)
+  
   return (
     <SettingsLayout>
       <Navbar />

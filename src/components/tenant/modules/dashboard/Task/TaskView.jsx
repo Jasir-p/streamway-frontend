@@ -371,7 +371,7 @@ const TaskManagement = () => {
       setSelectedTask(null);
       setShowDetailView(false);
     } catch (error) {
-      console.error('Failed to delete task:', error);
+      
     }
   };
 

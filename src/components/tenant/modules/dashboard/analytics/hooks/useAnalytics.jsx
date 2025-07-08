@@ -32,7 +32,7 @@ export const useAnalytics = (filters, activeTab) => {
         };
 
 
-        console.log("🚀 Sending analytics request for tab:", activeTab, "with params:", params);
+        
 
         let responseData;
 
@@ -69,7 +69,7 @@ export const useAnalytics = (filters, activeTab) => {
         }
 
       } catch (err) {
-        console.error('Analytics API Error:', err);
+        
         setError(err.message || 'Something went wrong');
       } finally {
         setLoading(false);

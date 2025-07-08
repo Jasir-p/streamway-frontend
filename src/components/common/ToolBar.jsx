@@ -34,7 +34,7 @@ export const UserDropdown = ({ isOpen, onSelect, onClose, selectedUser, placehol
         // Ensure response is an array
         setUsers(Array.isArray(response) ? response : response ? [response] : []);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        
         setUsers([]);
       } finally {
         setLoading(false);
@@ -117,18 +117,18 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose }) => {
   const profile = useSelector((state) => state.profile);
   
   const handleAction = (action) => {
-    console.log(`${action} action triggered!`);
+    
 
   };
   const handleDelete = async () => {
-    console.log("datasss",leads)
+    
     const data = { lead_id: leads };
   
     try {
       const response = await deleteLeads(data);
   
       if (response?.status === 200 || response?.status === 201) {
-        console.log("Deletion successful:", response.data?.message);
+        
   
         if (typeof onUpdate === 'function') {
           await onUpdate();
@@ -138,10 +138,10 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose }) => {
           onClose();
         }
       } else {
-        console.error("Deletion failed with response:", response);
+        
       }
     } catch (error) {
-      console.error("Deletion failed:", error);
+      
     }
   };
   
@@ -153,7 +153,7 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose }) => {
   };
   
   const handleSelectUser = async (user) => {
-    console.log(`Assigning to user: ${user.id}`);
+    
     setSelectedUser(user.id);
     setAssignDropdownOpen(false);
     
@@ -170,7 +170,7 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose }) => {
         const response = await AssignTo(data);
         
         if (response && (response.status === 200 || response.status === 201)) {
-          console.log("Assignment successful:", response.data.message);
+          
 
           if (typeof onUpdate === 'function') {
             await onUpdate();
@@ -180,10 +180,10 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose }) => {
             onClose();
           }
         } else {
-          console.error("Assignment failed with response:", response);
+          
         }
       } catch (error) {
-        console.error("Assignment failed:", error);
+        
       } finally {
         setAssigning(false);
       }

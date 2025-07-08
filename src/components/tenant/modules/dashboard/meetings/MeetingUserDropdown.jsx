@@ -19,7 +19,7 @@ export const UserDropdownMeeting = ({ isOpen, onSelect, onClose, selectedUser, p
         const response = await getUser(role === 'owner' ? role : profile.id);
         setUsers(Array.isArray(response) ? response : response ? [response] : []);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        
         setUsers([]);
       } finally {
         setLoading(false);

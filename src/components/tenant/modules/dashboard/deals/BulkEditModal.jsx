@@ -46,7 +46,7 @@ const BulkEditModal = ({ isOpen, onClose, selectedDeals, onBulkUpdate, deals }) 
       onClose();
       setBulkChanges({ stage: '', status: '', priority: '', assignedTo: '' });
     } catch (error) {
-      console.error('Bulk update failed:', error);
+      
       alert('Failed to update deals. Please try again.');
     } finally {
       setLoading(false);

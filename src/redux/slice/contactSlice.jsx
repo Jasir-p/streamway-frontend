@@ -12,7 +12,7 @@ export const fetchContacts = createAsyncThunk('contacts/fetchAll', async (url='/
 export const addContact = createAsyncThunk('contacts/AddContact', async (data,{rejectWithValue})=>{
     try{
         const response = await subdomainInterceptors.post('/api/contact/',data)
-        console.log(response.data);
+        
         
         return response.data
     }catch(error){
@@ -20,7 +20,7 @@ export const addContact = createAsyncThunk('contacts/AddContact', async (data,{r
     }
 })
 export const deleteContacts = createAsyncThunk('contacts/deleteContact', async(contact_ids,{rejectwithValue})=>{
-    console.log(contact_ids);
+    
     
     try {
         const response = await subdomainInterceptors.delete('api/contact/', {data:{contact_ids:contact_ids}})

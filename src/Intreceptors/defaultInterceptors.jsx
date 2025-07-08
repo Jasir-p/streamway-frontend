@@ -42,7 +42,7 @@ defaultInterceptor.interceptors.response.use(
                 const refreshToken = localStorage.getItem('refresh_token');
                 
                 if (!refreshToken) {
-                    console.error('No refresh token available');
+                    
                     return handleAuthenticationFailure();
                 }
                 
@@ -64,7 +64,7 @@ defaultInterceptor.interceptors.response.use(
 
                 throw new Error("Token refresh failed: No access token");
             } catch (refreshError) {
-                console.error('Token refresh error:', refreshError);
+                
                 return handleAuthenticationFailure();
             }
         }

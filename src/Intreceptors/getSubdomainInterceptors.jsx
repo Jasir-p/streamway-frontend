@@ -8,12 +8,12 @@ const waitForSubdomain = (maxWaitTime = 3000) => {
     const check = () => {
       const subdomain = localStorage.getItem("subdomain");
       if (subdomain) {
-        console.log("✅ Subdomain found:", subdomain);
+        
         resolve(subdomain);
         return;
       }
       if (Date.now() - startTime > maxWaitTime) {
-        console.warn("⏱️ Timeout waiting for subdomain");
+        
         reject(new Error("Subdomain not found within timeout period"));
         return;
       }
@@ -44,19 +44,19 @@ subdomainInterceptors.interceptors.request.use(
         const { jwtDecode } = await import("jwt-decode");
         const decoded = jwtDecode(accessTokenFromUrl);
         subdomain = decoded.subdomain || decoded.tenant;
-        console.log("🔓 Got subdomain from token:", subdomain);
+        
       } catch (err) {
-        console.error("❌ Error decoding token:", err);
+        
       }
     }
 
     // Wait for subdomain if not available
     if (!subdomain) {
       try {
-        console.log("⏳ Waiting for subdomain...");
+        
         subdomain = await waitForSubdomain(2000);
       } catch (err) {
-        console.error("❌ Subdomain required for request");
+        
         return Promise.reject(new Error("Subdomain required for this request"));
       }
     }
@@ -69,7 +69,7 @@ subdomainInterceptors.interceptors.request.use(
     // Set subdomain-based baseURL
     const subdomainBaseUrl = import.meta.env.VITE_API_SUBDOMAIN_URL.replace("{subdomain}", subdomain);
     config.baseURL = subdomainBaseUrl;
-    console.log("🌐 Using subdomain URL:", subdomainBaseUrl);
+    
 
     return config;
   },
@@ -97,13 +97,13 @@ subdomainInterceptors.interceptors.response.use(
               const decoded = jwtDecode(accessTokenFromUrl);
               subdomain = decoded.subdomain || decoded.tenant;
             } catch (decodeError) {
-              console.error("❌ Error decoding token in response interceptor:", decodeError);
+              
             }
           }
         }
 
         if (!refreshToken || !subdomain) {
-          console.error("⚠️ Missing refresh token or subdomain. Logging out.");
+          
           localStorage.clear();
           window.location.href = "/login";
           return Promise.reject(err);
@@ -124,12 +124,12 @@ subdomainInterceptors.interceptors.response.use(
           return subdomainInterceptors(originalRequest);
         }
 
-        console.error("❌ Refresh response did not return new access token.");
+        
         localStorage.clear();
         window.location.href = "/login";
         return Promise.reject(new Error("Token refresh failed"));
       } catch (refreshError) {
-        console.error("❌ Token refresh error:", refreshError);
+        
         localStorage.clear();
         window.location.href = "/login";
         return Promise.reject(refreshError);
@@ -146,7 +146,7 @@ export const updateSubdomainBaseUrl = () => {
   if (subdomain) {
     const newBaseUrl = import.meta.env.VITE_API_SUBDOMAIN_URL.replace("{subdomain}", subdomain);
     subdomainInterceptors.defaults.baseURL = newBaseUrl;
-    console.log("✅ Interceptor base URL updated:", newBaseUrl);
+    
     return newBaseUrl;
   }
   return null;

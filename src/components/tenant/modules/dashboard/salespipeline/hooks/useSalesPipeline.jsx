@@ -16,12 +16,12 @@ export const useSalesPipeline = (dateFilter, customDateRange) => {
     try {
       const filterParams = buildFilterParams(dateFilter, customDateRange, role, userId);
       const data = await fetchSalesPipeline(filterParams);
-      console.log('Pipeline data with filters:', data);
+      
 
       setPipelineData(data);
       setError(null);
     } catch (err) {
-      console.error('Pipeline fetch failed:', err);
+      
       setError(err.message || 'Failed to load pipeline data');
     } finally {
       setLoading(false);

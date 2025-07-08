@@ -2,7 +2,7 @@ import { useState } from 'react';
 import TaskDetailView from '../../dashboard/Task/TaskDetail';
 const TabContent = ({ activeTab, team, members, activities, tasks, }) => {
 
-  console.log(tasks);
+  
   
 
   const getStatusColor = (status) => {

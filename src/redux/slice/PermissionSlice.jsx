@@ -10,7 +10,7 @@ export const fetchPermission = createAsyncThunk(
       const subdomain = localStorage.getItem("subdomain");
       const token = localStorage.getItem("access_token");
       const response = await subdomainInterceptors.get('/permission/');
-      console.log(response.data)
+      
       return response.data; 
       
     } catch (error) {

@@ -16,14 +16,14 @@ import { useToast } from '../common/ToastNotification';
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const subdomain = localStorage.getItem("subdomain")
-  console.log(subdomain)
+  
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const{showError} = useToast()
 
   const onSubmit = async(data) => {
     // Handle form submission
-    console.log(data);
+    
     try {
       const response = await subdomainInterceptors.post(
         "/employee_login/", 
@@ -36,7 +36,7 @@ const Login = () => {
       );
 
       if (response.data.access_token) {
-        console.log("Login Successful:", response.data);
+        
         const accessToken=response.data.access_token
         const refreshToken=response.data.refresh_token
 
@@ -47,7 +47,7 @@ const Login = () => {
         localStorage.setItem("subdomain", subdomain);
         const role = decodedToken.role;
         const permissions = decodedToken.permissions || []
-        console.log(role)
+        
         dispatch(setUserRoleAndPermissions({role,permissions}))
         dispatch(setProfile(response.data.profile))
         localStorage.setItem("subdomain", subdomain);
@@ -57,7 +57,7 @@ const Login = () => {
         navigate(`/${subdomain}/dashboard`)
       }
     } catch (error) {
-  console.error("Login API Error:", error.response?.data || error.message);
+  
   const errMsg = error.response?.data?.error || "Something went wrong!";
   showError(errMsg);
 }

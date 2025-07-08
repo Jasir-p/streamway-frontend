@@ -18,7 +18,7 @@ const AdminLogin = () => {
     setLoading(true);
     
     try {
-      console.log('Logging in with:', form);
+      
 
       const response = await defaultInterceptor.post('/api/admin-login/', form);
       const accessToken = response.data.access_token;
@@ -26,11 +26,11 @@ const AdminLogin = () => {
       localStorage.setItem('access_token', accessToken);
       localStorage.setItem('refresh_token', refreshToken);
 
-      console.log('Login successful:', response);
+      
       navigate("/admin/dashboard");
 
     } catch (error) {
-      console.error('Login failed', error);
+      
 
       const message = error.response?.data?.message || "Invalid username or password";
       showError(message);

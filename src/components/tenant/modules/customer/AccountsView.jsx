@@ -36,7 +36,7 @@ export default function AccountList() {
   const dispatch = useDispatch();
   const navigate = useNavigate()
   const {accounts, next, previous, loading, error} = useSelector(state => state.accounts);
-  console.log(accounts);
+  
   
   const actionConfigs = {
     mass_email: {
@@ -61,7 +61,7 @@ export default function AccountList() {
   }, [dispatch,change]);
 
   const handleNext = () => {
-    console.log(next)
+    
     dispatch(fetchAccounts(next));
   };
   
@@ -133,7 +133,7 @@ export default function AccountList() {
     setActionToConfirm(action);
     
     if (action === 'assign') {
-      console.log("12");
+      
       
       setUserDropdown(true);
       
@@ -143,7 +143,7 @@ export default function AccountList() {
 
     }
     else {
-      console.log("1233");
+      
       setShowConfirmation(true);
     }
     
@@ -159,7 +159,7 @@ export default function AccountList() {
     setShowConfirmation(false);
     setActionToConfirm(null);
   };
-  console.log(selectedAccounts);
+  
   
   const handleBulkAction = async(action)=>{
     if (action === "delete"){
@@ -167,7 +167,7 @@ export default function AccountList() {
       setSelectedAccounts([])
     }
     if (action === 'mass_email') {
-        console.log("working");
+        
         
         const data = {
           "to_accounts" :selectedAccounts,
@@ -180,12 +180,12 @@ export default function AccountList() {
           'assigned_by':role ==="owner"? null:userId,
           'account_id':selectedAccounts
           }
-      console.log(data);
+      
       
       try {
         const response = await assignUserToAccount(data);
-        console.log(response);
-        console.log(response.status)
+        
+        
         
         if (response.status === 200) {
           ;
@@ -195,10 +195,10 @@ export default function AccountList() {
           
         } else {
     
-          console.error("Something went wrong:", response);
+          
         }
       } catch (error) {
-        console.error(error);
+        
     
       }
       setSelectedAccounts([])
@@ -210,7 +210,7 @@ export default function AccountList() {
   
   const selctMailCategory = (category)=>{
     setEmailCategory(false)
-    console.log("halooo",category)
+    
     setSelectedCategory(category)
     setShowConfirmation(true)
 

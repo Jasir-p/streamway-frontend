@@ -192,13 +192,13 @@ const CRMAnalytics = () => {
   };
 
   const handleApplyFilters = (appliedFilters) => {
-    console.log('Applying filters:', appliedFilters);
+    
     // This will trigger the useAnalytics hook to refetch data
   };
 
   const exportData = () => {
     // Export functionality
-    console.log('Exporting data with filters:', filters);
+    
   };
 
   // Check if user has any permissions

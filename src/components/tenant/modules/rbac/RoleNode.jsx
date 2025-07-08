@@ -11,7 +11,7 @@ const RoleNode = ({ role, onAddSubrole }) => {
   const [showDetails,setShowDetails]= useState(false)
   const [isExpanded, setIsExpanded] = useState(true);
   const hasChildren = Array.isArray(role.children) && role.children.length > 0;
-  console.log(role.level)
+  
 
   const getLevelColor = (level) => {
     const colors = [

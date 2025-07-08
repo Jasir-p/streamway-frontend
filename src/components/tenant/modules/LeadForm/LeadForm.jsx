@@ -106,7 +106,7 @@ const FormBuilder = () => {
         options: [{ value: 'option1', label: 'Option 1' }]
       });
     } catch (error) {
-      console.error("Field operation failed:", error);
+      
     }
   };
 
@@ -133,7 +133,7 @@ const FormBuilder = () => {
         await dispatch(deleteField(fieldId)).unwrap();
         setChangeTracker(prev => !prev);
       } catch (error) {
-        console.error("Delete failed:", error);
+        
       }
     }
   };

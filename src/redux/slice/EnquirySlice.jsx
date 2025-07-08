@@ -11,11 +11,11 @@ export const fetchEnquiry = createAsyncThunk('enquiry/fetchEnquiry', async (_,{r
         }
         })
 export const deleteEnquiry = createAsyncThunk('enquiry/deleteEnquiry', async (ids,{rejectWithValue}) => {
-    console.log(ids)
+    
     const data= {
         enquiryIds :ids
     }
-    console.log(data);
+    
     
     try {
         const response = await subdomainInterceptors.delete("/api/webenquiry/",

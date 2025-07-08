@@ -73,7 +73,7 @@ export default function TenantDetailView() {
         setUserCount(result);
       }
     } catch (err) {
-      console.error("Failed to fetch user count", err);
+      
     }
   };
   */
@@ -120,7 +120,7 @@ export default function TenantDetailView() {
         throw new Error("Invalid server response");
       }
     } catch (err) {
-      console.error("Toggle active error:", err);
+      
       setError("Failed to update tenant status");
     } finally {
       setLoading(false);
@@ -128,7 +128,7 @@ export default function TenantDetailView() {
   };
 
   const handleSaveChanges = async () => {
-    console.log(editData);
+    
     
     try {
       dispatch(editTenants({tenant_id,data:editData}))
@@ -337,7 +337,7 @@ export default function TenantDetailView() {
             {/* Schema Name */}
             <div>
               <label className="block text-sm font-medium text-gray-500 mb-1">
-                Schema Name
+                Domain Name
               </label>
               {isEditing ? (
                 <div className="text-gray-900 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200">

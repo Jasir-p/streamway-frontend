@@ -8,7 +8,7 @@ const StageSummary = ({ activeTab, currentData, leadStages, dealStages }) => {
       minimumFractionDigits: 0
     }).format(amount);
   };
-  console.log(currentData);
+  
   
 
   const stages = activeTab === 'leads' ? leadStages : dealStages;

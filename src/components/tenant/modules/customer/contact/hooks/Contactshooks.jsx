@@ -46,7 +46,7 @@ export const useContacts = () => {
       }
       
     } catch (error) {
-      console.error(error);
+      
       showError("An error occurred");
     }
   };

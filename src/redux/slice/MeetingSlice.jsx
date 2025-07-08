@@ -34,7 +34,7 @@ export const addMeeting = createAsyncThunk(
 export const patchMeeting = createAsyncThunk(
   'meeting/patchMeeting',
   async ({ id, updatedData }, { rejectWithValue }) => {
-    console.log(updatedData);
+    
     
     try {
       const response = await subdomainInterceptors.patch(`/api/meeting/${id}/`, updatedData);

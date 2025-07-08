@@ -35,7 +35,7 @@ useEffect(() => {
     if (selectedLeads.length === 0) return;
 
     setIsLoading(true);
-    console.log(createDeal);
+    
     
     try {
       if (convertToContact || convertToCustomer) {
@@ -51,14 +51,14 @@ useEffect(() => {
         if (response.status === 200) {
           onConversionComplete(true);
         } else {
-          console.error('Error converting leads:', response);
+          
           onConversionComplete(false);
         }
       } else {
         onClose(); // Nothing selected
       }
     } catch (error) {
-      console.error('Error converting leads:', error);
+      
       onConversionComplete(false);
     } finally {
       setIsLoading(false);

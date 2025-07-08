@@ -21,10 +21,10 @@ const CRMAdminDashboard = () => {
     try {
       const response = await defaultInterceptor.get("/api/admin-dashboard/");
       setDashboardData(response.data);
-      console.log(response.data);
+      
       
     } catch (error) {
-      console.error("Failed to fetch dashboard data", error);
+      
     } finally {
       setLoading(false);
     }

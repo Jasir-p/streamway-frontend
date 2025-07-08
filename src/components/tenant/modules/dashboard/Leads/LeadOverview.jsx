@@ -14,11 +14,11 @@ const fetchLeadById = async (lead_id) => {
         const response = await subdomainInterceptors.get("api/lead-overview/",
             {params:{lead_id}}
         )
-        console.log(response.data)
+        
         return response.data;
     }
     catch (error) {
-        console.error(error);
+        throw error; 
     }
 }
 
@@ -45,12 +45,12 @@ export default function LeadDetailPage() {
     custome_fields: {},
   });
 
-  console.log(lead_id);
+  
   
   useEffect(() => {
     const fetchLead = async () => {
       const lead = await fetchLeadById(lead_id);
-      console.log(lead);
+      
       setLead(lead);
     };
   
@@ -116,16 +116,16 @@ export default function LeadDetailPage() {
       lead: lead_id,
       notes: noteText
     };
-    console.log(data);
+    
     
     try {
       const res = await addLeadNote(data);
       setNoteText("");
       setError("");
       setChange(!change);
-      console.log("Submitting note:", noteText);
+      
     } catch (error) {
-      console.error('Error adding note:', error);
+      
       setError('Failed to add note. Please try again.');
     }
   };

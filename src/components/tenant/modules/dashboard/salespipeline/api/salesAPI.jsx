@@ -20,7 +20,7 @@ export const fetchSalesPipeline = async (filterParams = {}) => {
       }
     });
 
-    console.log('Fetching pipeline with params:', params);
+    
     
     const response = await subdomainInterceptors.get('/api/sales-pipeline/', {
       params: params,
@@ -28,7 +28,7 @@ export const fetchSalesPipeline = async (filterParams = {}) => {
     
     return response.data;
   } catch (error) {
-    console.error('Error fetching sales pipeline:', error);
+    
     throw error;
   }
 };

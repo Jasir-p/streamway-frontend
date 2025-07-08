@@ -22,7 +22,7 @@ const TenantBillingInvoices = () => {
 //     try {
 //       setLoading(true);
 //       const res = await subdomainInterceptors.get('/api/tenant/billing/');
-//       console.log(res.data);
+//       
       
 //       setBillingInfo(res.data);
 
@@ -39,11 +39,11 @@ const fetchInvoices = async () => {
       '/api/admin/billings/tenant_bill_invoices',
       { params: { billing_id: billing_id } }  
     );
-    console.log(res.data);
+    
     setInvoices(res.data);
     setLoading(false);  
   } catch (error) {
-    console.error(error);
+    
     setError('Failed to load invoices');
   }
 };
@@ -53,10 +53,10 @@ const markasPaid = async (id) =>{
     const res = await defaultInterceptor.post(
       `/api/admin/billings/${id}/mark_as_paid/`
       );
-      console.log(res.data);
+      
   }
   catch{
-    console.error(error);
+    
   }
 }
 
@@ -81,7 +81,7 @@ const markasPaid = async (id) =>{
         return null;
     }
   };
-  console.log(invoices);
+  
   
   const getStatusText = (status) => {
     switch(status) {

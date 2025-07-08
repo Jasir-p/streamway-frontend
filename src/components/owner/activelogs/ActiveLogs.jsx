@@ -21,10 +21,10 @@ const fetchLogs = async () => {
     try {
       const response = await getlogs();
       setLogs(response.logs);
-      console.log(response.logs);
+      
       
     } catch (error) {
-      console.error("Failed to fetch logs:", error);
+      
     } finally {
       setLoading(false);
     }

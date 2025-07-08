@@ -7,7 +7,7 @@ import axios from "axios";
 export const fetchTask = createAsyncThunk(
     'task/fetchTask',
     async ({ role, userID, url }, { rejectWithValue }) => {
-        console.log(userID);
+        
         
       try {
         let requestUrl = url || '/api/tasks/';
@@ -43,16 +43,16 @@ export const  addTask =  createAsyncThunk('task/addTask', async (taskData, {reje
             },
         });
     
-        console.log(response.data);
+        
         return response.data;
     } catch (error) {
-        console.error("Error submitting task:", error.response?.data || error.message);
+        
         return rejectWithValue(error.response?.data || "Failed to submit task");
     }
             })
 
 export const deleteTask = createAsyncThunk('task/deleteTask', async(task_id,{rejectWithValue})=>{
-    console.log(task_id);
+    
     
     try{
         const response = await subdomainInterceptors.delete(`/api/task-detail/${task_id}/`);
@@ -84,10 +84,10 @@ export const editTask = createAsyncThunk(
         }
       );
 
-      console.log(response.data);
+      
       return response.data;
     } catch (error) {
-      console.error("Error updating task:", error.response?.data || error.message);
+      
       return rejectWithValue(error.response?.data || "Failed to update task");
     }
   }

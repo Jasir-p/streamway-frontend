@@ -18,13 +18,13 @@ export default function UserProfileDropdown() {
 
 
   const handleProfile = () => {
-    console.log('Navigate to profile');
+    
     setIsOpen(false);
 
   };
 
   const handleLogout = () => {
-    console.log('Logout clicked');
+    
     setIsOpen(false);
 
   };

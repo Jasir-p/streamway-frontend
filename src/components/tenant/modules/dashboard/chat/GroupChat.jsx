@@ -69,7 +69,7 @@ const GroupChat = ({
 
   const handleDeleteGroup = () => {
     if (chat && window.confirm(`Are you sure you want to delete "${chat.room_name}"?`)) {
-      console.log(chat.id);
+      
       
       onDeleteGroup(chat.id);
       setShowManageModal(false);
@@ -96,10 +96,10 @@ const GroupChat = ({
           messageInputRef.current.style.height = '44px';
         }
       } else {
-        console.error('Failed to send message');
+        
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      
     } finally {
       setIsSending(false);
     }

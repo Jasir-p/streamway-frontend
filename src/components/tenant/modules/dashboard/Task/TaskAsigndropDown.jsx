@@ -16,7 +16,7 @@ const UserDropdown = ({
 
   // Get the appropriate user list based on isTeam flag
 
-  console.log(employees);
+  
   
   // Filter users based on search term
   const filteredUsers = employees?.filter(user =>

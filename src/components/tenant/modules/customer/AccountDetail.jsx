@@ -46,12 +46,12 @@ export default function AccountDetail() {
     const fetchData = async () => {
       try {
         const res = await fetchAccountByID(account_id); 
-        console.log(res);
+        
         
         setAccount(res);
         setCustomFields(res?.custome_fields || {});
       } catch (error) {
-        console.error(error);
+        
       }
     };
 
@@ -90,13 +90,13 @@ export default function AccountDetail() {
       account: account_id,
       notes: noteText
     };
-    console.log(data);
+    
     
     const res = await AddNote(data);
     setNoteText("");
     setError("");
     setChange(!change);
-    console.log("Submitting note:", noteText);
+    
   };
   
   const addCustomField = () => {
@@ -143,7 +143,7 @@ export default function AccountDetail() {
     setEditingField(null);
     setChange(!change); // Toggle change to trigger re-fetch
   };
-  console.log(customFields);
+  
   
 
   const activities = [

@@ -69,7 +69,7 @@ const DealsListPage = () => {
     selectAllDeals,
     clearSelection
   } = useDealsSelection();
-console.log(next);
+
 
   // const {
   //   currentPage,

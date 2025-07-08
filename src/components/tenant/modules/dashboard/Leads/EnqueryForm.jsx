@@ -13,7 +13,7 @@ const addEnquiry = async (data, showSuccess, showError) => {
     const errorMessage =
       error?.response?.data?.detail || error?.message || "Something went wrong";
     showError(errorMessage); 
-    console.error("API Error:", error?.response?.data || error.message);
+    
     throw error; 
   }
 };
@@ -35,7 +35,7 @@ const EnquiryForm = () => {
 
 
   const { formfields = [] } = useSelector((state) => state.fields.field);
-  console.log(formfields)
+  
 
   const requiredFields = [
     { id: "name", field_name: "Full Name", field_type: "text", is_required: true },
@@ -126,11 +126,11 @@ const EnquiryForm = () => {
         }
             });
       
-      console.log("Submitted Data:", readableFormData);
+      
   
 
       const response = await addEnquiry(readableFormData,showSuccess,showError);
-      console.log("Server response:", response);
+      
   
       setSubmitSuccess(true);
   
@@ -142,7 +142,7 @@ const EnquiryForm = () => {
     } catch (error) {
       showError(error.message)
       
-      console.error("Submission error:", error);
+      
     } finally {
       setIsSubmitting(false);
     }

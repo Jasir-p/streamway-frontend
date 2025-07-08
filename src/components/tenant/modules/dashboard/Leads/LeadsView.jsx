@@ -29,7 +29,7 @@ const MondayStyleLeadsTable = () => {
   const [change, setChange] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("New");
-  console.log((selectedStatus));
+  
 
   const [status, setStatus] = useState(false);
 

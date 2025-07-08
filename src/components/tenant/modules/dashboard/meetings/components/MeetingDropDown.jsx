@@ -193,7 +193,7 @@ export const ContactDropdown = ({ isOpen, onSelect, onClose, selectedContact, ac
         const response = await selectContactByAccount(account.id);
         setContacts(Array.isArray(response) ? response : response ? [response] : []);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        
         setContacts([]);
       } finally {
         

@@ -19,7 +19,7 @@ export const fetchLeadsOwner = createAsyncThunk('leads/fetchLeadsOwner', async (
     }) => {
         try{
             const response = await subdomainInterceptors.get(url);
-            console.log(response)
+            
             return response.data;
             
             }catch(error){
@@ -38,7 +38,7 @@ export const addLeads = createAsyncThunk('leads/ leadsAdd', async (data, { rejec
             })
 
 export const editLead = createAsyncThunk('leads/leadsEdit', async(data,{rejectWithValue})=>{
-    console.log("get")
+    
     try{
         const response = await subdomainInterceptors.patch("/api/leads/", data)
         return response.data

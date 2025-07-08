@@ -32,8 +32,6 @@ const DealViewUI = () => {
   const {setShowSuccess, setShowError} = useToast()
   const [change, setChange] = useState(false);
   
-  console.log(deals);
-
   const getStatusColor = (status) => {
     const colors = {
       "new": "bg-blue-100 text-blue-800",
@@ -87,7 +85,7 @@ const DealViewUI = () => {
         setDeal(res)
 
         }catch(error){
-          console.error("Failed to fetch deal overview:", error);
+          
         }
         
       }
@@ -99,20 +97,20 @@ const DealViewUI = () => {
   },[deal_id,change])
 
  const handleAddNote = async (data) => {
-  console.log(data);
+  
 
   try {
     const res = await dealAddNote(data);
-    console.log("Note added:", res);
+    
     setChange(true)
  
   } catch (error) {
-    console.error("Error adding note:", error);
+    
   }
 };
 
   const notes = Array.isArray(deals.dealNotes) ? deals.dealNotes : [];
-  console.log(notes);
+  
   
   return (
     <DashboardLayout>

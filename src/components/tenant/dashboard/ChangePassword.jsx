@@ -19,7 +19,7 @@ const passwordSet = async(data)=>{
 
 const passwordVerify = async(data)=>{
     const response = await api.post('verfiy_password/', data);
-    console.log(response.data)
+    
     return response .data;
 }
 
@@ -28,7 +28,7 @@ const ChangePassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isOtpStep, setIsOtpStep] = useState(false);
   const email = useSelector((state)=>state.profile.email)
-  console.log(email)
+  
   const {showError,showSuccess} = useToast()
   
   // Password form
@@ -54,9 +54,9 @@ const ChangePassword = () => {
  
 
   const onSubmitPassword = async (data) => {
-    console.log(data)
+    
     const requestData = { ...data, email };
-    console.log(requestData)
+    
     try {
       await passwordSet(requestData); 
       setIsOtpStep(true); 
@@ -70,7 +70,7 @@ const ChangePassword = () => {
     showError('OTP submitted');
     const requestData = { otp:data.otp, 
         email:email };
-    console.log(requestData)
+    
     await passwordVerify(requestData);
     setIsOtpStep(false); // Proceed to password change step after OTP verification
     // You would typically verify OTP and complete the password change

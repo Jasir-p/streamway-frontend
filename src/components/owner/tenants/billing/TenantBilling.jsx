@@ -17,11 +17,11 @@ const TenantBillingTable = () => {
     state.billing)
   useEffect (() =>
     { dispatch(fetchallBillings())
-      console.log(`/admin/billings/${1}`)
+      
     }
   , [])
 
-  console.log(bills);
+  
   
   // Sample tenant billing data
 
@@ -78,14 +78,14 @@ const TenantBillingTable = () => {
   };
 
 const handleInvoiceNavigation = (billing_id) => {
-  console.log(`/admin/billings/${billing_id}`);
+  
   
   navigate(`/admin/billings/${billing_id}`);
 };
 
 
   const downloadBill = (tenantId, tenantName) => {
-    console.log(`Downloading bill for tenant ${tenantId}`);
+    
     alert(`Bill for ${tenantName} download started!`);
   };
 

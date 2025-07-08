@@ -58,7 +58,7 @@ const TeamManagement = () => {
 const horizontalClick = () => setIsModalOpen(true);
 
 const onSubmit = async (data) => {
-  console.log(data);
+
   try {
     const resultAction = await dispatch(addTeam({
       name: data.name, 

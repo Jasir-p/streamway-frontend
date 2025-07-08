@@ -15,9 +15,9 @@ const checkMade = (data)=>{
     team_lead: String(team?.team_lead?.id),
     description:team?.description,
   };
-  console.log(selectedFieldsFromTeam)
+  
   if(isEqual(data,selectedFieldsFromTeam)){
-            console.log("chnages no");
+            
         return}
   onSubmit(data)}
 
@@ -38,7 +38,7 @@ const {employees}=useTeam()
         </button>
       </div>
       <form onSubmit={handleSubmit((data) => {
-                console.log("Form Data:", data);  
+                
                 checkMade(data);
                 reset();
               })} className="mt-4 space-y-4">

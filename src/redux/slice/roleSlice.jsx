@@ -51,10 +51,10 @@ export const deleteRole = createAsyncThunk("roles/deleteRole", async (role_id, {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("fetch", response.data);
+      
       return response.data;
     } catch (error) {
-      console.log("Error deleting role:", error.response?.data || error.message);
+      
       return rejectWithValue(error.response?.data || error.message);
     }
   })

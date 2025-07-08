@@ -12,7 +12,7 @@ export const fetchTeamById = async (team_id) => {
     });
     return response.data;
   } catch (error) {
-    console.error("Error fetching team:", error.response?.data || error.message);
+    
     throw error;
   }
 };
@@ -29,7 +29,7 @@ export const addMember = async (team_id, user_id) => {
     );
     return response;
   } catch (error) {
-    console.error("Error adding member:", error.response?.data || error.message);
+    
     return error.response || { error: "Unknown error occurred" };
   }
 };
@@ -41,7 +41,7 @@ export const removeMember = async (team_id, selectedMemberId) => {
     });
     return response;
   } catch (error) {
-    console.error("Error removing member:", error.response?.data || error.message);
+    
     throw error;
   }
 };
@@ -52,6 +52,6 @@ export const getMembers = async (team_id) =>{
     return response.data.team_member;
   }
   catch(error){
-    console.error("Error fetching members:", error.response?.data || error.message);
+    
   }
 }

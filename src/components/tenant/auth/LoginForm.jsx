@@ -23,7 +23,7 @@ function LoginForm() {
   } = useForm();
 
 const onSubmit = async (data) => {
-  console.log("🔐 Form submitted:", { email: data.email });
+  
   setIsLoading(true);
   setError("");
 
@@ -45,7 +45,7 @@ const onSubmit = async (data) => {
     const { access_token, refresh_token } = response.data;
 
     if (access_token && refresh_token) {
-      console.log("✅ Login Successful");
+      
 
       // Decode access token to get subdomain
       const decodedToken = jwtDecode(access_token);
@@ -55,7 +55,7 @@ const onSubmit = async (data) => {
         throw new Error("Subdomain not found in token.");
       }
 
-      console.log("🌐 Subdomain:", subdomain);
+      
 
       // ✅ Save tokens and subdomain to localStorage
       localStorage.setItem("access_token", access_token);
@@ -80,17 +80,17 @@ const onSubmit = async (data) => {
 
       // ✅ Redirect to dashboard using subdomain as subfolder
       const redirectUrl = `/${subdomain}/dashboard`;
-      console.log("🔄 Redirecting to:", redirectUrl);
+      
 
       setTimeout(() => {
         window.location.href = redirectUrl;
       }, 100);
     } else {
-      console.log("❌ Login Failed:", response.data.message);
+      
       setError(response.data.message || "Login failed. Please try again.");
     }
   } catch (error) {
-    console.error("❌ Login API Error:", error.response?.data || error.message);
+    
 
     if (error.response?.data?.message) {
       setError(error.response.data.message);

@@ -14,7 +14,7 @@ import subdomainInterceptors from "../../../Intreceptors/getSubdomainInterceptor
         const refreshToken = localStorage.getItem("refresh_token"); // Get stored refresh token
 
         if (!refreshToken) {
-            console.error("No refresh token found.");
+            
             return;
         }
 
@@ -29,7 +29,7 @@ import subdomainInterceptors from "../../../Intreceptors/getSubdomainInterceptor
             }
         );
 
-        console.log(response.data);
+        
 
         // Clear stored tokens
         const subdomain = localStorage.getItem("subdomain");
@@ -43,7 +43,7 @@ import subdomainInterceptors from "../../../Intreceptors/getSubdomainInterceptor
 
         
     } catch (error) {
-        console.error("Logout failed:", error.response ? error.response.data : error.message);
+        
     }
 };
 
@@ -53,7 +53,7 @@ export const adminLogout= async(navigate)=>{
         const refreshToken = localStorage.getItem("refresh_token"); // Get stored refresh token
 
         if (!refreshToken) {
-            console.error("No refresh token found.");
+            
             return;
         }
 
@@ -68,7 +68,7 @@ export const adminLogout= async(navigate)=>{
             }
         );
 
-        console.log(response.data);
+        
 
         // Clear stored tokens
         localStorage.clear();
@@ -78,6 +78,6 @@ export const adminLogout= async(navigate)=>{
 
         
      catch (error) {
-        console.error("Logout failed:", error.response ? error.response.data : error.message);
+        
     }
 };

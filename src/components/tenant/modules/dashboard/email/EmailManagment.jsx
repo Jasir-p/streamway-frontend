@@ -94,7 +94,7 @@ export default function EmailManagementUI() {
     
   
     const dateMatch = dateFilter === 'all' || isDateInRange(email.sent_at, dateFilter);
-    console.log(dateFilter );
+    
     
 
     const deliveryMatch = deliveryFilter === 'all' || 
@@ -120,7 +120,7 @@ export default function EmailManagementUI() {
   const selected = (contact) => {
     setShowContactsModal(false);
     setSelectedContact(contact);
-    console.log(contact.type);
+    
   }
 
   const clearFilters = () => {

@@ -19,7 +19,7 @@ const PaymentForm = ({ invoiceId,onPaymentResult }) => {
   const [error, setError] = useState(null);
   const [clientSecret, setClientSecret] = useState('');
   const [invoice, setInvoice] = useState(null);
-  console.log(invoiceId);
+  
 
   
 
@@ -28,7 +28,7 @@ const PaymentForm = ({ invoiceId,onPaymentResult }) => {
     const fetchPaymentIntent = async () => {
       try {
         const response = await subdomainInterceptors.get(`/api/tenant/invoices/${invoiceId}/payment_intent/`);
-        console.log(response.data);
+        
         
         setClientSecret(response.data.client_secret);
         setInvoice(response.data.invoice);
@@ -67,7 +67,7 @@ const PaymentForm = ({ invoiceId,onPaymentResult }) => {
     setLoading(false);
 
   if (error) {
-    console.error(error);
+    
     onPaymentResult(false, error.message);
   } else if (paymentIntent.status === 'succeeded') {
     onPaymentResult(true);

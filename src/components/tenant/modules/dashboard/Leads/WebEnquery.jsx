@@ -42,7 +42,7 @@ const WebEnquirerComponent = () => {
           setUser(response);
         }
       } catch (error) {
-        console.error("Error fetching user:", error);
+        
       }
     };
 

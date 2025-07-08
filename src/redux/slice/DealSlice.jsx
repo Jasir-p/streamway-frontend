@@ -5,7 +5,7 @@ import subdomainInterceptors from '../../Intreceptors/getSubdomainInterceptors';
 export const fetchDeals = createAsyncThunk(
   'deals/fetchDeals',
   async ({ role, userId, url }, { rejectWithValue }) => {
-    console.log(userId);
+    
     
     try {
       let requestUrl = url || '/api/deals/';
@@ -15,7 +15,7 @@ export const fetchDeals = createAsyncThunk(
         const params = new URLSearchParams({ userId });
         requestUrl += `?${params.toString()}`;
       }
-      console.log(requestUrl);
+      
       
       const response = await subdomainInterceptors.get(requestUrl);
       return response.data;

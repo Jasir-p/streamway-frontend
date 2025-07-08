@@ -27,7 +27,7 @@ const BillingDashboard = () => {
     try {
       setLoading(true);
       const res = await subdomainInterceptors.get('/api/tenant/billing/');
-      console.log(res.data);
+      
       
       setBillingInfo(res.data);
       setEditForm({
@@ -44,7 +44,7 @@ const BillingDashboard = () => {
   const fetchInvoices = async () => {
     try {
       const res = await subdomainInterceptors.get('/api/tenant/invoices/');
-      console.log(res.data);
+      
       
       setInvoices(res.data);
     } catch {
@@ -89,7 +89,7 @@ const BillingDashboard = () => {
         return null;
     }
   };
-  console.log(invoices);
+  
   
 
   const getStatusText = (status) => {

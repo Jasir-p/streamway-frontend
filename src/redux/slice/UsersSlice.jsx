@@ -12,10 +12,10 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async (_, { rejec
 
         const response = await subdomainInterceptors.get('/employee/');
 
-        console.log(response.data);
+        
         return response.data.employee;
     } catch (error) {
-        console.error("Error fetching users:", error.response?.data || error.message);
+        
         return rejectWithValue(error.response?.data || "Failed to fetch users");
     }
 });
@@ -30,10 +30,10 @@ export const addUsers = createAsyncThunk('users/AddUsers', async (data, { reject
 
         const response = await subdomainInterceptors.post('/employee/', data);
 
-        console.log(response.data);
+        
         return response.data;
     } catch (error) {
-        console.error("Error adding user:", error.response?.data || error.message);
+        
         return rejectWithValue(error.response?.data || "Failed to add users");
     }
 });
@@ -51,15 +51,15 @@ export const deleteUser = createAsyncThunk('users/DeleteUsers', async(user_id, {
         const response = await subdomainInterceptors.delete('employee/',{
             data:data
         });
-        console.log(response.data);
+        
         return response.data;
     }catch(error){
-        console.error("Error deleting user:", error.response?.data || error.message);
+        
         return rejectWithValue(error.response?.data || "Failed to delete user");
     }
 })
 export const editUser = createAsyncThunk('users/EditUser', async ({ user_id, user_data }, { rejectWithValue }) => {
-    console.log(user_id);
+    
     
     const data = { user_id,user_data };
     try{

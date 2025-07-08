@@ -56,12 +56,12 @@ const Layout = ({ children }) => {
             setShowUserMenu(false);
             await adminLogout(navigate);
         } catch (error) {
-            console.error('Logout failed:', error);
+            
         }
     };
 
     const handleProfile = () => {
-        console.log('Navigate to profile...');
+        
         setShowUserMenu(false);
     };
 

@@ -9,7 +9,7 @@ function DashboardLayout({children}) {
   const role = useSelector((state) => state.auth.role);
   const permission = useSelector((state) => state.auth.permissions);
   const sub = localStorage.getItem("subdomain");
-  console.log("jasir", sub);
+  
   const navigate = useNavigate();
   
   const stats = [

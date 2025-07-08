@@ -25,7 +25,7 @@ const RegistrationForm = () => {
 
   const navigate = useNavigate()
   const onSubmit = async (data) => {
-    console.log("Form submitted:", data);
+    
 
     try {
       const response = await defaultInterceptor.post('/action/', 
@@ -40,7 +40,7 @@ const RegistrationForm = () => {
 
       }
     } catch (error) {
-      console.error("Login API Error:", error.response?.data || error.message);
+      
     }
   };
   

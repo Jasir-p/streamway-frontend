@@ -45,7 +45,7 @@ const onPrevious = () => {
       dispatch(fetchDeals(role, userId));
       return { success: true };
     } catch (error) {
-      console.error('Bulk update failed:', error);
+      
       return { success: false, error: error.message };
     }
   };

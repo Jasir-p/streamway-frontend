@@ -18,7 +18,7 @@ export const useDealsFilters = (deals,employees=[]) => {
     if (!deals || deals.length === 0) return [];
 
     let filtered = deals.filter(deal => {
-      console.log(deal);
+      
       
       // Search filter
       const matchesSearch = [
@@ -70,7 +70,7 @@ export const useDealsFilters = (deals,employees=[]) => {
       const [aVal, bVal] = [getValue(a), getValue(b)];
       return sortOrder === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
     });
-    console.log(filtered);
+    
     
     return filtered;
 

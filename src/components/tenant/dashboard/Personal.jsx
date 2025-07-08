@@ -26,7 +26,7 @@ const Personal = () => {
   const [personalDetails, setPersonalDetails] = useState({});
   const dispatch = useDispatch();
   const userId = profile.id 
-  console.log(userId)
+  
   
   useEffect(() => {
     setPersonalDetails({ ...profile, role });

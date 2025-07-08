@@ -52,7 +52,7 @@ export default function StatusUpdateConfirmation({ selectedLeads, onUpdateComple
       });
       
       if (response.status === 200) {
-        console.log("halooo");
+        
         
         if (selectedStatus.toLowerCase() === "converted" && (canAddcustomer)) {
             setShowConversionPopup(true);
@@ -61,11 +61,11 @@ export default function StatusUpdateConfirmation({ selectedLeads, onUpdateComple
           }
 
       } else {
-        console.error('Error updating lead status:', response);
+        
         onUpdateComplete(false);
       }
     } catch (error) {
-      console.error('Error updating lead status:', error);
+      
       onUpdateComplete(false);
     } finally {
       setIsLoading(false);

@@ -18,7 +18,7 @@ export const useNotificationWebSocket = () => {
       try {
         handler(data);
       } catch (error) {
-        console.error('❗ Error in notification message handler:', error);
+        
       }
     });
   }, []);
@@ -28,7 +28,7 @@ export const useNotificationWebSocket = () => {
       try {
         handler(event);
       } catch (error) {
-        console.error('❗ Error in notification connection handler:', error);
+        
       }
     });
   }, []);
@@ -49,12 +49,12 @@ export const useNotificationWebSocket = () => {
 
   const connect = useCallback((token, subdomain) => {
     const type = 'notification';
-    console.log('🔌 Connecting to Notification WebSocket:', { type, subdomain });
+
     
     // Validate required parameters
     if (!token || !subdomain) {
       const error = new Error(`Missing required parameters: ${!token ? 'token ' : ''}${!subdomain ? 'subdomain' : ''}`);
-      console.error('❌ Notification WebSocket connection failed:', error.message);
+
       setConnectionStatus('error');
       const connectionEvent = { type: 'error', error, roomId: null, wsType: type };
       notifyConnectionHandlers(connectionEvent);
@@ -68,17 +68,17 @@ export const useNotificationWebSocket = () => {
 
     setConnectionStatus('connecting');
 
-    // Build Notification WebSocket URL (no roomId required)
+
     const wsUrl = `wss://api.streamway.solutions/${subdomain}/ws/${type}/?token=${token}`;
 
-    console.log('🌐 Notification WebSocket URL:', wsUrl);
+
 
     try {
       socketRef.current = new WebSocket(wsUrl);
-      // socketRef.current=null
+
 
       socketRef.current.onopen = () => {
-        console.log(`✅ Notification WebSocket Connected`);
+        
         setIsConnected(true);
         setConnectionStatus('connected');
         const event = { type: 'connected', roomId: null, wsType: type };
@@ -87,13 +87,13 @@ export const useNotificationWebSocket = () => {
 
       socketRef.current.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log("📨 Notification WebSocket received:", data);
+        
         setLastMessage(data);
         notifyMessageHandlers(data);
       };
 
       socketRef.current.onclose = (event) => {
-        console.log(`🔌 Notification WebSocket Disconnected`, event);
+        
         setIsConnected(false);
         setConnectionStatus('disconnected');
         const connectionEvent = { type: 'disconnected', roomId: null, wsType: type, event };
@@ -101,7 +101,7 @@ export const useNotificationWebSocket = () => {
       };
 
       socketRef.current.onerror = (error) => {
-        console.error('❌ Notification WebSocket Error:', error);
+
         setIsConnected(false);
         setConnectionStatus('error');
         const connectionEvent = { type: 'error', error, roomId: null, wsType: type };
@@ -109,7 +109,7 @@ export const useNotificationWebSocket = () => {
       };
 
     } catch (error) {
-      console.error('❌ Failed to create Notification WebSocket connection:', error);
+
       setConnectionStatus('error');
       const connectionEvent = { type: 'error', error, roomId: null, wsType: type };
       notifyConnectionHandlers(connectionEvent);
@@ -120,19 +120,19 @@ export const useNotificationWebSocket = () => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       try {
         socketRef.current.send(JSON.stringify(messageData));
-        console.log("📤 Notification WebSocket sent:", messageData);
+        
         return true;
       } catch (error) {
-        console.error('❌ Failed to send notification message:', error);
+
         return false;
       }
     }
-    console.warn('⚠️ Notification WebSocket not connected. Cannot send message:', messageData);
+
     return false;
   }, []);
 
   const reconnect = useCallback((token, subdomain) => {
-    console.log('🔄 Reconnecting Notification WebSocket...');
+
     connect(token, subdomain);
   }, [connect]);
 
@@ -218,7 +218,7 @@ export const useNotificationWebSocketConnection = (token, subdomain, autoConnect
 
   useEffect(() => {
     if (autoConnect && token && subdomain) {
-      console.log('🚀 Auto-connecting Notification WebSocket:', { subdomain });
+      
       notificationWebSocket.connect(token, subdomain);
       setIsReady(true);
     }

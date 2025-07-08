@@ -18,7 +18,7 @@ export const useWebSocket = () => {
       try {
         handler(data);
       } catch (error) {
-        console.error('❗ Error in message handler:', error);
+        
       }
     });
   }, []);
@@ -28,7 +28,7 @@ export const useWebSocket = () => {
       try {
         handler(event);
       } catch (error) {
-        console.error('❗ Error in connection handler:', error);
+        
       }
     });
   }, []);
@@ -50,12 +50,12 @@ export const useWebSocket = () => {
   }, []);
 
   const connect = useCallback((roomId, token, subdomain, type) => {
-    console.log('🔌 Connecting to WebSocket:', { roomId, type, subdomain });
+    
     
     // Validate required parameters
     if (!token || !subdomain || !type) {
       const error = new Error(`Missing required parameters: ${!token ? 'token ' : ''}${!subdomain ? 'subdomain ' : ''}${!type ? 'type' : ''}`);
-      console.error('❌ WebSocket connection failed:', error.message);
+      
       setConnectionStatus('error');
       const connectionEvent = { type: 'error', error, roomId, wsType: type };
       notifyConnectionHandlers(connectionEvent);
@@ -76,13 +76,13 @@ export const useWebSocket = () => {
       ? `wss://api.streamway.solutions/${subdomain}/ws/${type}/${roomId}/?token=${token}`
       : `wss://api.streamway.solutions/${subdomain}/ws/${type}/?token=${token}`;
 
-    console.log('🌐 WebSocket URL:', wsUrl);
+    
 
     try {
       socketRef.current = new WebSocket(wsUrl);
 
       socketRef.current.onopen = () => {
-        console.log(`✅ WebSocket Connected to ${type}${roomId ? ` room: ${roomId}` : ''}`);
+
         setIsConnected(true);
         setConnectionStatus('connected');
         const event = { type: 'connected', roomId, wsType: type };
@@ -91,13 +91,13 @@ export const useWebSocket = () => {
 
       socketRef.current.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log("📨 WebSocket received:", data);
+        
         setLastMessage(data);
         notifyMessageHandlers(data);
       };
 
       socketRef.current.onclose = (event) => {
-        console.log(`🔌 WebSocket Disconnected from ${type}${roomId ? ` room: ${roomId}` : ''}`, event);
+        
         setIsConnected(false);
         setConnectionStatus('disconnected');
         const connectionEvent = { type: 'disconnected', roomId, wsType: type, event };
@@ -105,7 +105,7 @@ export const useWebSocket = () => {
       };
 
       socketRef.current.onerror = (error) => {
-        console.error('❌ WebSocket Error:', error);
+        
         setIsConnected(false);
         setConnectionStatus('error');
         const connectionEvent = { type: 'error', error, roomId, wsType: type };
@@ -113,7 +113,7 @@ export const useWebSocket = () => {
       };
 
     } catch (error) {
-      console.error('❌ Failed to create WebSocket connection:', error);
+      
       setConnectionStatus('error');
       const connectionEvent = { type: 'error', error, roomId, wsType: type };
       notifyConnectionHandlers(connectionEvent);
@@ -124,20 +124,20 @@ export const useWebSocket = () => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       try {
         socketRef.current.send(JSON.stringify(messageData));
-        console.log("📤 WebSocket sent:", messageData);
+        
         return true;
       } catch (error) {
-        console.error('❌ Failed to send message:', error);
+        
         return false;
       }
     }
-    console.warn('⚠️ WebSocket not connected. Cannot send message:', messageData);
+    
     return false;
   }, []);
 
   const reconnect = useCallback((token, subdomain) => {
     if (currentRoomId !== null && currentType) {
-      console.log('🔄 Reconnecting WebSocket...');
+      
       connect(currentRoomId, token, subdomain, currentType);
     }
   }, [currentRoomId, currentType, connect]);
@@ -226,7 +226,7 @@ export const useWebSocketConnection = (roomId, token, subdomain, type, autoConne
 
   useEffect(() => {
     if (autoConnect && token && subdomain && type) {
-      console.log('🚀 Auto-connecting WebSocket:', { roomId, type, subdomain });
+      
       webSocket.connect(roomId, token, subdomain, type);
       setIsReady(true);
     }
@@ -236,7 +236,7 @@ export const useWebSocketConnection = (roomId, token, subdomain, type, autoConne
     if (token && subdomain && type) {
       webSocket.connect(newRoomId, token, subdomain, type);
     } else {
-      console.error('❌ Cannot connect: missing required parameters', { token: !!token, subdomain: !!subdomain, type: !!type });
+      
     }
   }, [webSocket, token, subdomain, type]);
 

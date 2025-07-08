@@ -51,10 +51,10 @@ const {
     if (isUnmountedRef.current) return;
     
     try {
-      console.log('📋 Fetching chats...');
+      
       const personal = null; // TODO: Implement personal chat fetching
       const groups = await GroupChatPersonal(role === 'owner' ? null : userID);
-      console.log('👥 Group chats:', groups);
+      
       
       if (isUnmountedRef.current) return;
       
@@ -80,7 +80,7 @@ const {
         });
       }
     } catch (error) {
-      console.error('❌ Error fetching chats:', error);
+      
     }
   }, [userID, role]);
 
@@ -88,14 +88,14 @@ const {
     if (isUnmountedRef.current) return;
     
     try {
-      console.log('📋 Fetching messages for chat:', chatId);
+      
       const data = await fetchGroupMessage(chatId);
-      console.log('💬 Messages:', data);
+      
       
       if (isUnmountedRef.current) return;
       setMessages(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('❌ Error fetching messages:', error);
+      
       if (!isUnmountedRef.current) {
         setMessages([]);
       }
@@ -106,7 +106,7 @@ const {
   const handleMessage = useCallback((data) => {
     if (isUnmountedRef.current) return;
     
-    console.log("📨 Received WebSocket message:", data);
+    
     
     try {
       switch(data.type) {
@@ -133,10 +133,10 @@ const {
           
         case 'GROUP_CREATED':
         case 'group_created':
-          console.log('✅ New group created:', data);
+          
           fetchChats(); 
           if (data.group) {
-            console.log(`✅ Group "${data.group.room_name || data.group.name}" was created`);
+            
             // Optionally switch to the new group
             setActiveChat(data.group);
             setActiveTab('group');
@@ -145,12 +145,12 @@ const {
           break;
           
         case 'group_updated':
-          console.log('🔄 Group updated:', data);
+          
           fetchChats();
           break;
           
         case 'user_added':
-          console.log('👥 User added to group:', data);
+          
           fetchChats();
           // Update current active chat if it's the affected group
           setActiveChat(prevChat => {
@@ -162,7 +162,7 @@ const {
           break;
           
         case 'user_removed':
-          console.log('👤 User removed from group:', data);
+          
           fetchChats();
           // Update current active chat if it's the affected group
           setActiveChat(prevChat => {
@@ -174,7 +174,7 @@ const {
           break;
           
         case 'group_deleted':
-          console.log('🗑️ Group deleted:', data);
+          
           fetchChats();
           // If the deleted group was active, clear it
           setActiveChat(prevChat => {
@@ -191,15 +191,15 @@ const {
           break;
           
         case 'error':
-          console.error('❌ WebSocket error message:', data);
+          
           setConnectionError(data.message || 'Unknown error occurred');
           break;
           
         default:
-          console.log('❓ Unknown message type:', data.type, data);
+          
       }
     } catch (error) {
-      console.error('❌ Error processing WebSocket message:', error, data);
+      
     }
   }, [fetchChats, fetchMessages, token, subdomain, connect]);
 
@@ -207,16 +207,16 @@ const {
   const handleConnection = useCallback((event) => {
     if (isUnmountedRef.current) return;
     
-    console.log('🔌 Connection event:', event);
+    
     
     switch(event.type) {
       case 'connected':
-        console.log('✅ WebSocket connected successfully');
+        
         setConnectionError(null);
         break;
         
       case 'disconnected':
-        console.log('❌ WebSocket disconnected');
+        
         // Clear any existing reconnect timeout
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
@@ -224,14 +224,14 @@ const {
         // Attempt to reconnect after a delay
         reconnectTimeoutRef.current = setTimeout(() => {
           if (token && subdomain && !isUnmountedRef.current) {
-            console.log('🔄 Attempting to reconnect...');
+            
             reconnect(token, subdomain);
           }
         }, 3000);
         break;
         
       case 'error':
-        console.error('❌ WebSocket connection error:', event.error);
+        
         setConnectionError('Connection failed. Retrying...');
         break;
     }
@@ -253,7 +253,7 @@ const {
   // Initial WebSocket connection - only run once
   useEffect(() => {
     if (token && subdomain && !initialConnectionMade && !isUnmountedRef.current) {
-      console.log('🚀 Making initial WebSocket connection...');
+      
       connect(null, token, subdomain, 'chat');
       setInitialConnectionMade(true);
     }
@@ -262,7 +262,7 @@ const {
   // Handle active chat changes - switch rooms (with debouncing)
   useEffect(() => {
     if (activeChat && isConnected && activeChat.id !== currentRoomId && !isUnmountedRef.current) {
-      console.log('🔄 Switching to chat room:', activeChat.id);
+      
       // Add small delay to prevent rapid switching
       const timeoutId = setTimeout(() => {
         if (!isUnmountedRef.current) {
@@ -294,12 +294,12 @@ const {
     const messageText = typeof message === "string" ? message.trim() : "";
 
     if (!messageText || !activeChat) {
-      console.warn('⚠️ Cannot send message: missing text or active chat');
+      
       return false;
     }
     
     if (!isConnected) {
-      console.warn('⚠️ Cannot send message: WebSocket not connected');
+      
       setConnectionError('Not connected to chat server');
       return false;
     }
@@ -313,7 +313,7 @@ const {
       timestamp: new Date().toISOString()
     };
 
-    console.log('📤 Sending message:', messageData);
+    
     const success = sendMessage(messageData);
     
     if (!success) {
@@ -344,7 +344,7 @@ const {
   const selectChat = useCallback((chat) => {
     if (activeChat?.id === chat.id) return;
     
-    console.log('🎯 Selecting chat:', chat);
+    
     setActiveChat(chat);
     fetchMessages(chat.id);
   }, [activeChat?.id, fetchMessages]);
@@ -352,7 +352,7 @@ const {
   // Group management functions with better error handling
   const handleCreateGroup = useCallback(async (groupData) => {
     try {
-      console.log('🏗️ Creating group:', groupData);
+      
       
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot create group.');
@@ -373,7 +373,7 @@ const {
       const success = sendMessage(sendGroupData);
       
       if (success) {
-        console.log('✅ Group creation message sent successfully');
+        
         setConnectionError(null);
       } else {
         setConnectionError('Failed to send group creation message');
@@ -382,7 +382,7 @@ const {
       return success;
       
     } catch (error) {
-      console.error('❌ Error creating group:', error);
+      
       setConnectionError('Error creating group');
       return false;
     }
@@ -390,7 +390,7 @@ const {
 
   const handleDeleteGroup = useCallback(async (groupId) => {
     try {
-      console.log('🗑️ Deleting group:', groupId);
+      
       
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot delete group.');
@@ -405,7 +405,7 @@ const {
       const success = sendMessage(deleteGroupData);
       
       if (success) {
-        console.log('✅ Group deletion message sent successfully');
+        
         setConnectionError(null);
         
         // If the deleted group was active, clear active chat
@@ -424,7 +424,7 @@ const {
       return success;
       
     } catch (error) {
-      console.error('❌ Error deleting group:', error);
+      
       setConnectionError('Error deleting group');
       return false;
     }
@@ -432,7 +432,7 @@ const {
 
   const handleAddUser = useCallback(async (groupId, userId) => {
     try {
-      console.log('👥 Adding user to group:', { groupId, userId });
+      
       
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot add user.');
@@ -448,7 +448,7 @@ const {
       const success = sendMessage(addUserData);
       
       if (success) {
-        console.log('✅ Add user message sent successfully');
+        
         setConnectionError(null);
       } else {
         setConnectionError('Failed to add user to group');
@@ -457,7 +457,7 @@ const {
       return success;
       
     } catch (error) {
-      console.error('❌ Error adding user to group:', error);
+      
       setConnectionError('Error adding user to group');
       return false;
     }
@@ -465,7 +465,7 @@ const {
 
   const handleRemoveUser = useCallback(async (groupId, userId) => {
     try {
-      console.log('👤 Removing user from group:', { groupId, userId });
+      
       
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot remove user.');
@@ -481,7 +481,7 @@ const {
       const success = sendMessage(removeUserData);
       
       if (success) {
-        console.log('✅ Remove user message sent successfully');
+        
         setConnectionError(null);
       } else {
         setConnectionError('Failed to remove user from group');
@@ -490,7 +490,7 @@ const {
       return success;
       
     } catch (error) {
-      console.error('❌ Error removing user from group:', error);
+      
       setConnectionError('Error removing user from group');
       return false;
     }
@@ -530,15 +530,8 @@ const {
   return (
     <DashboardLayout>
       <div className="flex h-screen bg-gray-100">
-        {/* Debug info - remove in production */}
-        <div className="fixed top-4 right-4 bg-white p-2 rounded shadow text-xs z-50">
-          <div>Status: {getConnectionStatusDisplay()}</div>
-          <div>Room: {currentRoomId || 'General'}</div>
-          <div>Type: {currentType || 'N/A'}</div>
-          {connectionError && (
-            <div className="text-red-600 mt-1">{connectionError}</div>
-          )}
-        </div>
+
+        
 
         {/* Error notification */}
         {connectionError && (

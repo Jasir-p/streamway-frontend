@@ -50,11 +50,11 @@ function UserList() {
 
   const handleBulkAction = async() => {
     const data ={"user_ids":selectedUsers}
-    console.log(data)
+    
     const token = localStorage.getItem("access_token");
     const subdomain = localStorage.getItem("subdomain");
     const response = await api.post("/useraccess/",data);
-  console.log(response.data)
+  
   setSelectedUsers([])
   setChange(!change)
   

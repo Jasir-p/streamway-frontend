@@ -4,12 +4,12 @@ import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 
 
 export const fetchCompany = createAsyncThunk("companyDetails/fetchCompany", async (id,{rejectWithValue}) => {
-    console.log("hallooooo")
+    
     try{
     const response = await subdomainInterceptors.get(`/company_details/${id}`);
     return response.data;
     }catch(error){
-        console.log(error);
+        
         
         return rejectWithValue(error.response?.data || "error getting company details");
     }
@@ -19,12 +19,12 @@ export const fetchCompany = createAsyncThunk("companyDetails/fetchCompany", asyn
     export const updateCompany = createAsyncThunk(
         "companyDetails/updateCompany", 
         async ({userId, data}, {rejectWithValue}) => {
-          console.log("helloo")
+          
           try {
             const response = await subdomainInterceptors.put(`/company_details/${userId}`, data);
             return response.data;
           } catch (error) {
-            console.log(error);
+            
             return rejectWithValue(error.response?.data || "error updating company details");
           }
         }

@@ -16,7 +16,7 @@ export const GroupChatPersonal = async (userID) => {
 
     return response.data;
   } catch (error) {
-    console.error("Error fetching group chat:", error);
+    
     throw error;
   }
 };
@@ -29,12 +29,12 @@ export const fetchGroupMessage = async (roomId) => {
   const accessToken = localStorage.getItem("access_token");
 
   if (!subdomain) {
-    console.error("❌ Subdomain not found in localStorage");
+    
     throw new Error("Subdomain is required");
   }
 
   if (!accessToken) {
-    console.error("❌ Access token not found in localStorage");
+    
     throw new Error("User is not authenticated");
   }
 
@@ -53,7 +53,7 @@ export const fetchGroupMessage = async (roomId) => {
 
     return response.data;
   } catch (error) {
-    console.error("❌ Error fetching group message:", error.response?.data || error.message);
+    
     throw error;
   }
 };

@@ -9,7 +9,7 @@ const PreviewForm = ({
   isPreview = false
 }) => {
   const subdomain = localStorage.getItem("subdomain")
-  console.log(subdomain);
+  
   
   const requiredFields = [
     { id: 'name', field_name: 'Full Name', field_type: 'text', is_required: true },

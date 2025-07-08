@@ -41,7 +41,7 @@ export default function AddUserModal({ isOpen, onClose,changes }) {
 
   const allRoles = useMemo(() => getAllRoles(roles), [roles]);
 
-  console.log(allRoles);
+  
 
   const onSubmit = async (data) => {
     try {
@@ -50,7 +50,7 @@ export default function AddUserModal({ isOpen, onClose,changes }) {
       changes();
       onClose();
     } catch (error) {
-      console.error("Failed to add user:", error);
+      
     }
   };
   if (!isOpen) return null;

@@ -28,7 +28,7 @@ export const useDashboard = () => {
         setIsLoading(true);
 
         const data = await getDashBordContent(role==='owner'?null:userId);
-        console.log(data);
+        
         
 
         const today = dayjs().startOf('day');
@@ -73,7 +73,7 @@ export const useDashboard = () => {
         });
 
       } catch (err) {
-        console.error(err);
+        
         setError(err.message || 'Something went wrong');
       } finally {
         setIsLoading(false);

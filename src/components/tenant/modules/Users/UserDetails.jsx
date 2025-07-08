@@ -12,7 +12,7 @@ const UserDetails = ({ users,changes }) => {
   const dispatch = useDispatch();
   const roles = useSelector((state) => state.roles.roles);
   const [selectedRole, setSelectedRole] = useState(users.role?.id || null);
-  console.log(users.id)
+  
   const [update,setUpdate]= useState(false);
   useEffect(()=>{
     dispatch(fetchRoles());
@@ -30,7 +30,7 @@ const UserDetails = ({ users,changes }) => {
     return result;
   };
   const allRoles = useMemo(() => getAllRoles(roles), [roles]);
-  console.log(selectedRole);
+  
   
 
   const renderDetailRow = (icon, label, value) => (

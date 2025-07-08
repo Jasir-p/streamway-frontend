@@ -27,7 +27,7 @@ export default function ComposeEmailModal({ isOpen, onClose, onSelectContact=nul
 const handleSubmit = async(e) =>
   {
     e.preventDefault();
-    console.log(body)
+    
     const data = {
       email: contact,
       subject: subject,
@@ -44,13 +44,13 @@ const handleSubmit = async(e) =>
   if (role !== 'owner') {
      data.sender_id= userID 
   }
-    console.log(data);
+    
      try {
         await dispatch(addEmail(data)).unwrap(); // unwrap resolves or throws error
         showSuccess("Email sent successfully!"); // or use toast
         onClose();
       } catch (error) {
-        console.error("Failed to send email:", error);
+        
         showError("Failed to send email. Please try again."); // or use toast
       }
   }

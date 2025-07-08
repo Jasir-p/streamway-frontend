@@ -14,11 +14,11 @@ export const fetchEmails = createAsyncThunk(
       }
 
       const response = await subdomainInterceptors.get(url, { params });
-      console.log("📥 Emails fetched:", response.data);
+      
 
       return response.data;
     } catch (error) {
-      console.error("❌ Fetch emails error:", error);
+      
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -27,7 +27,7 @@ export const fetchEmails = createAsyncThunk(
 
 export const addEmail = createAsyncThunk("emails/addEmail",
     async (data, { rejectWithValue }) => {
-      console.log(data);
+      
       try {
         const response = await subdomainInterceptors.post('/api/tenant-email/', data);
         return response.data;

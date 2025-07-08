@@ -21,11 +21,11 @@ const RoleForm = () => {
 
       dispatch(fetchRoles())
         .then(() => {
-          console.log("Initial roles fetch successful");
+          
           
         })
         .catch(error => {
-          console.error("Initial roles fetch failed:", error);
+          
 
           
         });
@@ -35,7 +35,7 @@ const RoleForm = () => {
   }, [dispatch, change]);
 
   const handleAddRole = async(data) => {
-    console.log(data)
+    
     await dispatch(addRole({ 
       name: data.name, 
       description: data.description, 
@@ -46,7 +46,7 @@ const RoleForm = () => {
     setSelectedParentId(null);
     setChange(true)
   };
-console.log("roles check", roles)
+
   if (loading) return <LoadingScreen />;
 
   return (

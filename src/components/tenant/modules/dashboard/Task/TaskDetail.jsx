@@ -182,7 +182,7 @@ const TaskDetailView = ({
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
   const subdomain = localStorage.getItem('subdomain')
-console.log(task.assigned_to_team?.id);
+
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -198,7 +198,7 @@ console.log(task.assigned_to_team?.id);
           setEmployees(data);
         }
       } catch (err) {
-        console.error("Failed to load assignee list:", err);
+        
       }
     };
 
@@ -238,7 +238,7 @@ console.log(task.assigned_to_team?.id);
       navigate(`/${subdomain}/route`);
       onClose();
     } catch (error) {
-      console.error('Navigation error:', error);
+      
     }
   }, [navigate, onClose]);
 
@@ -255,11 +255,11 @@ console.log(task.assigned_to_team?.id);
     setIsLoading(true);
     try {
       const response = await apiCall();
-      console.log(successMessage, response.data);
+      
       onChange();
       return response;
     } catch (error) {
-      console.error('API call failed:', error);
+      
       // You might want to show a toast notification here
       throw error;
     } finally {

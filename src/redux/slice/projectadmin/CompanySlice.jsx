@@ -8,7 +8,7 @@ export const fetchallTenants = createAsyncThunk(
   async (url = '/action/', { rejectWithValue }) => {
     try {
       const response = await api.get(url);
-      console.log(response.data);
+      
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.detail || error.message);
@@ -18,7 +18,7 @@ export const fetchallTenants = createAsyncThunk(
 export const editTenants = createAsyncThunk(
   'tenants/editTenant',
   async ({ tenant_id, data }, { rejectWithValue }) => {
-    console.log(data);
+    
     
     try {
       const response = await api.put("/action/", data, {

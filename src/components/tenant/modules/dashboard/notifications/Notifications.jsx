@@ -9,8 +9,6 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {}, 
   const {
     isConnected,
     connectionStatus,
-    lastMessage,
-    currentRoomId, // This will always be null for notifications
     connect,
     disconnect,
     sendMessage,
@@ -29,15 +27,15 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {}, 
     const token = localStorage.getItem('access_token');
 
     if (token && subdomain) {
-      console.log('Making initial Notification WebSocket connection...', { subdomain });
+      
       // Updated call - notifications don't need roomId, only token and subdomain
       connect(token, subdomain);
 
       const messageCleanup = addMessageHandler((data) => {
-        console.log('📨 Raw notification message received:', data);
+
         try {
           const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-          console.log('📨 Parsed notification received:', parsedData);
+
 
           if (Array.isArray(parsedData)) {
             let unreadCount = 0;
@@ -55,7 +53,7 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {}, 
                 time: notification.timestamp || 'Just now',
                 read: isRead,
               };
-              console.log('Adding notification:', newNotification); // Debug
+              
               setNotifications((prev) => [newNotification, ...prev]);
             });
             
@@ -73,7 +71,7 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {}, 
               read: isRead,
             };
             
-            console.log('Adding single notification:', newNotification);
+            
             setNotifications((prev) => [newNotification, ...prev]);
             
             if (!isRead) {
@@ -81,33 +79,33 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {}, 
             }
           }
         } catch (error) {
-          console.error('Error parsing WebSocket notification message:', error);
+          
         }
       });
 
       // Optional: Add connection status handler
       const connectionCleanup = addConnectionHandler((event) => {
-        console.log('📡 Notification WebSocket connection event:', event);
+
         if (event.type === 'connected') {
-          console.log('✅ Successfully connected to notification WebSocket');
+          
         } else if (event.type === 'error') {
-          console.error('❌ Notification WebSocket connection error:', event.error);
+          
         }
       });
 
       return () => {
-        console.log('Cleaning up Notification WebSocket connection');
+        
         messageCleanup();
         connectionCleanup();
         disconnect(); // Properly disconnect the WebSocket
       };
     } else {
-      console.warn('No token or subdomain found, skipping Notification WebSocket connection');
+      
     }
   }, [connect, addMessageHandler, addConnectionHandler, disconnect, setCount]);
 
-  console.log('Notifications state:', notifications);
-  console.log('WebSocket connection status:', { isConnected, connectionStatus });
+  
+  
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -159,7 +157,7 @@ const markAsRead = (id) => {
   };
 
   const getIcon = (type) => {
-    console.log('Getting icon for type:', type); // Debug
+    
     const icons = {
       task: CheckSquare,
       chat: MessageCircle,

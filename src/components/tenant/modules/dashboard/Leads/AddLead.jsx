@@ -98,7 +98,7 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
       });
       formData.employee = role !=='owner'?userId:null
       formData.granted_by = role !=='owner'?userId:null
-      console.log(formData);
+      
       
 
       dispatch(addLeads(formData))
@@ -111,7 +111,7 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
 
     } catch (error) {
       showError("Failed to submit lead information");
-      console.error("Submission error:", error);
+      
     } finally {
       setIsSubmitting(false);
     }

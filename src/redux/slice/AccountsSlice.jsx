@@ -13,7 +13,7 @@ export const fetchAccounts = createAsyncThunk('accounts/fetchAccounts', async (u
         }
     )
 export const deleteAccounts = createAsyncThunk('accounts/deleteAccount',async(accountIds,{rejectWithValue})=>{
-    console.log(accountIds)
+    
     try {
         const response = await subdomainInterceptors.delete('/api/accounts/',{data:{account_ids:accountIds}})
         return accountIds

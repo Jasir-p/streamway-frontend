@@ -30,7 +30,7 @@ const RoleModal = ({ isOpen, onClose, onSubmit, defaultValues = {}, parentRoleId
       });
       return result;
     };
-    console.log(parentRoleId)
+    
     return (
       isOpen && (
         <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
@@ -41,7 +41,7 @@ const RoleModal = ({ isOpen, onClose, onSubmit, defaultValues = {}, parentRoleId
   
             <form
               onSubmit={handleSubmit((data) => {
-                console.log("Form Data:", data);  // Debugging the form data
+                
                 onSubmit(data);
                 reset();
               })}

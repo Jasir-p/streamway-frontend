@@ -14,11 +14,11 @@ export const getTeamAnalyse = async (filter) => {
       }
     });
     
-    console.log("Team analytics response:", response.data);
+    
     return response.data;
   } catch (error) {
-    console.error(" Error fetching team analytics:", error?.response?.data || error.message);
-    console.error("Full error object:", error);
+    
+    
     return [];
   }
 };
@@ -38,11 +38,11 @@ export const getEmployeeAnalyse = async (filter,userId=null) => {
       }
     });
     
-    console.log("Employee analytics response:", response.data);
+    
     return response.data;
   } catch (error) {
-    console.error("Error fetching employee analytics:", error?.response?.data || error.message);
-    console.error("Full error object:", error);
+    
+    
     return [];
   }
 };
@@ -62,11 +62,11 @@ export const getTenantAnalyse = async (filter) => {
       }
     });
     
-    console.log("Tenant analytics response:", response.data);
+    
     return response.data;
   } catch (error) {
-    console.error(" Error fetching tenant analytics:", error?.response?.data || error.message);
-    console.error("Full error object:", error);
+    
+    
     return [];
   }
 };

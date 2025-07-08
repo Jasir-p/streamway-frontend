@@ -21,7 +21,7 @@ const roleAccess = async (role, perm_id) => {
     const response = await subdomainInterceptors.post('/roleacess/',data);
     return response.data;
   } catch (error) {
-    console.log("Error assigning permission", error.response?.data || error.message);
+    
     throw error;
   }
 };
@@ -40,7 +40,7 @@ const roleAccessDelete = async (role, perm_id) => {
       });
       return response.data;
     } catch (error) {
-      console.log("Error deleting permission", error.response?.data || error.message);
+      
       throw error;
     }
   }
@@ -50,7 +50,7 @@ export default function PermissionsTable({ permission, role_id }) {
   const { permissions } = useSelector((state) => state.permission);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  console.log(permissions)
+  
   // Fetch permissions on mount and when refreshTrigger changes
   useEffect(() => {
     dispatch(fetchPermission());
@@ -155,7 +155,7 @@ useEffect(() => {
           [permissionName]: !selectedPermissions[module][permissionName],
         },
       }));
-      console.error("Failed to update permission:", error);
+      
     } finally {
       setIsLoading(false);
     }

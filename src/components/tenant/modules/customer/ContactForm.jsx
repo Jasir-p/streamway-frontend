@@ -95,7 +95,7 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
       try {
         const response = await dispatch(addContact(formData)).unwrap();
   
-        console.log('Contact Form Submitted:', response);
+        
         showSuccess('Contact saved successfully!');
   
         setFormData({
@@ -109,7 +109,7 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
         onChange();
         onClose();
       } catch (error) {
-        console.error('Error saving contact:', error);
+        
         showError('Failed to save contact. Please try again.');
       }
     }
