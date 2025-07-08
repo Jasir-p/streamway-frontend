@@ -306,100 +306,91 @@ function Landingmain() {
       {/* Pricing Section (New) */}
       <section id="pricing" className="py-24 bg-gray-50">
         <div className="container mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-center max-w-4xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
               Simple, transparent pricing
             </h2>
-            <p className="text-gray-600 text-lg">
-              Choose the plan that works best for your business
+            <p className="text-gray-600 text-lg mb-6">
+              Pay only for what you need. No hidden fees, no complicated tiers.
             </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Starter",
-                price: "$29",
-                description: "Perfect for small teams just getting started",
-                features: [
-                  "Up to 1,000 contacts",
-                  "Basic reporting",
-                  "Email integration",
-                  "5 team members",
-                  "Standard support"
-                ],
-                isPopular: false,
-                ctaText: "Start Free Trial"
-              },
-              {
-                name: "Professional",
-                price: "$79",
-                description: "Ideal for growing businesses",
-                features: [
-                  "Up to 10,000 contacts",
-                  "Advanced analytics",
-                  "Email & SMS integration",
-                  "Unlimited team members",
-                  "Priority support",
-                  "Custom dashboards",
-                  "API access"
-                ],
-                isPopular: true,
-                ctaText: "Start Free Trial"
-              },
-              {
-                name: "Enterprise",
-                price: "$199",
-                description: "For large organizations with complex needs",
-                features: [
-                  "Unlimited contacts",
-                  "Custom reporting",
-                  "All integrations",
-                  "Dedicated account manager",
-                  "24/7 premium support",
-                  "Custom development",
-                  "Advanced security features"
-                ],
-                isPopular: false,
-                ctaText: "Contact Sales"
-              }
-            ].map((plan, index) => (
-              <div key={index} className={`bg-white rounded-xl shadow-lg border ${plan.isPopular ? 'border-blue-500 relative' : 'border-gray-100'}`}>
-                {plan.isPopular && (
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold">
-                    Most Popular
-                  </div>
-                )}
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">{plan.name}</h3>
-                  <div className="flex items-end mb-4">
-                    <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
-                    <span className="text-gray-600 ml-1">/month</span>
-                  </div>
-                  <p className="text-gray-600 mb-8">{plan.description}</p>
-                  
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center">
-                        <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <a 
-                    href="#register" 
-                    className={`block w-full text-center py-3 px-6 rounded-md font-semibold transition-all ${
-                      plan.isPopular 
-                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                    }`}
-                  >
-                    {plan.ctaText}
-                  </a>
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-12 max-w-2xl mx-auto">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                  <User className="h-8 w-8 text-blue-600" />
                 </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">Per User Pricing</h3>
+                <p className="text-gray-600">One simple price for all features</p>
               </div>
-            ))}
+              
+              <div className="text-center mb-8">
+                <div className="flex items-end justify-center mb-4">
+                  <span className="text-6xl font-bold text-gray-900">$10</span>
+                  <span className="text-2xl text-gray-600 ml-2 mb-2">/user/month</span>
+                </div>
+                <p className="text-gray-600">Billed monthly • Cancel anytime</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mb-8">
+                {[
+                  "Unlimited contacts",
+                  "Advanced analytics & reporting",
+                  "Email & SMS integration",
+                  "Custom dashboards",
+                  "Team collaboration tools",
+                  "Mobile app access",
+                  "API access",
+                  "Priority support",
+                  "Data export & backup",
+                  "Custom fields & workflows",
+                  "Lead management",
+                  "Sales pipeline tracking"
+                ].map((feature, index) => (
+                  <div key={index} className="flex items-center">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center">
+                <a 
+                  href="#register" 
+                  className="inline-block bg-blue-600 text-white px-8 py-4 rounded-md font-semibold hover:bg-blue-700 transition-all transform hover:-translate-y-1 shadow-lg mb-4"
+                >
+                  Start Your Free Trial
+                </a>
+                <p className="text-sm text-gray-600">
+                  14-day free trial • No credit card required
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-12 grid md:grid-cols-3 gap-8 text-center">
+              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                <h4 className="font-semibold text-gray-800 mb-2">Small Teams</h4>
+                <p className="text-2xl font-bold text-blue-600 mb-2">$30/month</p>
+                <p className="text-sm text-gray-600">For 3 users</p>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 border-blue-200">
+                <h4 className="font-semibold text-gray-800 mb-2">Growing Business</h4>
+                <p className="text-2xl font-bold text-blue-600 mb-2">$100/month</p>
+                <p className="text-sm text-gray-600">For 10 users</p>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                <h4 className="font-semibold text-gray-800 mb-2">Enterprise</h4>
+                <p className="text-2xl font-bold text-blue-600 mb-2">$500/month</p>
+                <p className="text-sm text-gray-600">For 50 users</p>
+              </div>
+            </div>
+            
+            <div className="mt-8 text-center">
+              <p className="text-gray-600">
+                Need more than 50 users? 
+                <a href="#contact" className="text-blue-600 hover:text-blue-700 ml-1 font-medium">
+                  Contact us for custom pricing
+                </a>
+              </p>
+            </div>
           </div>
         </div>
       </section>
