@@ -7,7 +7,7 @@ export const fetchallTenants = createAsyncThunk(
   'tenants/fetchallTenants',
   async (url = '/action/', { rejectWithValue }) => {
     try {
-      const response = await api.get(url);
+      const response = await defaultInterceptor.get(url);
       
       return response.data;
     } catch (error) {
@@ -21,7 +21,7 @@ export const editTenants = createAsyncThunk(
     
     
     try {
-      const response = await api.put("/action/", data, {
+      const response = await defaultInterceptor.put("/action/", data, {
         params: { tenant_id }
       });
       return response.data;
