@@ -20,8 +20,10 @@ export const fetchLeadsOwner = createAsyncThunk('leads/fetchLeadsOwner', async (
     }) => {
         try{
             const response = await subdomainInterceptors.get(url);
-            
-            return response.data;
+            const data = response.data
+            data.next = fixPaginationUrl(data.next)
+            data.previous= fixPaginationUrl(data.previous)
+            return data;
             
             }catch(error){
                 return rejectWithValue(error.message);
@@ -32,10 +34,8 @@ export const fetchLeadsOwner = createAsyncThunk('leads/fetchLeadsOwner', async (
 export const addLeads = createAsyncThunk('leads/ leadsAdd', async (data, { rejectWithValue }) => {
     try {
         const response = await subdomainInterceptors.post("/api/leads/", data);
-        const data = response.data
-        data.next = fixPaginationUrl(data.next)
-        data.previous= fixPaginationUrl(data.previous)
-        return data;
+        return response.data
+        
         } catch (error) {
             return rejectWithValue(error.message);
             }
