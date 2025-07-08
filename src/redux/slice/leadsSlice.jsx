@@ -15,20 +15,23 @@ export const fetchLeadsEmployee = createAsyncThunk('leads/fetchLeads', async (us
             }
             })
 
-export const fetchLeadsOwner = createAsyncThunk('leads/fetchLeadsOwner', async (url = "/api/leads/", {
-    rejectWithValue
-    }) => {
-        try{
-            const response = await subdomainInterceptors.get(url);
-            const data = response.data
-            data.next = fixPaginationUrl(data.next)
-            data.previous= fixPaginationUrl(data.previous)
-            return data;
-            
-            }catch(error){
-                return rejectWithValue(error.message);
-                }
-                })
+export const fetchLeadsOwner = createAsyncThunk(
+  'leads/fetchLeadsOwner',
+  async (url = "/api/leads/", thunkAPI) => {
+    const { rejectWithValue } = thunkAPI;
+
+    try {
+      const response = await subdomainInterceptors.get(url);
+      const data = response.data;
+      data.next = fixPaginationUrl(data.next);
+      data.previous = fixPaginationUrl(data.previous);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 
 
 export const addLeads = createAsyncThunk('leads/ leadsAdd', async (data, { rejectWithValue }) => {
