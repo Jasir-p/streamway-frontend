@@ -14,7 +14,8 @@ import {
   Briefcase,
   Shield,
   Clock,
-  Globe
+  Globe,
+  LogIn
 } from 'lucide-react';
 import RegistrationForm from './RegistrationForm';
 import LandingFooter from './LandingFooter';
@@ -31,15 +32,22 @@ function Landingmain() {
             <div className="flex items-center">
               <img src={logo1} className="h-12 w-auto" alt="CRM Pro Logo" />
             </div>
-            <div className="hidden md:flex items-center space-x-10">
+            <div className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">Features</a>
               <a href="#pricing" className="text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">Pricing</a>
               <a href="#contact" className="text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">Contact</a>
+              <a href="/login" className="flex items-center text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">
+                <LogIn className="w-4 h-4 mr-1" />
+                Login
+              </a>
               <a href="#register" className="bg-white text-blue-700 px-6 py-3 rounded-md font-semibold text-sm shadow-lg hover:bg-blue-50 transition-all transform hover:-translate-y-1">
                 Try Free
               </a>
             </div>
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center space-x-3">
+              <a href="/login" className="text-white hover:text-blue-200 transition-colors">
+                <LogIn className="w-5 h-5" />
+              </a>
               <a href="#register" className="bg-white text-blue-700 px-4 py-2 rounded-md font-semibold text-sm shadow-lg">
                 Try Free
               </a>
@@ -63,6 +71,14 @@ function Landingmain() {
                 <button className="border-2 border-white text-white px-8 py-4 rounded-md font-semibold hover:bg-white/10 transition-colors flex items-center justify-center">
                   Watch Demo
                 </button>
+              </div>
+              <div className="mt-6 text-center sm:text-left">
+                <p className="text-blue-100 text-sm">
+                  Already have an account? 
+                  <a href="/login" className="text-white hover:text-blue-200 ml-2 font-medium underline">
+                    Sign in here
+                  </a>
+                </p>
               </div>
             </div>
             <div className="md:w-1/2 mt-12 md:mt-0">
@@ -266,9 +282,16 @@ function Landingmain() {
                 </a>
               </div>
             </div>
-            <a href="#register" className="inline-block bg-white text-blue-700 px-8 py-4 rounded-md font-semibold hover:bg-blue-50 transition-all transform hover:-translate-y-1 shadow-lg">
-              Start Your Free Trial
-            </a>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <a href="#register" className="bg-white text-blue-700 px-8 py-4 rounded-md font-semibold hover:bg-blue-50 transition-all transform hover:-translate-y-1 shadow-lg">
+                Start Your Free Trial
+              </a>
+              <span className="text-blue-200 hidden sm:block">or</span>
+              <a href="/login" className="border-2 border-white text-white px-8 py-4 rounded-md font-semibold hover:bg-white/10 transition-colors flex items-center">
+                <LogIn className="w-5 h-5 mr-2" />
+                Sign In
+              </a>
+            </div>
           </div>
         </div>
         
