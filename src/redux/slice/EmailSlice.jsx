@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
+import { fixPaginationUrl } from "../../components/utils/fixPaginationUrl";
 
 
 
@@ -14,9 +15,10 @@ export const fetchEmails = createAsyncThunk(
       }
 
       const response = await subdomainInterceptors.get(url, { params });
-      
-
-      return response.data;
+      const data = response.data
+      data.next = fixPaginationUrl(data.next)
+      data.previous= fixPaginationUrl(data.previous)
+      return data;
     } catch (error) {
       
       return rejectWithValue(error.response?.data || error.message);

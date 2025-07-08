@@ -1,5 +1,6 @@
 import { createAsyncThunk,createSlice } from "@reduxjs/toolkit";
 import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
+import { fixPaginationUrl } from "../../components/utils/fixPaginationUrl";
 
 
 export const fetchLeadsEmployee = createAsyncThunk('leads/fetchLeads', async (userId,{rejectWithValue}) => {
@@ -31,7 +32,10 @@ export const fetchLeadsOwner = createAsyncThunk('leads/fetchLeadsOwner', async (
 export const addLeads = createAsyncThunk('leads/ leadsAdd', async (data, { rejectWithValue }) => {
     try {
         const response = await subdomainInterceptors.post("/api/leads/", data);
-        return response.data;
+        const data = response.data
+        data.next = fixPaginationUrl(data.next)
+        data.previous= fixPaginationUrl(data.previous)
+        return data;
         } catch (error) {
             return rejectWithValue(error.message);
             }

@@ -1,6 +1,7 @@
 import { createAsyncThunk,createSlice } from "@reduxjs/toolkit";
 import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 import axios from "axios";
+import { fixPaginationUrl } from "../../components/utils/fixPaginationUrl";
 
 
 
@@ -19,7 +20,10 @@ export const fetchTask = createAsyncThunk(
         }
   
         const response = await subdomainInterceptors.get(requestUrl);
-        return response.data;
+        const data = response.data
+        data.next = fixPaginationUrl(data.next)
+        data.previous= fixPaginationUrl(data.previous)
+        return data;
       } catch (error) {
         return rejectWithValue(error.message);
       }
@@ -43,8 +47,8 @@ export const  addTask =  createAsyncThunk('task/addTask', async (taskData, {reje
             },
         });
     
+        return response.data
         
-        return response.data;
     } catch (error) {
         
         return rejectWithValue(error.response?.data || "Failed to submit task");
