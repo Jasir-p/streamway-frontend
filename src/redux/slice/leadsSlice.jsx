@@ -23,8 +23,8 @@ export const fetchLeadsOwner = createAsyncThunk(
     try {
       const response = await subdomainInterceptors.get(url);
       const data = response.data;
-      data.next = fixPaginationUrl(data.next);
-      data.previous = fixPaginationUrl(data.previous);
+    //   data.next = fixPaginationUrl(data.next);
+    //   data.previous = fixPaginationUrl(data.previous);
       return data;
     } catch (error) {
       return rejectWithValue(error.message);
