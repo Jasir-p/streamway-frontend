@@ -1,20 +1,27 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../../../api";
+
 import defaultInterceptor from "../../../Intreceptors/defaultInterceptors";
 
+
+const fixPaginationUrl = (url) => {
+  return url?.replace(/^http:/, 'https:');
+};
 
 export const fetchallTenants = createAsyncThunk(
   'tenants/fetchallTenants',
   async (url = '/action/', { rejectWithValue }) => {
     try {
       const response = await defaultInterceptor.get(url);
-      
-      return response.data;
+      const data = response.data;
+      data.next = fixPaginationUrl(data.next);
+      data.previous = fixPaginationUrl(data.previous);
+      return data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.detail || error.message);
     }
   }
 );
+
 export const editTenants = createAsyncThunk(
   'tenants/editTenant',
   async ({ tenant_id, data }, { rejectWithValue }) => {
