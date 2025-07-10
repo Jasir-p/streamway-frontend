@@ -227,7 +227,7 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
             <select
               id="account_id"
               name="account_id"
-              value={formData.account_id}
+              value={formData.account_id.id}
               onChange={handleChange}
               className={`w-full p-2 border rounded-md ${
                 errors.account_id ? 'border-red-500' : 'border-gray-300'
