@@ -185,7 +185,7 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
 
           <div>
               <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
-                Department{contact.is_primary_contact && '*'}
+                Department{!contact.is_primary_contact && '*'}
               </label>
               <input
                 type="text"
