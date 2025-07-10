@@ -49,7 +49,8 @@ export const useDashboard = () => {
 
       const pendingTasksCount = data.tasks.filter(task => {
         return task.status.toLowerCase() !== 'completed';
-      }).length;  // assuming you want count — not a filtered list
+      }) //
+
 
       const overdueTasks = data.tasks
         .filter(task => {
