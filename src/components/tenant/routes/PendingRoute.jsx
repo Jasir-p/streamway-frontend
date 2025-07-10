@@ -21,10 +21,10 @@ const PendingRoute = ({ children }) => {
       const isExpired = invoice?.tenant_billing?.billing_expiry && 
                        new Date(invoice.tenant_billing.billing_expiry) < new Date();
       
-      if (role !== 'owner') {
+      if (role === 'owner') {
         setOwnerModalOpen(true);
         setEmployeeModalOpen(false);
-      } else if (role === 'owner' && isExpired) {
+      } else if (role !== 'owner' && isExpired) {
         setEmployeeModalOpen(true);
         setOwnerModalOpen(false);
       } else {
