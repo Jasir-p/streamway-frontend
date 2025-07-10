@@ -130,14 +130,12 @@ export default function AddDealModal({isOpen,onClose,userId,role}) {
     try {
       // Dispatch the addDeal action
       await dispatch(addDeal(formData));
-      alert('Deal created successfully!');
       
-      // Reset form and close modal
       resetForm();
       onClose();
       
     } catch (error) {
-      alert('Error creating deal. Please try again.');
+
     } finally {
       setIsSubmitting(false);
     }
@@ -177,7 +175,7 @@ export default function AddDealModal({isOpen,onClose,userId,role}) {
       {/* Modal Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+          className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
           onClick={handleBackdropClick}
         >
           {/* Modal Content */}

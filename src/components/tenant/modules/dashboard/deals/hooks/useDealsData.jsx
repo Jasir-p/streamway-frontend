@@ -28,8 +28,8 @@ export const useDealsData = () => {
   }, [dispatch, change, role, userId]);
 
   const refreshDeals = () => {
-    setChange(!change);
-  };
+  dispatch(fetchDeals({role, userId: userId}));
+};
   
 const onNext = () => {
   dispatch(fetchDeals({ role, userId: userId, url: next }));
@@ -55,7 +55,7 @@ const onPrevious = () => {
     loading,
     error,
     role,
-    userId,
+    userID:userId,
     next,
     previous,
     employees,
