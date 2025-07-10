@@ -204,7 +204,7 @@ const Company = () => {
                     <h2 className='text-xl font-bold text-gray-800'>{companyDetails.name}</h2>
                   )}
                   
-                  <div className='flex items-center space-x-2 mt-2'>
+                  {/* <div className='flex items-center space-x-2 mt-2'>
                     {isEditing ? (
                       <input
                         type="text"
@@ -215,7 +215,7 @@ const Company = () => {
                     ) : (
                       <p className='text-sm text-gray-600'>{companyDetails.tagline}</p>
                     )}
-                  </div>
+                  </div> */}
                 </div>
                 
                 <button 
@@ -227,7 +227,7 @@ const Company = () => {
               </div>
               
               <div className='flex flex-wrap items-center gap-2 mt-3'>
-                {isEditing ? (
+                {/* {isEditing ? (
                   <div className="flex items-center border border-blue-300 rounded-md overflow-hidden">
                     <input
                       type="text"
@@ -242,7 +242,7 @@ const Company = () => {
                     {companyDetails.industry}
                   </span>
                 )}
-                
+                 */}
                 <div className='flex items-center space-x-2'>
                   <Globe className='h-4 w-4 text-gray-500' />
                   {isEditing ? (

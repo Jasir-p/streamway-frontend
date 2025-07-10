@@ -184,22 +184,25 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
           </div>
 
           <div>
-            <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
-              Department*
-            </label>
-            <input
-              type="text"
-              id="department"
-              name="department"
-              value={formData.department}
-              onChange={handleChange}
-              className={`w-full p-2 border rounded-md ${
-                errors.department ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="Enter Department"
-            />
-            {errors.department && <p className="mt-1 text-sm text-red-500">{errors.department}</p>}
-          </div>
+              <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
+                Department{contact.is_primary_contact && '*'}
+              </label>
+              <input
+                type="text"
+                id="department"
+                name="department"
+                value={formData.department}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-md ${
+                  contact.is_primary_contact && errors.department ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Enter Department"
+              />
+              {!isPrimaryContact && errors.department && (
+                <p className="mt-1 text-sm text-red-500">{errors.department}</p>
+              )}
+            </div>
+
 
           <div>
             <label htmlFor="account_id" className="block text-sm font-medium text-gray-700 mb-1">

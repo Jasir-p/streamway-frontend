@@ -15,7 +15,7 @@ function SettingSidebar() {
     { id: 'users', icon: Users, label: 'Users', path: "/setting/users" },
     { id: 'security', icon: Shield, label: 'Security', path: '/setting/security' },
     { id: 'billing', icon: CreditCard, label: 'Billing', path: "/setting/payment" },
-    { id: 'usage', icon: BarChart2, label: 'Usage Stats', path: "" },
+    // { id: 'usage', icon: BarChart2, label: 'Usage Stats', path: "" },
     { id: 'lead_form', icon: LayoutGrid, label: 'Lead Form', path: "/setting/lead_form" },
   ];
 

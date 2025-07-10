@@ -14,7 +14,7 @@ const Users = () => {
   const [activeTab,setActiveTab]=useState("users")
   const tabs =[
     {id:"users" ,label:"Users"},
-    {id:"active", label:"Activate Users"}
+
 
   ]
 

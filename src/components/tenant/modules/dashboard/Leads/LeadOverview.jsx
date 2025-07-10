@@ -178,7 +178,6 @@ export default function LeadDetailPage() {
                     </div>
                     <div>
                       <h2 className="text-xl font-bold text-gray-800">{leads?.name}</h2>
-                      <p className="text-gray-600">{leads?.position} at {leads?.company}</p>
                     </div>
                   </div>
                   <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">

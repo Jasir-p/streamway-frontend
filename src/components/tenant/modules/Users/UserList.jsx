@@ -8,6 +8,7 @@ import UserDetails from "./UserDetails";
 import axios from "axios";
 import api from "../../../../api";
 import LoadingScreen from "../../../common/Loading";
+import subdomainInterceptors from "../../../../Intreceptors/getSubdomainInterceptors";
 
 
 
@@ -50,10 +51,8 @@ function UserList() {
 
   const handleBulkAction = async() => {
     const data ={"user_ids":selectedUsers}
-    
-    const token = localStorage.getItem("access_token");
-    const subdomain = localStorage.getItem("subdomain");
-    const response = await api.post("/useraccess/",data);
+
+    const response = await subdomainInterceptors.post("/useraccess/",data);
   
   setSelectedUsers([])
   setChange(!change)

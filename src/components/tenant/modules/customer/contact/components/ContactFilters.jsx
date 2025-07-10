@@ -32,7 +32,8 @@ const ContactFilters = ({
               }}
             >
               <span className={`inline-block w-3 h-3 rounded-full mr-2 ${
-                status === 'Active' ? 'bg-green-500' : 'bg-gray-400'
+                status === 'Active' ? 'bg-green-500'  : status === 'Inactive'
+      ? 'bg-red-500': 'bg-gray-400'
               }`}></span>
               {status}
             </button>
