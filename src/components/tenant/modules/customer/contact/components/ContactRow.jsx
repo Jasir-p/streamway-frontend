@@ -55,11 +55,11 @@ const ContactRow = ({
       <td className="px-4 py-4 whitespace-nowrap">
         <div className="flex items-center">
           <div className="h-10 w-10 flex-shrink-0 mr-3 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center font-medium">
-            {contact.name ? contact?.name?.split(' ').map(n => n[0]).join('').toUpperCase() : ''}
+            {contact?.name? contact?.name?.split(' ').map(n => n[0]).join('').toUpperCase() : ''}
           </div>
           <div className="font-medium text-gray-900 flex items-center">
             {contact?.name}
-            {contact.is_primary_contact && (
+            {contact?.is_primary_contact && (
               <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                 Primary
               </span>
@@ -72,7 +72,7 @@ const ContactRow = ({
         <div className="flex flex-col">
           <div className="flex items-center text-sm text-gray-500 mb-1">
             <Mail size={14} className="mr-2 text-gray-400" />
-            {contact.email}
+            {contact?.email}
           </div>
           <div className="flex items-center text-sm text-gray-500">
             <Phone size={14} className="mr-2 text-gray-400" />
@@ -101,9 +101,9 @@ const ContactRow = ({
               className="w-8 h-8 rounded-full"
             />
             <div className="text-sm font-medium text-gray-900">
-              {contact.account_id?.assigned_to?.name}
+              {contact?.account_id?.assigned_to?.name}
               <div className="text-xs text-gray-500">
-                {contact.account_id?.assigned_to?.role?.name}
+                {contact?.account_id?.assigned_to?.role?.name}
               </div>
             </div>
           </div>
@@ -118,7 +118,7 @@ const ContactRow = ({
               className="w-8 h-8 rounded-full"
             />
             <div className="text-sm font-medium text-gray-900">
-              {contact.account_id.name}
+              {contact?.account_id?.name}
             </div>
           </div>
         </div>
