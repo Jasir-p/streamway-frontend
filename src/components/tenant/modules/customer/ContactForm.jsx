@@ -198,7 +198,7 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
                 }`}
                 placeholder="Enter Department"
               />
-              {!isPrimaryContact && errors.department && (
+              {!contact.is_primary_contact && errors.department && (
                 <p className="mt-1 text-sm text-red-500">{errors.department}</p>
               )}
             </div>
