@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { X, AlertTriangle, Building2, Phone, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { Logout } from '../../authentication/Authentication';
+
 
 export default function EmployeeAccessModal({ onClose, tenantBilling }) {
   const [isOpen, setIsOpen] = useState(true);
