@@ -4,7 +4,7 @@ import { addDeal } from '../../../../../redux/slice/DealSlice';
 import { useDispatch } from 'react-redux';
 import { AccountDropdown } from '../meetings/components/MeetingDropDown';
 
-export default function AddDealModal({isOpen,onClose,userId,role}) {
+export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
   
   const [formData, setFormData] = useState({
     account_id: '',
@@ -133,6 +133,7 @@ export default function AddDealModal({isOpen,onClose,userId,role}) {
       
       resetForm();
       onClose();
+      onSuccess()
       
     } catch (error) {
 
