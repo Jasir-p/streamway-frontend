@@ -1,8 +1,7 @@
-
 import { useSelector, useDispatch } from 'react-redux';
- import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { X } from 'lucide-react';
-import { addContact } from '../../../../redux/slice/contactSlice';
+import { addContact, updateContact } from '../../../../redux/slice/contactSlice';
 import { useToast } from '../../../common/ToastNotification';
 import { fetchAccounts } from '../../../../redux/slice/AccountsSlice';
 
@@ -66,10 +65,13 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
       newErrors.phone_number = 'Phone number must be exactly 10 digits';
     }
     
-    if (!formData.department.trim()) {
-      newErrors.department = 'Department is required';
-    } else if (!/^[A-Za-z ]+$/.test(formData.department.trim())) {
-      newErrors.department = 'Department must contain only letters';
+    // Only validate department if it's not a primary contact
+    if (!contact?.is_primary_contact) {
+      if (!formData.department.trim()) {
+        newErrors.department = 'Department is required';
+      } else if (!/^[A-Za-z ]+$/.test(formData.department.trim())) {
+        newErrors.department = 'Department must contain only letters';
+      }
     }
     
     if (!formData.account_id) {
@@ -93,24 +95,39 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
   
     if (validateForm()) {
       try {
-        const response = await dispatch(addContact(formData)).unwrap();
-  
+        let response;
         
-        showSuccess('Contact saved successfully!');
+        if (isEdit) {
+          // Update existing contact
+          response = await dispatch(updateContact({ 
+            ...formData, 
+            id: contact.id 
+          })).unwrap();
+          showSuccess('Contact updated successfully!');
+        } else {
+          // Add new contact
+          response = await dispatch(addContact(formData)).unwrap();
+          showSuccess('Contact added successfully!');
+        }
   
+        // Reset form after successful submission
         setFormData({
           name: '',
           email: '',
           phone_number: '',
-          address: '',
           account_id: '',
           department: ''
         });
+        
         onChange();
         onClose();
       } catch (error) {
-        
-        showError('Failed to save contact. Please try again.');
+        console.error('Error saving contact:', error);
+        showError(
+          isEdit 
+            ? 'Failed to update contact. Please try again.' 
+            : 'Failed to add contact. Please try again.'
+        );
       }
     }
   };
@@ -118,7 +135,7 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-opacity-40 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
       <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-xl relative">
         <button
           onClick={onClose}
@@ -184,25 +201,24 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
           </div>
 
           <div>
-              <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
-                Department{!contact.is_primary_contact && '*'}
-              </label>
-              <input
-                type="text"
-                id="department"
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                className={`w-full p-2 border rounded-md ${
-                  !contact.is_primary_contact && errors.department ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter Department"
-              />
-              {!contact.is_primary_contact && errors.department && (
-                <p className="mt-1 text-sm text-red-500">{errors.department}</p>
-              )}
-            </div>
-
+            <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
+              Department{!contact?.is_primary_contact && '*'}
+            </label>
+            <input
+              type="text"
+              id="department"
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+              className={`w-full p-2 border rounded-md ${
+                !contact?.is_primary_contact && errors.department ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Enter Department"
+            />
+            {!contact?.is_primary_contact && errors.department && (
+              <p className="mt-1 text-sm text-red-500">{errors.department}</p>
+            )}
+          </div>
 
           <div>
             <label htmlFor="account_id" className="block text-sm font-medium text-gray-700 mb-1">
