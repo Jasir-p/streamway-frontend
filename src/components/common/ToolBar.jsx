@@ -198,50 +198,51 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose,onUpdateComplete }) => {
     }
   };
   
-  return (
-    <div className="bg-blue-700 text-white flex items-center h-14 px-4 rounded-lg w-auto relative shadow-md">
-      <div className="bg-green-500 text-white px-3 py-1 rounded-md mr-4 flex items-center">
-        <span className="mr-1 font-medium">{count}</span>
-        <span className="text-sm">{count === 1 ? 'Lead' : 'Leads'}</span>
-      </div>
-
-      <div className="flex items-center space-x-2 flex-grow">
-        <ToolbarButton Icon={Mail} label="Mass Email" onClick={() => handleAction('Mass Email')} />
-        <ToolbarButton Icon={Tag} label="Add to Tag" onClick={() => handleAction('Add to Tag')} />
-        <div ref={assignButtonRef} className="relative">
-          <ToolbarButton 
-            Icon={Send} 
-            label={assigning ? "Assigning..." : "Assign to"} 
-            onClick={toggleAssignDropdown} 
-            isActive={assignDropdownOpen || assigning}
-            disabled={assigning}
-          />
-          <UserDropdown 
-            isOpen={assignDropdownOpen} 
-            onSelect={handleSelectUser} 
-            onClose={() => setAssignDropdownOpen(false)} 
-          />
-        </div>
-        <ToolbarButton Icon={Move} label="Move to" onClick={() => handleAction('Move to')} />
-          {isConversionPopup &&(<ConversionOptionsPopup
-                selectedLeads={leads}
-                onClose={() => {
-                  setshowConversionPopup(false);
-                  onUpdateComplete(true);
-                }}
-                onConversionComplete={handleConversionComplete}
-               
-              />)}
-        <ToolbarButton Icon={Trash2} label="Delete" onClick ={handleDelete} />
-      </div>
-
-      {/* Close Button */}
-      <div className="ml-4 cursor-pointer hover:bg-blue-600 p-1 rounded" onClick={onClose}>
-        <X size={16} aria-label="Close Toolbar" />
-      </div>
-      
+return (
+  <div className="bg-gray-100 text-black flex items-center h-14 px-4 rounded-lg w-auto relative shadow-md">
+    <div className="bg-green-500 text-white px-3 py-1 rounded-md mr-4 flex items-center">
+      <span className="mr-1 font-medium">{count}</span>
+      <span className="text-sm">{count === 1 ? 'Lead' : 'Leads'}</span>
     </div>
-  );
+
+    <div className="flex items-center space-x-2 flex-grow">
+      <ToolbarButton Icon={Mail} label="Mass Email" onClick={() => handleAction('Mass Email')} />
+      <ToolbarButton Icon={Tag} label="Add to Tag" onClick={() => handleAction('Add to Tag')} />
+      <div ref={assignButtonRef} className="relative">
+        <ToolbarButton 
+          Icon={Send} 
+          label={assigning ? "Assigning..." : "Assign to"} 
+          onClick={toggleAssignDropdown} 
+          isActive={assignDropdownOpen || assigning}
+          disabled={assigning}
+        />
+        <UserDropdown 
+          isOpen={assignDropdownOpen} 
+          onSelect={handleSelectUser} 
+          onClose={() => setAssignDropdownOpen(false)} 
+        />
+      </div>
+      <ToolbarButton Icon={Move} label="Move to" onClick={() => handleAction('Move to')} />
+      {isConversionPopup && (
+        <ConversionOptionsPopup
+          selectedLeads={leads}
+          onClose={() => {
+            setshowConversionPopup(false);
+            onUpdateComplete(true);
+          }}
+          onConversionComplete={handleConversionComplete}
+        />
+      )}
+      <ToolbarButton Icon={Trash2} label="Delete" onClick={handleDelete} />
+    </div>
+
+    {/* Close Button */}
+    <div className="ml-4 cursor-pointer hover:bg-gray-200 p-1 rounded" onClick={onClose}>
+      <X size={16} aria-label="Close Toolbar" />
+    </div>
+  </div>
+);
+
 };
 
 export default ExactToolbar;
