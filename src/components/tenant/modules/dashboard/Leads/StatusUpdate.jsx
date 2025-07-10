@@ -36,7 +36,7 @@ export default function StatusUpdateConfirmation({ selectedLeads, onUpdateComple
   
   const handleConversionComplete = (success) => {
     setShowConversionPopup(false);
-    onUpdateComplete(true); // Notify parent component that everything is complete
+    onUpdateComplete(true); // 
   };
   
   const handleConfirm = async () => {

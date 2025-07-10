@@ -324,8 +324,8 @@ const filteredLeads = leads.filter(lead => {
           )}
 
           <div className="flex items-center px-6 py-3 bg-gray-50 border-t border-b border-gray-200">
-            {canEditLead? (
-              <ExactToolbar count={selectedLeads.length} leads={selectedLeads} onUpdate={handleChnage} onClose={() => setShowToolbar(false)}/>
+            {canEditLead && selectedLeads.length>0? (
+              <ExactToolbar count={selectedLeads.length} leads={selectedLeads} onUpdate={handleChnage} onClose={() => setShowToolbar(false)} onUpdateComplete={updateLeadStatus}/>
             ) : (
               <>
                 <div className="flex-1 flex space-x-4">

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Mail, Tag, Briefcase, Share2, Archive, Trash2, Send, Move, X, ChevronDown, User } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { getUser, AssignTo,deleteLeads } from '../../Intreceptors/LeadsApi';
+import ConversionOptionsPopup from '../tenant/modules/dashboard/Leads/ConvertPopup';
 
 
 const ToolbarButton = ({ Icon, label, onClick, isActive, disabled }) => (
@@ -108,16 +109,20 @@ export const UserDropdown = ({ isOpen, onSelect, onClose, selectedUser, placehol
   );
 };
 
-const ExactToolbar = ({ count, leads, onUpdate, onClose }) => {
+const ExactToolbar = ({ count, leads, onUpdate, onClose,onUpdateComplete }) => {
   const [assignDropdownOpen, setAssignDropdownOpen] = useState(false);
   const role = useSelector((state) => state.auth.role);
   const assignButtonRef = useRef(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [assigning, setAssigning] = useState(false);
   const profile = useSelector((state) => state.profile);
+  const [isConversionPopup, setshowConversionPopup]=useState(false)
   
   const handleAction = (action) => {
-    
+
+    if (action==='Move to'){
+      setshowConversionPopup(true)
+    }
 
   };
   const handleDelete = async () => {
@@ -146,7 +151,10 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose }) => {
   };
   
  
-  
+    const handleConversionComplete = (success) => {
+    setshowConversionPopup(false);
+    onUpdateComplete(true); // 
+  };
   
   const toggleAssignDropdown = () => {
     setAssignDropdownOpen(!assignDropdownOpen);
@@ -215,8 +223,15 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose }) => {
           />
         </div>
         <ToolbarButton Icon={Move} label="Move to" onClick={() => handleAction('Move to')} />
-        <ToolbarButton Icon={Briefcase} label="Opportunity" onClick={() => handleAction('Opportunity')} />
-        <ToolbarButton Icon={Share2} label="Export" onClick={() => handleAction('Export')} />
+          {isConversionPopup &&(<ConversionOptionsPopup
+                selectedLeads={leads}
+                onClose={() => {
+                  setshowConversionPopup(false);
+                  onUpdateComplete(true);
+                }}
+                onConversionComplete={handleConversionComplete}
+               
+              />)}
         <ToolbarButton Icon={Trash2} label="Delete" onClick ={handleDelete} />
       </div>
 
@@ -224,6 +239,7 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose }) => {
       <div className="ml-4 cursor-pointer hover:bg-blue-600 p-1 rounded" onClick={onClose}>
         <X size={16} aria-label="Close Toolbar" />
       </div>
+      
     </div>
   );
 };
