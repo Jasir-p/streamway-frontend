@@ -29,7 +29,7 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
         name: contact.name || '',
         email: contact.email || '',
         phone_number: contact.phone_number || '',
-        account_id: contact.account_id || '',
+        account_id: contact.account_id || contact.account?.id || '', // Handle both direct ID and nested account object
         department: contact.department || ''
       });
     } else if (!isEdit) {
@@ -97,16 +97,22 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
       try {
         let response;
         
+        // Prepare data with proper account_id format
+        const submitData = {
+          ...formData,
+          account_id: parseInt(formData.account_id) // Ensure it's a number, not an object
+        };
+        
         if (isEdit) {
           // Update existing contact
           response = await dispatch(updateContact({ 
-            ...formData, 
+            ...submitData, 
             id: contact.id 
           })).unwrap();
           showSuccess('Contact updated successfully!');
         } else {
           // Add new contact
-          response = await dispatch(addContact(formData)).unwrap();
+          response = await dispatch(addContact(submitData)).unwrap();
           showSuccess('Contact added successfully!');
         }
   
@@ -135,7 +141,7 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-opacity-40 z-50">
       <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-xl relative">
         <button
           onClick={onClose}
@@ -227,7 +233,7 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
             <select
               id="account_id"
               name="account_id"
-              value={formData.account_id.id}
+              value={formData.account_id}
               onChange={handleChange}
               className={`w-full p-2 border rounded-md ${
                 errors.account_id ? 'border-red-500' : 'border-gray-300'
