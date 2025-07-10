@@ -4,14 +4,14 @@ import { fetchFields } from "../../../../../redux/slice/LeadFormSlice";
 import { useToast } from "../../../../common/ToastNotification";
 import { addLeads } from "../../../../../redux/slice/leadsSlice";
 
-const AddLeadModal = ({ isOpen, onClose,onChange }) => {
+const AddLeadModal = ({ isOpen, onClose, onChange }) => {
   const dispatch = useDispatch();
   const [formValues, setFormValues] = useState({});
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showSuccess, showError } = useToast();
-  const userId = useSelector((state) =>state.profile.id)
-  const role = useSelector((state) =>state.auth.role)
+  const userId = useSelector((state) => state.profile.id)
+  const role = useSelector((state) => state.auth.role)
 
   const { formfields = [] } = useSelector((state) => state.fields.field);
 
@@ -20,17 +20,18 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
     { id: "name", field_name: "Full Name", field_type: "text", is_required: true },
     { id: "email", field_name: "Email Address", field_type: "email", is_required: true },
     { id: "phone_number", field_name: "Contact Number", field_type: "tel", is_required: true },
-        {id:'source', field_name: 'Source', field_type: 'select', is_required: true,
-       options: [
-      { value: 'website', label: 'Website' },
-      { value: 'whatsapp', label: 'WhatsApp' },
-      { value: 'facebook', label: 'Facebook' },
-      { value: 'instagram', label: 'Instagram' },
-      { value: 'google_ads', label: 'Google Ads' },
-      { value: 'referral', label: 'Referral' },
-      { value: 'other', label: 'Other' }
-    ]
-     },
+    {
+      id: 'source', field_name: 'Source', field_type: 'select', is_required: true,
+      options: [
+        { value: 'website', label: 'Website' },
+        { value: 'whatsapp', label: 'WhatsApp' },
+        { value: 'facebook', label: 'Facebook' },
+        { value: 'instagram', label: 'Instagram' },
+        { value: 'google_ads', label: 'Google Ads' },
+        { value: 'referral', label: 'Referral' },
+        { value: 'other', label: 'Other' }
+      ]
+    },
     { id: "location", field_name: "Location", field_type: "text", is_required: true },
   ];
 
@@ -42,10 +43,23 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormValues(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    
+    // Special handling for phone number
+    if (name === 'phone_number') {
+      // Only allow numbers and limit to 10 digits
+      const numericValue = value.replace(/\D/g, '');
+      if (numericValue.length <= 10) {
+        setFormValues(prev => ({
+          ...prev,
+          [name]: numericValue,
+        }));
+      }
+    } else {
+      setFormValues(prev => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
 
     // Clear error when user starts typing
     if (formErrors[name]) {
@@ -66,6 +80,16 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
       if (field.id === 'email' && formValues.email && !/\S+@\S+\.\S+/.test(formValues.email)) {
         errors.email = 'Please enter a valid email address';
       }
+
+      // Phone number validation
+      if (field.id === 'phone_number' && formValues.phone_number) {
+        const phoneValue = formValues.phone_number.toString();
+        if (!/^\d+$/.test(phoneValue)) {
+          errors.phone_number = 'Phone number must contain only numbers';
+        } else if (phoneValue.length !== 10) {
+          errors.phone_number = 'Phone number must be exactly 10 digits';
+        }
+      }
     });
 
     return errors;
@@ -85,24 +109,22 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
     try {
       // Prepare form data with proper field names
       const formData = {};
-      
+
       Object.keys(formValues).forEach(key => {
         const leadField = leadFormFields.find(f => f.id === key);
         const customField = formfields.find(f => f.id.toString() === key);
-        
+
         if (leadField) {
           formData[leadField.id] = formValues[key];
         } else if (customField) {
           formData[customField.field_name] = formValues[key];
         }
       });
-      formData.employee = role !=='owner'?userId:null
-      formData.granted_by = role !=='owner'?userId:null
-      
-      
+      formData.employee = role !== 'owner' ? userId : null
+      formData.granted_by = role !== 'owner' ? userId : null
 
       dispatch(addLeads(formData))
-      
+
       setFormValues({});
       setFormErrors({});
       showSuccess("Lead information submitted successfully!");
@@ -111,7 +133,7 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
 
     } catch (error) {
       showError("Failed to submit lead information");
-      
+
     } finally {
       setIsSubmitting(false);
     }
@@ -127,9 +149,8 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
     const { id, field_name, field_type, is_required, options = [] } = field;
     const hasError = formErrors[id];
 
-    const baseClasses = `w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-      hasError ? "border-red-500" : "border-gray-300"
-    }`;
+    const baseClasses = `w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${hasError ? "border-red-500" : "border-gray-300"
+      }`;
 
     switch (field_type) {
       case "select":
@@ -189,6 +210,31 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
           </>
         );
 
+      case "tel":
+        return (
+          <>
+            <input
+              type="text"
+              id={id}
+              name={id}
+              value={formValues[id] || ""}
+              onChange={handleChange}
+              placeholder={`Enter ${field_name} (10 digits)`}
+              className={baseClasses}
+              required={is_required}
+              maxLength={10}
+              pattern="[0-9]{10}"
+              title="Please enter exactly 10 digits"
+            />
+            {hasError && <p className="mt-1 text-xs text-red-500">{hasError}</p>}
+            {id === 'phone_number' && formValues[id] && (
+              <p className="mt-1 text-xs text-gray-500">
+                {formValues[id].length}/10 digits
+              </p>
+            )}
+          </>
+        );
+
       default:
         return (
           <>
@@ -232,7 +278,7 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-opacity-50 transition-opacity"
         onClick={handleClose}
       ></div>
@@ -245,7 +291,7 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-gray-800">Lead Information</h2>
-                
+
               </div>
               <button
                 onClick={handleClose}
@@ -262,7 +308,7 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
           <div className="px-6 py-4">
             <form onSubmit={handleSubmit} className="space-y-6">
               {renderFieldGroup("Lead Form Fields", leadFormFields)}
-              
+
               {formfields.length > 0 && renderFieldGroup("Custom Fields", formfields)}
 
               {/* Footer */}
@@ -277,9 +323,8 @@ const AddLeadModal = ({ isOpen, onClose,onChange }) => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                    isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-                  }`}
+                  className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
                 >
                   {isSubmitting ? (
                     <>
