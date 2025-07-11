@@ -28,6 +28,7 @@ import { dealsUtils } from './utils/dealsUtils';
 import { EmptyState } from './components/EmptyState';
 import { deleteDealsBulk } from '../../../../../redux/slice/DealSlice';
 import { useDispatch } from 'react-redux';
+import useBulkDelete from './components/BulkDeleteHandler';
 const DealsListPage = () => {
   // Modal states
   const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +36,7 @@ const DealsListPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState(null);
+  const handleBulkDelete = useBulkDelete({ selectedDeals, refreshDeals, clearSelection });
   const dispatch = useDispatch();
 
   // Custom hooks
@@ -191,7 +193,7 @@ const handleDeleteDeal = (dealId) => {
           <BulkActions
             selectedCount={selectedDeals.length}
             onBulkEdit={() => setShowBulkEditModal(true)}
-            onBulkDelete={() => console.log('Delete selected')}
+            onBulkDelete={handleBulkDelete}
             onClearSelection={clearSelection}
           />
         )}
