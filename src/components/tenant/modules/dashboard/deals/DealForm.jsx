@@ -76,7 +76,7 @@ export default function DealModal({
 
       // Set selected account if available
       if (dealData.account) {
-        setSelectedAccount(dealData.account);
+        setSelectedAccount(dealData.account_id);
       }
     } else {
       // Reset form for adding new deal
