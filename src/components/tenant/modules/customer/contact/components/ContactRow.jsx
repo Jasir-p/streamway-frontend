@@ -25,7 +25,6 @@ const ContactRow = ({
       status: contact.status === 'active' ? 'inactive' : 'active'
     };
     dispatch(updateContact(data));
-    onChange();
     onShowActionDropdown(null);
   };
 
