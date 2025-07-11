@@ -266,36 +266,44 @@ export default function DealModal({
                     <Building className="w-4 h-4 mr-2 text-blue-500" />
                     Account <span className="text-red-500 ml-1">*</span>
                   </label>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={handleAccountDropdownToggle}
-                      className={`w-full px-3 py-2 border-2 rounded-lg transition-all duration-200 bg-gray-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm text-left flex items-center justify-between ${
-                        errors.account_id ? 'border-red-500' : 'border-gray-200'
-                      }`}
-                    >
-                      <span className={selectedAccount ? 'text-gray-900' : 'text-gray-500'}>
-                        {selectedAccount ? selectedAccount.name : 'Select Account'}
-                      </span>
-                      <svg
-                        className={`w-4 h-4 transition-transform ${isAccountDropDownOpen ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+
+                  {isEditing ? (
+                    <div className="px-3 py-2 border-2 rounded-lg bg-gray-100 text-sm text-gray-800 border-gray-200">
+                      {selectedAccount?.name || 'No account'}
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={handleAccountDropdownToggle}
+                        className={`w-full px-3 py-2 border-2 rounded-lg transition-all duration-200 bg-gray-50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-sm text-left flex items-center justify-between ${
+                          errors.account_id ? 'border-red-500' : 'border-gray-200'
+                        }`}
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    
-                    <AccountDropdown
-                      isOpen={isAccountDropDownOpen}
-                      onSelect={handleAccountSelect}
-                      onClose={handleAccountDropdownClose}
-                      selectedAccount={selectedAccount}
-                      placeholder="Select account"
-                      className="mt-1"
-                    />
-                  </div>
+                        <span className={selectedAccount ? 'text-gray-900' : 'text-gray-500'}>
+                          {selectedAccount ? selectedAccount.name : 'Select Account'}
+                        </span>
+                        <svg
+                          className={`w-4 h-4 transition-transform ${isAccountDropDownOpen ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      <AccountDropdown
+                        isOpen={isAccountDropDownOpen}
+                        onSelect={handleAccountSelect}
+                        onClose={handleAccountDropdownClose}
+                        selectedAccount={selectedAccount}
+                        placeholder="Select account"
+                        className="mt-1"
+                      />
+                    </div>
+                  )}
+
                   {errors.account_id && (
                     <p className="text-red-500 text-xs flex items-center">
                       <AlertCircle className="w-3 h-3 mr-1" />
@@ -303,6 +311,7 @@ export default function DealModal({
                     </p>
                   )}
                 </div>
+
 
                 {/* Deal Title */}
                 <div className="space-y-2">
