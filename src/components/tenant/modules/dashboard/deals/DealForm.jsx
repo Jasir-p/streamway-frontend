@@ -222,7 +222,7 @@ export default function DealModal({
       {/* Modal Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+          className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
           onClick={handleBackdropClick}
         >
           {/* Modal Content */}
@@ -231,7 +231,7 @@ export default function DealModal({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="bg-gradient-to-r  text-white p-6 relative overflow-hidden">
+            <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-6 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center gap-4">
