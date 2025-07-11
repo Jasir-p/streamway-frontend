@@ -31,6 +31,8 @@ const DealsListPage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingDeal, setEditingDeal] = useState(null);
 
   // Custom hooks
   const { 
@@ -92,7 +94,17 @@ const DealsListPage = () => {
       console.error('Bulk update failed:', error);
     }
   };
-
+  const handleEditDeal = (dealId) => {
+    const dealToEdit = deals.find(deal => deal.deal_id === dealId);
+    if (dealToEdit) {
+      setEditingDeal(dealToEdit);
+      setIsEditModalOpen(true);
+    }
+  };
+    const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingDeal(null);
+  };
   if (loading) return <DashbordLoading />;
 
   return (
@@ -161,6 +173,7 @@ const DealsListPage = () => {
               selectedDeals={selectedDeals}
               onToggleSelection={toggleDealSelection}
               onSelectAll={() => selectAllDeals(paginatedDeals)}
+              onEdit={handleEditDeal}
             />
             
             {/* Pagination */}
@@ -219,6 +232,20 @@ const DealsListPage = () => {
             role={role}
             userId={userID}
             onSuccess={refreshDeals}
+          />
+        )}
+        {isEditModalOpen && (
+          <AddDealModal
+            isOpen={isEditModalOpen}
+            onClose={handleCloseEditModal}
+            role={role}
+            userId={userID}
+            onSuccess={() => {
+              refreshDeals();
+              handleCloseEditModal();
+            }}
+            dealData={editingDeal}
+            isEditing={true}
           />
         )}
 

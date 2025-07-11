@@ -30,6 +30,10 @@ export const DealsTable = ({
     const key = status.toLowerCase();
     return icons[key] || <Clock className="w-4 h-4" />;
   };
+  const handleActionClick = (e, action, dealId) => {
+    e.stopPropagation(); // Prevent row click when clicking action buttons
+    action(dealId);
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -149,7 +153,7 @@ export const DealsTable = ({
                     <ActionButton 
                       icon={Edit3} 
                       color="green" 
-                      onClick={() => onEdit && onEdit(deal.deal_id)}
+                       onClick={(e) => handleActionClick(e, onEdit, deal.deal_id)}
                     />
                     <ActionButton 
                       icon={Trash2} 
