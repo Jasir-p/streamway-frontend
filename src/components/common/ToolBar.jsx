@@ -3,7 +3,6 @@ import { Mail, Tag, Briefcase, Share2, Archive, Trash2, Send, Move, X, ChevronDo
 import { useSelector } from 'react-redux';
 import { getUser, AssignTo,deleteLeads } from '../../Intreceptors/LeadsApi';
 import ConversionOptionsPopup from '../tenant/modules/dashboard/Leads/ConvertPopup';
-import { useToast } from './ToastNotification';
 
 
 const ToolbarButton = ({ Icon, label, onClick, isActive, disabled }) => (
@@ -118,7 +117,6 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose,onUpdateComplete }) => {
   const [assigning, setAssigning] = useState(false);
   const profile = useSelector((state) => state.profile);
   const [isConversionPopup, setshowConversionPopup]=useState(false)
-  const {showError}=useToast()
   
   const handleAction = (action) => {
 
@@ -163,45 +161,47 @@ const ExactToolbar = ({ count, leads, onUpdate, onClose,onUpdateComplete }) => {
   };
   
   const handleSelectUser = async (user) => {
-  setSelectedUser(user.id);
-  setAssignDropdownOpen(false);
+    
+    setSelectedUser(user.id);
+    setAssignDropdownOpen(false);
+    
 
-  if (leads && leads.length > 0 && user.id) {
-
-    const assignableLeads = leads.filter((lead) => lead.status !== 'converted');
-
-    if (assignableLeads.length === 0) {
-      showError("selected leads are already converted. Nothing to assign.");
+    if (leads && leads.length > 0 && user.id) {
+      const hasConvertedLead = leads.some((lead) => lead.status === 'converted');
+      if (hasConvertedLead) {
+      alert("Assignment not allowed. One or more selected leads are already converted.");
       return;
     }
+      try {
+        setAssigning(true);
+        const data = {
+          "lead_id": leads,
+          "employee": user.id,
+          "granted_by": role === "owner" ? null : profile.id
+        };
+        
+        const response = await AssignTo(data);
+        
+        if (response && (response.status === 200 || response.status === 201)) {
+          
 
-    try {
-      setAssigning(true);
-      const data = {
-        lead_id: assignableLeads.map((lead) => lead.id),
-        employee: user.id,
-        granted_by: role === "owner" ? null : profile.id,
-      };
+          if (typeof onUpdate === 'function') {
+            await onUpdate();
+          }
 
-      const response = await AssignTo(data);
-
-      if (response && (response.status === 200 || response.status === 201)) {
-        if (typeof onUpdate === "function") {
-          await onUpdate();
+          if (typeof onClose === 'function') {
+            onClose();
+          }
+        } else {
+          
         }
-
-        if (typeof onClose === "function") {
-          onClose();
-        }
+      } catch (error) {
+        
+      } finally {
+        setAssigning(false);
       }
-    } catch (error) {
-      console.error("Assignment failed:", error);
-    } finally {
-      setAssigning(false);
     }
-  }
-};
-
+  };
   
 return (
   <div className="bg-gray-100 text-black flex items-center h-14 px-4 rounded-lg w-auto relative shadow-md">
