@@ -126,7 +126,7 @@ const ContactView = () => {
     <DashboardLayout>
       <div className="bg-white rounded-lg shadow-lg p-6 max-l w-full">
         {/* Header */}
-        <ContactHeader onAddContact={contactModal.openModal} />
+        <ContactHeader onAddContact={contactModal} />
 
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">

@@ -44,6 +44,18 @@ export const addDeal = createAsyncThunk(
     }
   }
 );
+export const editDeal = createAsyncThunk(
+  'deals/editDeal',
+  async (updatedData, { rejectWithValue }) => {
+    try {
+      const response = await subdomainInterceptors.put('/api/deals/', updatedData);
+      return response.data.data; // accessing the nested 'data' key
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 
 export const updateDealsBulk = createAsyncThunk(
   'deals/updateDealsBulk',
@@ -119,6 +131,22 @@ const dealSlice = createSlice({
         state.count += 1;
       })
       .addCase(addDeal.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(editDeal.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(editDeal.fulfilled, (state, action) => {
+        state.loading = false;
+        const updatedDeal = action.payload;
+        const index = state.deals.findIndex(deal => deal.id === updatedDeal.id);
+        if (index !== -1) {
+          state.deals[index] = updatedDeal;
+        }
+      })
+      .addCase(editDeal.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

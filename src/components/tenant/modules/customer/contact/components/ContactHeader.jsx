@@ -15,7 +15,7 @@ const ContactHeader = ({ onAddContact }) => {
         </button>
         <button 
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
-          onClick={onAddContact}
+          onClick={onAddContact.openModal()}
         >
           <UserPlus size={16} />
           Add Contact

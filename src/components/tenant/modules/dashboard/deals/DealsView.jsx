@@ -71,14 +71,14 @@ const DealsListPage = () => {
   } = useDealsSelection();
 
 
-  // const {
-  //   currentPage,
-  //   setCurrentPage,
-  //   paginatedItems: paginatedDeals,
-  //   totalPages,
-  //   startIndex,
-  //   totalItems
-  // } = usePagination(filteredDeals);
+  const {
+    currentPage,
+    setCurrentPage,
+    paginatedItems: paginatedDeals,
+    totalPages,
+    startIndex,
+    totalItems
+  } = usePagination(filteredDeals);
 
   // Event handlers
   const onBulkUpdate = async (dealIds, updates) => {

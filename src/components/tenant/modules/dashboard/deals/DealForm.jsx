@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, DollarSign, Calendar, User, Building, Target, TrendingUp, X, Edit } from 'lucide-react';
-import { addDeal, updateDeal } from '../../../../../redux/slice/DealSlice';
+import { addDeal, editDeal } from '../../../../../redux/slice/DealSlice';
 import { useDispatch } from 'react-redux';
 import { AccountDropdown } from '../meetings/components/MeetingDropDown';
 
@@ -165,8 +165,8 @@ export default function DealModal({
     try {
       if (isEditing) {
         // Update existing deal
-        await dispatch(updateDeal({ 
-          id: dealData.id, 
+        await dispatch(editDeal({ 
+          deal_id: dealData.deal_id, 
           ...formData 
         }));
       } else {
