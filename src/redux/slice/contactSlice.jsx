@@ -28,7 +28,7 @@ export const updateContact = createAsyncThunk(
     async (data, { rejectWithValue }) => {
         try {
             const response = await subdomainInterceptors.patch(`/api/contact/?contact_id=${data.id}`, data);
-            return response;
+            return response.data;
         } catch (error) {
             if (error.response && error.response.data) {
                 return rejectWithValue(error.response.data);
