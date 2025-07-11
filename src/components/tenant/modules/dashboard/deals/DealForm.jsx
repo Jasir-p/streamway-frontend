@@ -75,7 +75,7 @@ export default function DealModal({
       });
 
       // Set selected account if available
-      if (dealData.account) {
+      if (dealData.account_id) {
         setSelectedAccount(dealData.account_id);
       }
     } else {
