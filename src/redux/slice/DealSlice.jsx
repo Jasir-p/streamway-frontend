@@ -49,6 +49,8 @@ export const editDeal = createAsyncThunk(
   async (updatedData, { rejectWithValue }) => {
     try {
       const response = await subdomainInterceptors.put('/api/deals/', updatedData);
+      console.log(response.data);
+      
       return response.data.data; // accessing the nested 'data' key
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
