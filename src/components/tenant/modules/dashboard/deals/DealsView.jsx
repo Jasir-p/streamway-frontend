@@ -26,7 +26,8 @@ import BulkEditModal from './BulkEditModal';
 // Utils
 import { dealsUtils } from './utils/dealsUtils';
 import { EmptyState } from './components/EmptyState';
-
+import { deleteDealsBulk } from '../../../../../redux/slice/DealSlice';
+import { useDispatch } from 'react-redux';
 const DealsListPage = () => {
   // Modal states
   const [isOpen, setIsOpen] = useState(false);
@@ -34,6 +35,7 @@ const DealsListPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState(null);
+  const dispatch = useDispatch();
 
   // Custom hooks
   const { 
@@ -95,7 +97,7 @@ const DealsListPage = () => {
       console.error('Bulk update failed:', error);
     }
   };
-  const handleDeleteDeal = (dealId) => {
+const handleDeleteDeal = (dealId) => {
   Swal.fire({
     title: 'Are you sure?',
     text: 'You won’t be able to recover this deal!',
@@ -107,19 +109,27 @@ const DealsListPage = () => {
     cancelButtonText: 'Cancel',
   }).then((result) => {
     if (result.isConfirmed) {
-      // TODO: Dispatch delete thunk here
-      console.log('Delete deal:', dealId);
-
-      Swal.fire({
-        title: 'Deleted!',
-        text: 'The deal has been deleted.',
-        icon: 'success',
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      dispatch(deleteDealsBulk([dealId])) 
+        .then(() => {
+          Swal.fire({
+            title: 'Deleted!',
+            text: 'The deal has been deleted.',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        })
+        .catch((err) => {
+          Swal.fire({
+            title: 'Error!',
+            text: 'Failed to delete the deal.',
+            icon: 'error',
+          });
+        });
     }
   });
 };
+
   const handleEditDeal = (dealId) => {
     const dealToEdit = deals.find(deal => deal.deal_id === dealId);
     if (dealToEdit) {
