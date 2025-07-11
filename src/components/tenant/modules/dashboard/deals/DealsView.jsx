@@ -3,6 +3,7 @@ import { Plus, Download, RefreshCw, Tag, DollarSign, Clock, CheckCircle } from '
 import DashboardLayout from '../../../dashboard/DashbordLayout';
 import DashbordLoading from '../../../../common/DashbordLoading';
 
+import Swal from 'sweetalert2';
 // Custom Hooks
 
 import { useDealsData } from './hooks/useDealsData';
@@ -94,6 +95,31 @@ const DealsListPage = () => {
       console.error('Bulk update failed:', error);
     }
   };
+  const handleDeleteDeal = (dealId) => {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'You won’t be able to recover this deal!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // TODO: Dispatch delete thunk here
+      console.log('Delete deal:', dealId);
+
+      Swal.fire({
+        title: 'Deleted!',
+        text: 'The deal has been deleted.',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    }
+  });
+};
   const handleEditDeal = (dealId) => {
     const dealToEdit = deals.find(deal => deal.deal_id === dealId);
     if (dealToEdit) {
@@ -174,6 +200,7 @@ const DealsListPage = () => {
               onToggleSelection={toggleDealSelection}
               onSelectAll={() => selectAllDeals(paginatedDeals)}
               onEdit={handleEditDeal}
+              onDelete={handleDeleteDeal}
             />
             
             {/* Pagination */}

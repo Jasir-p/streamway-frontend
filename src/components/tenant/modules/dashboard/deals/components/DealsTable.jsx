@@ -158,7 +158,7 @@ export const DealsTable = ({
                     <ActionButton 
                       icon={Trash2} 
                       color="red" 
-                      onClick={() => onDelete && onDelete(deal.deal_id)}
+                      onClick={() => handleActionClick(e, onDelete,deal.deal_id)}
                     />
                   </div>
                 </td>
