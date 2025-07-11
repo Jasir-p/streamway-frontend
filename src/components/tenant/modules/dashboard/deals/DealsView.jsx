@@ -118,6 +118,7 @@ const handleDeleteDeal = (dealId) => {
             timer: 1500,
             showConfirmButton: false,
           });
+          refreshDeals()
         })
         .catch((err) => {
           Swal.fire({
