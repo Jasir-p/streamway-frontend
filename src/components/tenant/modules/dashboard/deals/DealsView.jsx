@@ -36,7 +36,7 @@ const DealsListPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState(null);
-  const handleBulkDelete = useBulkDelete({ selectedDeals, refreshDeals, clearSelection });
+  
   const dispatch = useDispatch();
 
   // Custom hooks
@@ -86,7 +86,7 @@ const DealsListPage = () => {
     startIndex,
     totalItems
   } = usePagination(filteredDeals);
-
+  const handleBulkDelete = useBulkDelete({ selectedDeals, refreshDeals, clearSelection });
   // Event handlers
   const onBulkUpdate = async (dealIds, updates) => {
     try {
