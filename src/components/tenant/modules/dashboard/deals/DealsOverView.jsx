@@ -139,10 +139,7 @@ const DealViewUI = () => {
                 {getStatusIcon(deals.status)}
                 {deals.status}
               </div>
-              <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                <Edit3 className="w-4 h-4" />
-                Edit Deal
-              </button>
+              
             </div>
           </div>
         </div>
@@ -216,41 +213,6 @@ const DealViewUI = () => {
         </div>
       </div>
 
-     
-      
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <Trash2 className="w-6 h-6 text-red-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Delete Deal</h3>
-                <p className="text-gray-600">Are you sure you want to delete this deal?</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 mb-6">
-              This action cannot be undone. All deal data and associated activities will be permanently removed.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteDeal}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Delete Deal
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     
     </DashboardLayout>
   );
