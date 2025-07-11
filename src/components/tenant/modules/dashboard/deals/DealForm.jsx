@@ -222,7 +222,7 @@ export default function DealModal({
       {/* Modal Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
           onClick={handleBackdropClick}
         >
           {/* Modal Content */}
