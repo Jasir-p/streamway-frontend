@@ -53,6 +53,8 @@ export const editDeal = createAsyncThunk(
       
       return response.data.data; // accessing the nested 'data' key
     } catch (error) {
+      console.log(error);
+      
       return rejectWithValue(error.response?.data || error.message);
     }
   }
