@@ -76,6 +76,22 @@ const AddLeadModal = ({ isOpen, onClose, onChange }) => {
         errors[field.id] = `${field.field_name} is required`;
       }
 
+      if (field.id === 'name' && value) {
+        if (value.trim().length < 2) {
+          errors.name = 'Name must be at least 2 characters';
+        } else if (/^\d+$/.test(value)) {
+          errors.name = 'Name cannot be only numbers';
+        }
+    }
+
+    // Specific: Location should not be only numbers or empty
+    if (field.id === 'location' && value) {
+      if (value.trim().length < 2) {
+        errors.location = 'Location must be at least 2 characters';
+      } else if (/^\d+$/.test(value)) {
+        errors.location = 'Location cannot be only numbers';
+      }
+    }
       // Email validation
       if (field.id === 'email' && formValues.email && !/\S+@\S+\.\S+/.test(formValues.email)) {
         errors.email = 'Please enter a valid email address';
