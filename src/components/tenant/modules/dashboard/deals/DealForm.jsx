@@ -56,6 +56,8 @@ export default function DealModal({
     { value: 'closed_lost', label: 'Closed Lost' }
   ];
 
+  console.log(selectedAccount);
+  
   // Initialize form data when editing
   useEffect(() => {
     if (isEditing && dealData) {
