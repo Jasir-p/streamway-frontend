@@ -60,6 +60,21 @@ export const updateDealsBulk = createAsyncThunk(
   }
 );
 
+// Delete deals in bulk
+export const deleteDealsBulk = createAsyncThunk(
+  'deals/deleteDealsBulk',
+  async (dealIds, { rejectWithValue }) => {
+    try {
+      await subdomainInterceptors.delete('/api/deals/', {
+        data: { deal_ids: dealIds },
+      });
+      return dealIds;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const dealSlice = createSlice({
   name: 'deals',
   initialState: {
@@ -118,7 +133,23 @@ const dealSlice = createSlice({
         .addCase(updateDealsBulk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        });
+        })
+
+      .addCase(deleteDealsBulk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteDealsBulk.fulfilled, (state, action) => {
+        state.loading = false;
+        const deletedIds = action.payload;
+        state.deals = state.deals.filter(deal => !deletedIds.includes(deal.id));
+        state.count -= deletedIds.length;
+      })
+      .addCase(deleteDealsBulk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
         },
 
         });

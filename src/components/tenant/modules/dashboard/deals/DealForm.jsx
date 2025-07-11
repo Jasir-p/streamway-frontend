@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
-import { AlertCircle, DollarSign, Calendar, User, Building, Target, TrendingUp, X } from 'lucide-react';
-import { addDeal } from '../../../../../redux/slice/DealSlice';
+import React, { useState, useEffect } from 'react';
+import { AlertCircle, DollarSign, Calendar, User, Building, Target, TrendingUp, X, Edit } from 'lucide-react';
+import { addDeal, updateDeal } from '../../../../../redux/slice/DealSlice';
 import { useDispatch } from 'react-redux';
 import { AccountDropdown } from '../meetings/components/MeetingDropDown';
 
-export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
+export default function DealModal({ 
+  isOpen, 
+  onClose, 
+  userId, 
+  role, 
+  onSuccess, 
+  dealData = null, // Pass existing deal data for editing
+  isEditing = false // Flag to determine if we're editing or adding
+}) {
   
   const [formData, setFormData] = useState({
     account_id: '',
@@ -13,9 +21,10 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
     status: 'new',
     stage: '',
     expected_close_date: '',
-    owner:'',
-    created_by: role!=='owner'?userId:null,
-    priority: ''
+    owner: '',
+    created_by: role !== 'owner' ? userId : null,
+    priority: '',
+    source: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -47,6 +56,32 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
     { value: 'closed_lost', label: 'Closed Lost' }
   ];
 
+  // Initialize form data when editing
+  useEffect(() => {
+    if (isEditing && dealData) {
+      setFormData({
+        account_id: dealData.account_id || '',
+        title: dealData.title || '',
+        amount: dealData.amount || '',
+        status: dealData.status || 'new',
+        stage: dealData.stage || '',
+        expected_close_date: dealData.expected_close_date || '',
+        owner: dealData.owner || '',
+        created_by: dealData.created_by || (role !== 'owner' ? userId : null),
+        priority: dealData.priority || '',
+        source: dealData.source || ''
+      });
+
+      // Set selected account if available
+      if (dealData.account) {
+        setSelectedAccount(dealData.account);
+      }
+    } else {
+      // Reset form for adding new deal
+      resetForm();
+    }
+  }, [isEditing, dealData, userId, role]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -68,7 +103,7 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
     setFormData(prev => ({
       ...prev,
       account_id: account.id,
-      owner:account.assigned_to.id
+      owner: account.assigned_to?.id || ''
     }));
     setIsAccountDropDownOpen(false);
     
@@ -105,8 +140,8 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
       newErrors.expected_close_date = 'Expected close date is required';
     }
  
-    // Check if expected close date is in the future
-    if (formData.expected_close_date) {
+    // Check if expected close date is in the future (only for new deals)
+    if (formData.expected_close_date && !isEditing) {
       const selectedDate = new Date(formData.expected_close_date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -128,15 +163,23 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
     setIsSubmitting(true);
     
     try {
-      // Dispatch the addDeal action
-      await dispatch(addDeal(formData));
+      if (isEditing) {
+        // Update existing deal
+        await dispatch(updateDeal({ 
+          id: dealData.id, 
+          ...formData 
+        }));
+      } else {
+        // Add new deal
+        await dispatch(addDeal(formData));
+      }
       
       resetForm();
       onClose();
-      onSuccess()
+      onSuccess();
       
     } catch (error) {
-
+      console.error('Error saving deal:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -150,7 +193,8 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
       status: 'new',
       stage: '',
       expected_close_date: '',
-      created_by: role!=='owner'?userId:null,
+      owner: '',
+      created_by: role !== 'owner' ? userId : null,
       priority: '',
       source: ''
     });
@@ -161,7 +205,9 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
   const handleClose = () => {
     if (!isSubmitting) {
       onClose();
-      resetForm();
+      if (!isEditing) {
+        resetForm();
+      }
     }
   };
 
@@ -176,7 +222,7 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
       {/* Modal Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
           onClick={handleBackdropClick}
         >
           {/* Modal Content */}
@@ -190,11 +236,15 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="bg-white/10 p-3 rounded-full backdrop-blur-sm">
-                    <TrendingUp className="w-6 h-6" />
+                    {isEditing ? <Edit className="w-6 h-6" /> : <TrendingUp className="w-6 h-6" />}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold">Add New Deal</h2>
-                    <p className="text-gray-300 text-sm">Create a new sales opportunity</p>
+                    <h2 className="text-2xl font-bold">
+                      {isEditing ? 'Edit Deal' : 'Add New Deal'}
+                    </h2>
+                    <p className="text-gray-300 text-sm">
+                      {isEditing ? 'Update deal information' : 'Create a new sales opportunity'}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -398,14 +448,16 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
                 >
                   Cancel
                 </button>
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  disabled={isSubmitting}
-                  className="px-6 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-medium hover:bg-yellow-200 transition-all duration-200 disabled:opacity-50 text-sm"
-                >
-                  Reset
-                </button>
+                {!isEditing && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    disabled={isSubmitting}
+                    className="px-6 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-medium hover:bg-yellow-200 transition-all duration-200 disabled:opacity-50 text-sm"
+                  >
+                    Reset
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleSubmit}
@@ -415,10 +467,10 @@ export default function AddDealModal({isOpen,onClose,userId,role,onSuccess}) {
                   {isSubmitting ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creating...
+                      {isEditing ? 'Updating...' : 'Creating...'}
                     </div>
                   ) : (
-                    'Create Deal'
+                    isEditing ? 'Update Deal' : 'Create Deal'
                   )}
                 </button>
               </div>
