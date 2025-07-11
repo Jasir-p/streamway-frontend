@@ -30,7 +30,7 @@ export const updateContact = createAsyncThunk(
             const response = await subdomainInterceptors.patch(`/api/contact/?contact_id=${data.id}`, data);
             console.log(response.data);
             
-            return response.data;
+            return response.data.contact;;
         } catch (error) {
             if (error.response && error.response.data) {
                 return rejectWithValue(error.response.data);
@@ -96,7 +96,7 @@ const contactSlice = createSlice({
             })
             .addCase(updateContact.fulfilled, (state, action) => {
                 state.loading = false;
-                const updatedContact = action.payload.contact;
+                const updatedContact = action.payload;
                 const index = state.contacts.findIndex(contact => contact.id === updatedContact.id);
                 if (index !== -1) {
                     state.contacts[index] = updatedContact;
