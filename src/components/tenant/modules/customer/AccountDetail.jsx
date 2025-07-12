@@ -99,30 +99,30 @@ export default function AccountDetail() {
     
   };
   
-  const addCustomField = () => {
-    if (newFieldName.trim() === '') return;
-    
-    const newField = {
-      key: newFieldName,
-      value: newFieldValue
-    };
-    addCustomFields(account_id, newField);
+const addCustomField = async () => {
+  if (newFieldName.trim() === '') return;
 
-    setNewFieldName('');
-    setNewFieldValue('');
-    setShowCustomFieldModal(false);
-    setChange(!change);
+  const newField = {
+    key: newFieldName,
+    value: newFieldValue,
   };
+
+  await addCustomFields(account_id, newField);
+
+  setNewFieldName('');
+  setNewFieldValue('');
+  setShowCustomFieldModal(false);
+  setChange((prev) => !prev); 
+};
+
   
 
-  const deleteCustomField = (key) => {
-    const data = {
-      key: key
-    };
-    deleteCustomFields(account_id, data);
-    setChange(!change); 
-  };
-  
+const deleteCustomField = async (key) => {
+  const data = { key: key };
+  await deleteCustomFields(account_id, data); 
+  setChange((prev) => !prev); 
+};
+
 
   const startEditingField = (key, value) => {
     setEditingField({
@@ -135,13 +135,12 @@ export default function AccountDetail() {
   
   
   // Function to save edited field
-  const saveEditedField = () => {
+  const saveEditedField =async () => {
     if (!editingField) return;
     
-    addCustomFields(account_id, editingField);
-    
-    setEditingField(null);
-    setChange(!change); // Toggle change to trigger re-fetch
+    await addCustomFields(account_id, editingField);
+      setEditingField(null);
+      setChange((prev) => !prev); 
   };
   
   
@@ -302,13 +301,7 @@ export default function AccountDetail() {
                     <a href={`tel:${accounts?.phone_number || account.phone}`} className="mt-1 text-sm text-blue-600 hover:text-blue-800">{accounts?.phone_number || account.phone}</a>
                   </div>
                   
-                  <div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Globe className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                      <span>Website:</span>
-                    </div>
-                    <a href={account.website} target="_blank" rel="noopener noreferrer" className="mt-1 text-sm text-blue-600 hover:text-blue-800">{account.website}</a>
-                  </div>
+                  
                   
                   <div>
                     <div className="flex items-center text-sm text-gray-500">
@@ -316,14 +309,6 @@ export default function AccountDetail() {
                       <span>Address:</span>
                     </div>
                     <p className="mt-1 text-sm text-gray-900">{accounts?.address}</p>
-                  </div>
-                  
-                  <div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Building className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                      <span>Industry:</span>
-                    </div>
-                    <p className="mt-1 text-sm text-gray-900">{account.industry}</p>
                   </div>
                   
                   {/* Custom Fields Section */}
