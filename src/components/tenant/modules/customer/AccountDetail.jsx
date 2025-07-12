@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '../../dashboard/DashbordLayout';
 import { useParams } from 'react-router-dom';
-import { fetchAccountByID, updateAccount } from '../../../../Intreceptors/CustomerApi';
+import { fetchAccountByID } from '../../../../Intreceptors/CustomerApi';
 import CustomFieldModal from './CustomeField';
 import { addCustomFields, deleteCustomFields, AddNote } from '../../../../Intreceptors/CustomerApi';
 import { useSelector } from 'react-redux';
@@ -168,39 +168,39 @@ export default function AccountDetail() {
   };
 
   const saveAccountField = async () => {
-    if (!editingAccountField) return;
+    // if (!editingAccountField) return;
     
-    const fieldErrors = validateField(editingAccountField, accountFormData[editingAccountField]);
+    // const fieldErrors = validateField(editingAccountField, accountFormData[editingAccountField]);
     
-    if (Object.keys(fieldErrors).length > 0) {
-      setValidationErrors(fieldErrors);
-      return;
-    }
+    // if (Object.keys(fieldErrors).length > 0) {
+    //   setValidationErrors(fieldErrors);
+    //   return;
+    // }
     
-    setIsUpdating(true);
+    // setIsUpdating(true);
     
-    try {
-      const updateData = {
-        [editingAccountField]: accountFormData[editingAccountField]
-      };
+    // try {
+    //   const updateData = {
+    //     [editingAccountField]: accountFormData[editingAccountField]
+    //   };
       
-      await updateAccount(account_id, updateData);
+    //   await updateAccount(account_id, updateData);
       
-      setEditingAccountField(null);
-      setValidationErrors({});
-      setChange(prev => !prev);
+    //   setEditingAccountField(null);
+    //   setValidationErrors({});
+    //   setChange(prev => !prev);
       
-      // Success message could be shown here
-      console.log('Account updated successfully');
+    //   // Success message could be shown here
+    //   console.log('Account updated successfully');
       
-    } catch (error) {
-      console.error('Error updating account:', error);
-      setValidationErrors({
-        [editingAccountField]: 'Failed to update. Please try again.'
-      });
-    } finally {
-      setIsUpdating(false);
-    }
+    // } catch (error) {
+    //   console.error('Error updating account:', error);
+    //   setValidationErrors({
+    //     [editingAccountField]: 'Failed to update. Please try again.'
+    //   });
+    // } finally {
+    //   setIsUpdating(false);
+    // }
   };
 
   const [error, setError] = useState('');
