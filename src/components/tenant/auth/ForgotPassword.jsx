@@ -1,50 +1,48 @@
 import { useState } from 'react';
+import { useToast } from '../../common/ToastNotification';
+import defaultInterceptor from '../../../Intreceptors/defaultInterceptors';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const {showError,showSuccess}=useToast()
+  
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!email) return;
-    
-    setIsLoading(true);
-    // Simulate API call
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    showError("Please enter a valid email address");
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const response = await defaultInterceptor.post('/forgot-password/', {
+      email,
+    });
     setTimeout(() => {
       setIsLoading(false);
       setIsSubmitted(true);
+      showSuccess("Otp will be sented to your email");
     }, 1500);
-  };
+  } catch (error) {
+    setIsLoading(false);
+    showError("Invalid user");
+    console.error("Forgot password error:", error);
+  }
+};
+
 
   const resetForm = () => {
     setIsSubmitted(false);
     setEmail('');
   };
 
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h2>
-          <p className="text-gray-600 text-sm mb-6">
-            We've sent a password reset link to <span className="font-medium text-gray-800">{email}</span>
-          </p>
-          <button 
-            onClick={resetForm}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium"
-          >
-            Back to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
