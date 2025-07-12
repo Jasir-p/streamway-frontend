@@ -20,6 +20,7 @@ import TenantBillingInvoices from "./components/owner/tenants/billing/BillingInv
 import TenantAnalytics from "./components/owner/analytics/AdminAnalytics";
 import ActiveLogs from "./components/owner/activelogs/ActiveLogs";
 import ForgotPassword from "./components/tenant/auth/ForgotPassword";
+import ForgotOTPVerification from "./components/tenant/auth/ForgotOtp";
 
 
 
@@ -38,6 +39,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/otp" element={<OtpPage />} />
         <Route path="/forgotpassword" element={<ForgotPassword/>}/>
+        <Route path="/forgototp" element={<ForgotOTPVerification/>}/>
         
 
         {/*  Admin Routes */}

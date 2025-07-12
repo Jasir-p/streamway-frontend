@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useToast } from '../../common/ToastNotification';
 import defaultInterceptor from '../../../Intreceptors/defaultInterceptors';
+import { useNavigate } from 'react-router-dom';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const {showError,showSuccess}=useToast()
+  const navigate = useNavigate();
   
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -20,21 +22,24 @@ const handleSubmit = async (e) => {
 
   setIsLoading(true);
 
-  try {
-    const response = await defaultInterceptor.post('/forgot_password/', {
-      email,
-    });
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsSubmitted(true);
-      showSuccess("Otp will be sented to your email");
-    }, 1500);
-  } catch (error) {
-    setIsLoading(false);
-    showError("Invalid user");
-    console.error("Forgot password error:", error);
-  }
-};
+try {
+  const response = await defaultInterceptor.post('/forgot_password/', {
+    email,
+  });
+
+  setIsLoading(false);
+  setIsSubmitted(true);
+  localStorage.setItem("emailforgot", email);
+  showSuccess("OTP has been sent to your email.");
+  navigate('/forgototp');
+
+} catch (error) {
+  setIsLoading(false);
+  showError("Invalid user.");
+  console.error("Forgot password error:", error);
+}
+}
+
 
 
   const resetForm = () => {
