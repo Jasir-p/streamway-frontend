@@ -196,7 +196,7 @@ const onSubmit = async (data) => {
                 </label>
               </div>
 
-              <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+              <a href={()=>navigate("/forgotpasswrod")} className="text-sm font-medium text-blue-600 hover:text-blue-500">
                 Forgot password?
               </a>
             </div>
