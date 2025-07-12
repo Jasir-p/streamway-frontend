@@ -37,7 +37,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/otp" element={<OtpPage />} />
-        <Route path="/forgotpasswrod" element={<ForgotPassword/>}/>
+        <Route path="/forgotpassword" element={<ForgotPassword/>}/>
         
 
         {/*  Admin Routes */}
