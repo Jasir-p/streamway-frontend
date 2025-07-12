@@ -21,7 +21,7 @@ const handleSubmit = async (e) => {
   setIsLoading(true);
 
   try {
-    const response = await defaultInterceptor.post('/forgot-password/', {
+    const response = await defaultInterceptor.post('/forgot_password/', {
       email,
     });
     setTimeout(() => {
