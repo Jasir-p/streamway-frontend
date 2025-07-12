@@ -196,9 +196,16 @@ const onSubmit = async (data) => {
                 </label>
               </div>
 
-              <a href={()=>navigate("/forgotpasswrod")} className="text-sm font-medium text-blue-600 hover:text-blue-500">
-                Forgot password?
-              </a>
+            <a
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/forgotpassword");
+                  }}
+                  href="/forgotpassword" 
+                  className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                >
+                  Forgot Password?
+            </a>
             </div>
 
             <button
