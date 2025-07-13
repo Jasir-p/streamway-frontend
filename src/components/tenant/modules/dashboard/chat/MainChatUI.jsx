@@ -95,84 +95,140 @@ export default function ChatUI() {
 
   // Stable message handler - avoid dependencies that change frequently
   const handleMessage = useCallback((data) => {
-    if (isUnmountedRef.current) return;
-    
-    try {
-      switch(data.type) {
-        case 'chat':
-        case 'message':
-          if (data.message) {
-            setMessages(prev => {
-              const messageExists = prev.some(msg => 
-                msg.id === data.message.id || 
-                (msg.content === data.message.content && 
-                 msg.sender === data.message.sender && 
-                 Math.abs(new Date(msg.timestamp) - new Date(data.message.timestamp)) < 1000)
-              );
-              
-              if (!messageExists) {
-                return [...prev, data.message];
-              }
-              return prev;
-            });
+  if (isUnmountedRef.current) return;
+  
+  console.log('Received WebSocket message:', data); // Debug logging
+  
+  try {
+    switch(data.type) {
+      case 'chat':
+      case 'message':
+        if (data.message) {
+          setMessages(prev => {
+            const messageExists = prev.some(msg => 
+              msg.id === data.message.id || 
+              (msg.content === data.message.content && 
+               msg.sender === data.message.sender && 
+               Math.abs(new Date(msg.timestamp) - new Date(data.message.timestamp)) < 1000)
+            );
+            
+            if (!messageExists) {
+              return [...prev, data.message];
+            }
+            return prev;
+          });
+        }
+        break;
+        
+      case 'group_created':
+        console.log('Group created:', data);
+        
+        // Immediate fetch to get updated group list
+        fetchChats(true);
+        
+        // Set the newly created group as active if it exists
+        if (data.group) {
+          setActiveChat(data.group);
+          fetchMessages(data.group.id);
+        }
+        
+        setShowCreateGroupModal(false);
+        break;
+        
+      case 'group_deleted':
+        console.log('Group deleted:', data);
+        
+        const deletedGroupId = data.group_id;
+        
+        // Remove from group list immediately
+        setGroupChats(prev => prev.filter(group => group.id !== deletedGroupId));
+        
+        // Clear active chat if it was the deleted group
+        setActiveChat(current => {
+          if (current && current.id === deletedGroupId) {
+            setMessages([]);
+            return null;
           }
-          break;
-          
-        case 'GROUP_CREATED':
-        case 'group_created':
-          // Use setTimeout to avoid immediate refetch during message handling
-          setTimeout(() => {
-            if (!isUnmountedRef.current) {
-              fetchChats(true);
-            }
-          }, 100);
-          
-          if (data.group) {
-            setActiveChat(data.group);
+          return current;
+        });
+        
+        // Fetch updated list
+        setTimeout(() => {
+          if (!isUnmountedRef.current) {
+            fetchChats(true);
           }
-          setShowCreateGroupModal(false);
-          break;
+        }, 100);
+        break;
+        
+      case 'user_added':
+        console.log('User added:', data);
+        
+        // Update group list immediately if we have group data
+        if (data.group_data) {
+          setGroupChats(prev => 
+            prev.map(group => 
+              group.id === data.group_id ? data.group_data : group
+            )
+          );
           
-        case 'group_updated':
-        case 'user_added':
-        case 'USER_ADDED':
-        case 'user_removed':
-        case 'USER_REMOVED':
-          // Debounced refetch for group updates
-          setTimeout(() => {
-            if (!isUnmountedRef.current) {
-              fetchChats(true);
-            }
-          }, 500);
-          break;
-          
-        case 'group_deleted':
-        case 'GROUP_DELETED':
-          setTimeout(() => {
-            if (!isUnmountedRef.current) {
-              fetchChats(true);
-            }
-          }, 100);
-          
-          const deletedGroupId = data.group_id || data.groupId;
+          // Update active chat if it's the same group
           setActiveChat(current => {
-            if (current && current.id === deletedGroupId) {
-              setMessages([]);
-              return null;
+            if (current && current.id === data.group_id) {
+              return data.group_data;
             }
             return current;
           });
-          break;
+        }
+        
+        // Fetch updated list as backup
+        setTimeout(() => {
+          if (!isUnmountedRef.current) {
+            fetchChats(true);
+          }
+        }, 500);
+        break;
+        
+      case 'user_removed':
+        console.log('User removed:', data);
+        
+        // Update group list immediately if we have group data
+        if (data.group_data) {
+          setGroupChats(prev => 
+            prev.map(group => 
+              group.id === data.group_id ? data.group_data : group
+            )
+          );
           
-        case 'error':
-          console.error('WebSocket error:', data);
-          setConnectionError(data.message || 'Unknown error occurred');
-          break;
-      }
-    } catch (error) {
-      console.error('Error handling message:', error);
+          // Update active chat if it's the same group
+          setActiveChat(current => {
+            if (current && current.id === data.group_id) {
+              return data.group_data;
+            }
+            return current;
+          });
+        }
+        
+        // Fetch updated list as backup
+        setTimeout(() => {
+          if (!isUnmountedRef.current) {
+            fetchChats(true);
+          }
+        }, 500);
+        break;
+        
+      case 'error':
+        console.error('WebSocket error:', data);
+        setConnectionError(data.message || 'Unknown error occurred');
+        break;
+        
+      default:
+        console.log('Unknown message type:', data.type);
     }
-  }, [fetchChats]);
+  } catch (error) {
+    console.error('Error handling message:', error);
+  }
+}, [fetchChats, fetchMessages]);
+
 
   // Stable connection handler with reconnection limits
   const handleConnection = useCallback((event) => {
