@@ -140,7 +140,7 @@ export default function ChatUI() {
         case 'user_added':
           console.log('User added to group:', data);
           fetchChats();
-          // Update current active chat if it's the affected group
+          
           setActiveChat(prevChat => {
             if (prevChat && prevChat.id === data.group_id) {
               fetchMessages(data.group_id);

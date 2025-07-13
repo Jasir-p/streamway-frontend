@@ -1,6 +1,7 @@
 // components/chat/GroupChat.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Settings, UserPlus, UserMinus, Trash2, X, Send, Paperclip, Smile } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 
 const GroupChat = ({ 
@@ -67,14 +68,36 @@ const GroupChat = ({
     }
   };
 
-  const handleDeleteGroup = () => {
-    if (chat && window.confirm(`Are you sure you want to delete "${chat.room_name}"?`)) {
-      
-      
-      onDeleteGroup(chat.id);
-      setShowManageModal(false);
-    }
-  };
+
+
+const handleDeleteGroup = async () => {
+  if (!chat) return;
+
+  const result = await Swal.fire({
+    title: `Delete "${chat.room_name}"?`,
+    text: "This action cannot be undone.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e3342f',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  });
+
+  if (result.isConfirmed) {
+    onDeleteGroup(chat.id);
+    setShowManageModal(false);
+
+    Swal.fire({
+      title: 'Deleted!',
+      text: `"${chat.room_name}" has been deleted.`,
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  }
+};
+
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -112,22 +135,7 @@ const GroupChat = ({
     }
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file && chat) {
-      // Handle file upload logic here
-      const messageData = {
-        chatId: chat.id,
-        type: 'file',
-        file: file,
-        timestamp: new Date().toISOString(),
-        senderId: currentUser?.id || 'current_user',
-        senderName: currentUser?.name || 'You'
-      };
-      
-      onSendMessage(messageData);
-    }
-  };
+
 
   const handleChatSelect = (chatItem) => {
     onSelectChat(chatItem);
