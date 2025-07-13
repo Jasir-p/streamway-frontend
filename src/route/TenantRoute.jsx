@@ -72,7 +72,9 @@ const TenantRouter = () => {
       <Route path="dashboard/Notification" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
       <Route path="dashboard/analytics" element={<ProtectedRoute><CRMAnalytics /></ProtectedRoute>} />
       <Route path="signin" element={<SubdomainCaptureRoute><LoginEmoloye /></SubdomainCaptureRoute>} />
-        <Route path="Streamway/form" element={<SubdomainCaptureRoute><EnquireyForm /></SubdomainCaptureRoute>} />
+      <Route path="Streamway/form" element={<SubdomainCaptureRoute><EnquireyForm /></SubdomainCaptureRoute>} />
+      <Route path="/forgotsetemployee" element={<SubdomainCaptureRoute><ForgotPassword/></SubdomainCaptureRoute>}/>
+      <Route path="/forgototpemployee" element={<SubdomainCaptureRoute><ForgotOTPVerification/></SubdomainCaptureRoute>}/>
 
  
       <Route path="*" element={<NotFoundPage />} />

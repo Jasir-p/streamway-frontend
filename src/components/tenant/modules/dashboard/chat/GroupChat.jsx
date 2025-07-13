@@ -322,11 +322,9 @@ const handleDeleteGroup = async () => {
         <div className="border-b border-gray-200 p-4 bg-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <img 
-                src="/api/placeholder/40/40" 
-                alt={chat.room_name} 
-                className="w-10 h-10 rounded-full bg-gray-200 mr-3" 
-              />
+              <span className="text-white font-medium text-sm">
+                            {chat.room_name?.charAt(0)?.toUpperCase() || 'G'}
+                          </span>
               <div>
                 <h3 className="font-medium">{chat.room_name}</h3>
                 <p className="text-sm text-gray-500">

@@ -60,19 +60,16 @@ export default function ChatUI() {
     
     const now = Date.now();
     if (!forceUpdate && now - lastFetchRef.current < 1000) {
-      console.log('Skipping fetchChats - too soon since last fetch');
-      return;
+            return;
     }
     lastFetchRef.current = now;
     
     try {
-      console.log('Fetching chats...');
-      const groups = await GroupChatPersonal(role === 'owner' ? null : userID);
+            const groups = await GroupChatPersonal(role === 'owner' ? null : userID);
       
       if (isUnmountedRef.current) return;
       
-      console.log('Fetched groups:', groups);
-      setGroupChats(groups || []);
+            setGroupChats(groups || []);
       
       // Fetch available users for group management only if we don't have them
       if (availableUsers.length === 0 || forceUpdate) {
@@ -85,11 +82,9 @@ export default function ChatUI() {
       if (forceUpdate && activeChat) {
         const updatedChat = groups?.find(g => g.id === activeChat.id);
         if (updatedChat) {
-          console.log('Updating active chat with new data:', updatedChat);
-          setActiveChat(updatedChat);
+                    setActiveChat(updatedChat);
         } else {
-          console.log('Active chat was deleted');
-          setMessages([]);
+                    setMessages([]);
           setActiveChat(null);
         }
       } else if (!activeChat && groups?.length > 0) {
@@ -107,8 +102,7 @@ export default function ChatUI() {
     if (isUnmountedRef.current || !chatId) return;
     
     try {
-      console.log('Fetching messages for chat:', chatId);
-      const data = await fetchGroupMessage(chatId);
+            const data = await fetchGroupMessage(chatId);
       
       if (isUnmountedRef.current) return;
       setMessages(Array.isArray(data) ? data : []);
@@ -125,8 +119,7 @@ export default function ChatUI() {
     if (isUnmountedRef.current) return;
     
     try {
-      console.log('Received WebSocket message:', data);
-      
+            
       switch(data.type) {
         case 'chat':
         case 'message':
@@ -149,8 +142,7 @@ export default function ChatUI() {
           
         case 'GROUP_CREATED':
         case 'group_created':
-          console.log('Group created:', data);
-          setShowCreateGroupModal(false);
+                    setShowCreateGroupModal(false);
           // Delay the fetch to ensure server has processed the creation
           setTimeout(() => {
             fetchChats(true);
@@ -164,8 +156,7 @@ export default function ChatUI() {
         case 'group_updated':
         case 'user_added':
         case 'user_removed':
-          console.log('Group updated:', data);
-          // Delay the fetch to ensure server has processed the update
+                    // Delay the fetch to ensure server has processed the update
           setTimeout(() => {
             fetchChats(true);
             if (activeChat && activeChat.id === data.group_id) {
@@ -175,8 +166,7 @@ export default function ChatUI() {
           break;
           
         case 'group_deleted':
-          console.log('Group deleted:', data);
-          if (activeChat && activeChat.id === data.group_id) {
+                    if (activeChat && activeChat.id === data.group_id) {
             setActiveChat(null);
             setMessages([]);
           }
@@ -189,8 +179,7 @@ export default function ChatUI() {
           break;
           
         default:
-          console.log('Unknown message type:', data.type);
-      }
+                }
     } catch (error) {
       console.error('Error handling message:', error);
     }
@@ -202,14 +191,12 @@ export default function ChatUI() {
     
     switch(event.type) {
       case 'connected':
-        console.log('Connected to WebSocket');
-        connectionAttemptsRef.current = 0;
+                connectionAttemptsRef.current = 0;
         setConnectionError(null);
         break;
         
       case 'disconnected':
-        console.log('Disconnected from WebSocket');
-        
+                
         // Clear any existing reconnect timeout
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
@@ -254,8 +241,7 @@ export default function ChatUI() {
   // Initial WebSocket connection - only run once when userData changes
   useEffect(() => {
     if (userData.token && userData.subdomain && !isUnmountedRef.current) {
-      console.log('Establishing WebSocket connection...');
-      connect(null, userData.token, userData.subdomain, 'chat');
+            connect(null, userData.token, userData.subdomain, 'chat');
     }
   }, [userData.token, userData.subdomain, connect]);
 
@@ -264,8 +250,7 @@ export default function ChatUI() {
     if (!activeChat || !isConnected || !userData.token || !userData.subdomain) return;
     
     if (activeChat.id !== currentRoomId && !isUnmountedRef.current) {
-      console.log('Switching to room:', activeChat.id);
-      
+            
       // Clear any existing timeout
       const timeoutId = setTimeout(() => {
         if (!isUnmountedRef.current) {
@@ -316,8 +301,7 @@ export default function ChatUI() {
       timestamp: new Date().toISOString()
     };
 
-    console.log('Sending message:', messageData);
-    const success = sendMessage(messageData);
+        const success = sendMessage(messageData);
     
     if (!success) {
       setConnectionError('Failed to send message');
@@ -329,16 +313,14 @@ export default function ChatUI() {
   const selectChat = useCallback((chat) => {
     if (activeChat?.id === chat.id) return;
     
-    console.log('Selecting chat:', chat);
-    setActiveChat(chat);
+        setActiveChat(chat);
     fetchMessages(chat.id);
   }, [activeChat?.id, fetchMessages]);
 
   // Group management functions with better error handling
   const handleCreateGroup = useCallback(async (groupData) => {
     try {
-      console.log('Creating group:', groupData);
-      
+            
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot create group.');
         return false;
@@ -358,8 +340,7 @@ export default function ChatUI() {
       const success = sendMessage(sendGroupData);
       
       if (success) {
-        console.log('Group creation message sent successfully');
-        setConnectionError(null);
+                setConnectionError(null);
       } else {
         setConnectionError('Failed to send group creation message');
       }
@@ -375,8 +356,7 @@ export default function ChatUI() {
 
   const handleDeleteGroup = useCallback(async (groupId) => {
     try {
-      console.log('Deleting group:', groupId);
-      
+            
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot delete group.');
         return false;
@@ -390,8 +370,7 @@ export default function ChatUI() {
       const success = sendMessage(deleteGroupData);
       
       if (success) {
-        console.log('Group deletion message sent successfully');
-        setConnectionError(null);
+                setConnectionError(null);
       } else {
         setConnectionError('Failed to delete group');
       }
@@ -407,8 +386,7 @@ export default function ChatUI() {
 
   const handleAddUser = useCallback(async (groupId, userId) => {
     try {
-      console.log('Adding user to group:', { groupId, userId });
-      
+            
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot add user.');
         return false;
@@ -423,8 +401,7 @@ export default function ChatUI() {
       const success = sendMessage(addUserData);
       
       if (success) {
-        console.log('Add user message sent successfully');
-        setConnectionError(null);
+                setConnectionError(null);
       } else {
         setConnectionError('Failed to add user to group');
       }
@@ -440,8 +417,7 @@ export default function ChatUI() {
 
   const handleRemoveUser = useCallback(async (groupId, userId) => {
     try {
-      console.log('Removing user from group:', { groupId, userId });
-      
+            
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot remove user.');
         return false;
@@ -456,8 +432,7 @@ export default function ChatUI() {
       const success = sendMessage(removeUserData);
       
       if (success) {
-        console.log('Remove user message sent successfully');
-        setConnectionError(null);
+                setConnectionError(null);
       } else {
         setConnectionError('Failed to remove user from group');
       }
@@ -486,8 +461,7 @@ export default function ChatUI() {
   }, []);
 
   const handleManualRefresh = useCallback(() => {
-    console.log('Manual refresh triggered');
-    fetchChats(true);
+        fetchChats(true);
   }, [fetchChats]);
 
   return (
