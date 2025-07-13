@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import defaultInterceptor from '../../../Intreceptors/defaultInterceptors';
 import { useToast } from '../../common/ToastNotification';
-import defaultInterceptor from '../../../Intreceptors/defaultInterceptors';
+import subdomainInterceptors from '../../../Intreceptors/getSubdomainInterceptors';
 
 export default function ForgotOTPVerification() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
