@@ -1,7 +1,8 @@
 // components/chat/PersonalChat.jsx
 import React from 'react';
+import { getUser } from '../../../../../Intreceptors/LeadsApi';
 
-const PersonalChat = ({ personalChats, activeChat, onSelectChat }) => {
+const PersonalChat = ({ personalChats, activeChat, onSelectChat,users }) => {
   return (
     <div className="overflow-y-auto h-full pb-20">
       {personalChats?.length > 0 ? (

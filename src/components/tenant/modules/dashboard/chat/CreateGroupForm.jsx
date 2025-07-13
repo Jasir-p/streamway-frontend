@@ -88,67 +88,7 @@ const CreateGroupPage = ({
                 </p>
               </div>
 
-              {/* Members Section */}
-              {availableUsers && availableUsers.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Add Members (Optional)
-                  </label>
-                  
-                  {selectedUsers.length > 0 && (
-                    <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Check size={16} className="text-blue-600" />
-                        <span className="text-sm font-medium text-blue-900">
-                          {selectedUsers.length} member{selectedUsers.length !== 1 ? 's' : ''} selected
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-80 overflow-y-auto">
-                    {availableUsers.map((user) => (
-                      <div 
-                        key={user.id}
-                        className="p-4 hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <input
-                            type="checkbox"
-                            id={`user-${user.id}`}
-                            checked={selectedUsers.includes(user.id)}
-                            onChange={() => toggleUserSelection(user.id)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <div className="flex items-center space-x-3 flex-1">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-medium text-white">
-                                {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                              </span>
-                            </div>
-                            <div className="flex-1">
-                              <label 
-                                htmlFor={`user-${user.id}`}
-                                className="text-sm font-medium text-gray-900 cursor-pointer block"
-                              >
-                                {user.name}
-                              </label>
-                              {user.email && (
-                                <p className="text-xs text-gray-500">{user.email}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <p className="text-sm text-gray-500 mt-2">
-                    You can add more members later from the group settings
-                  </p>
-                </div>
-              )}
-
+              
               {/* Action Buttons */}
               <div className="flex space-x-3 pt-6 border-t border-gray-200">
                 <button
