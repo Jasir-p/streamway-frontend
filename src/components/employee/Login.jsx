@@ -142,8 +142,15 @@ const Login = () => {
               </label>
             </div>
 
-            <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-              Forgot password?
+            <a
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(`/${subdomain}/forgotsetemployee`);
+                  }}
+                  
+                  className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                >
+                  Forgot Password?
             </a>
           </div>
 

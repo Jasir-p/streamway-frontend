@@ -36,6 +36,8 @@ import NotFoundPage from "../components/common/NotFoundPage";
 import SubdomainCaptureRoute from "../components/tenant/routes/CheckRoute";
 import LoginEmoloye from "../pages/tenant/auth/LoginEmoloye";
 import PendingRoute from "../components/tenant/routes/PendingRoute";
+import ForgotOTPVerification from "../components/tenant/auth/ForgotOtp";
+import ForgotPassword from "../components/tenant/auth/ForgotPassword";
 
 
 const TenantRouter = () => {

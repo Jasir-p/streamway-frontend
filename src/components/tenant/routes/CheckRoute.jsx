@@ -11,6 +11,7 @@ const SubdomainCaptureRoute = ({ children }) => {
 
     if (subdomain && /^[a-zA-Z0-9_-]+$/.test(subdomain)) {
       localStorage.setItem("subdomain", subdomain);
+      localStorage.setItem("isEmployee","true")
     }
   }, [location]);
 

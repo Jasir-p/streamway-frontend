@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import defaultInterceptor from '../../../Intreceptors/defaultInterceptors';
 import { useToast } from '../../common/ToastNotification';
+import defaultInterceptor from '../../../Intreceptors/defaultInterceptors';
 
 export default function ForgotOTPVerification() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -9,6 +10,10 @@ export default function ForgotOTPVerification() {
   const [error, setError] = useState('');
   const email = localStorage.getItem("emailforgot")
   const {showSuccess}= useToast()
+  const isEmployee = localStorage.getItem("isEmployee") === "true";
+  const subdomain = localStorage.getItem("subdomain");
+  const interceptor = isEmployee ? subdomainInterceptors : defaultInterceptor;
+
 
   const inputRefs = useRef([]);
   const navigate = useNavigate();
@@ -57,14 +62,18 @@ export default function ForgotOTPVerification() {
     setError('');
 
     try {
-      const response = await defaultInterceptor.post('/forgot_password_verify_otp/', {
+      const response = await interceptor.post('/forgot_password_verify_otp/', {
         email,
         otp: otpString,
       });
 
       if (response.status === 200) {
         showSuccess("Password send to your email address")
+      if (isEmployee) {
+        navigate(`/${subdomain}/signin`);
+    } else {
         navigate('/login');
+    }
       }
     } catch (err) {
       setError('Invalid OTP. Please try again.');
