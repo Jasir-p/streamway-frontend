@@ -1,5 +1,5 @@
 // components/chat/ChatUI.jsx
-import React, { useState, useEffect, useCallback,useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, User, Plus } from 'lucide-react';
 import DashboardLayout from '../../../dashboard/DashbordLayout';
 import { useSelector } from 'react-redux';
@@ -22,6 +22,7 @@ export default function ChatUI() {
   // Use refs to store stable references
   const reconnectTimeoutRef = useRef(null);
   const isUnmountedRef = useRef(false);
+  const lastFetchTimeRef = useRef(0);
   
   const userID = useSelector((state) => state.profile.id);
   const role = useSelector((state) => state.auth.role);
@@ -44,16 +45,32 @@ export default function ChatUI() {
     getConnectionStatus
   } = useWebSocket();
 
-  // Stable function references using useCallback with proper dependencies
-  const fetchChats = useCallback(async () => {
+  // Debounced fetch function to prevent multiple rapid calls
+  const fetchChats = useCallback(async (force = false) => {
     if (isUnmountedRef.current) return;
     
+    const now = Date.now();
+    if (!force && now - lastFetchTimeRef.current < 1000) {
+      console.log('Skipping fetch - too soon');
+      return;
+    }
+    
+    lastFetchTimeRef.current = now;
+    
     try {
+      console.log('Fetching chats...');
       const groups = await GroupChatPersonal(role === 'owner' ? null : userID);
       
       if (isUnmountedRef.current) return;
       
-      setGroupChats(groups || []);
+      setGroupChats(prevGroups => {
+        // Check if groups actually changed to avoid unnecessary updates
+        const groupsChanged = JSON.stringify(prevGroups) !== JSON.stringify(groups);
+        if (groupsChanged) {
+          console.log('Groups updated:', groups);
+        }
+        return groups || [];
+      });
       
       // Fetch available users for group management
       const users = await getUser(role === 'owner' ? role : userID);
@@ -61,18 +78,32 @@ export default function ChatUI() {
       
       setAvailableUsers(users || []);
       
-      // Set active chat to first group chat if available and no current active chat
-      if (groups?.length > 0) {
-        setActiveChat(prevActiveChat => {
-          if (!prevActiveChat) {
-            const firstChat = groups[0];
-            // Fetch messages for first chat
-            fetchMessages(firstChat.id);
-            return firstChat;
+      // Update active chat if it exists in the new groups
+      setActiveChat(prevActiveChat => {
+        if (prevActiveChat && groups) {
+          const updatedActiveChat = groups.find(g => g.id === prevActiveChat.id);
+          if (updatedActiveChat) {
+            // Check if participants changed
+            const participantsChanged = JSON.stringify(prevActiveChat.participents) !== JSON.stringify(updatedActiveChat.participents);
+            if (participantsChanged) {
+              console.log('Active chat participants updated');
+            }
+            return updatedActiveChat;
+          } else {
+            // Active chat was deleted
+            console.log('Active chat was deleted');
+            setMessages([]);
+            return null;
           }
-          return prevActiveChat;
-        });
-      }
+        } else if (!prevActiveChat && groups?.length > 0) {
+          // Set first group as active if no active chat
+          const firstChat = groups[0];
+          fetchMessages(firstChat.id);
+          return firstChat;
+        }
+        return prevActiveChat;
+      });
+      
     } catch (error) {
       console.error('Error fetching chats:', error);
     }
@@ -82,6 +113,7 @@ export default function ChatUI() {
     if (isUnmountedRef.current) return;
     
     try {
+      console.log('Fetching messages for chat:', chatId);
       const data = await fetchGroupMessage(chatId);
       
       if (isUnmountedRef.current) return;
@@ -94,18 +126,18 @@ export default function ChatUI() {
     }
   }, []);
 
-  // Handle incoming WebSocket messages with stable callback
+  // Enhanced message handler with better real-time updates
   const handleMessage = useCallback((data) => {
     if (isUnmountedRef.current) return;
+    
+    console.log('Received WebSocket message:', data);
     
     try {
       switch(data.type) {
         case 'chat':
         case 'message':
-          // Handle incoming chat messages
           if (data.message) {
             setMessages(prev => {
-              // Avoid duplicate messages
               const messageExists = prev.some(msg => 
                 msg.id === data.message.id || 
                 (msg.content === data.message.content && 
@@ -123,59 +155,61 @@ export default function ChatUI() {
           
         case 'GROUP_CREATED':
         case 'group_created':
-          console.log('Group created:', data);
-          fetchChats(); 
+          console.log('Group created event received:', data);
+          // Force fetch to get latest groups
+          fetchChats(true); 
           if (data.group) {
-            // Switch to the new group
             setActiveChat(data.group);
           }
           setShowCreateGroupModal(false);
           break;
           
         case 'group_updated':
-          console.log('Group updated:', data);
-          fetchChats();
+          console.log('Group updated event received:', data);
+          // Force fetch to get updated group info
+          fetchChats(true);
           break;
           
         case 'user_added':
-          console.log('User added to group:', data);
-          fetchChats();
-          // Update current active chat if it's the affected group
-          setActiveChat(prevChat => {
-            if (prevChat && prevChat.id === data.group_id) {
-              fetchMessages(data.group_id);
-            }
-            return prevChat;
-          });
+        case 'USER_ADDED':
+          console.log('User added event received:', data);
+          // Force fetch to get updated participant lists
+          fetchChats(true);
+          
+          // If it's the current active chat, refresh messages too
+          if (activeChat && (data.group_id === activeChat.id || data.groupId === activeChat.id)) {
+            fetchMessages(activeChat.id);
+          }
           break;
           
         case 'user_removed':
-          console.log('User removed from group:', data);
-          fetchChats();
-          // Update current active chat if it's the affected group
-          setActiveChat(prevChat => {
-            if (prevChat && prevChat.id === data.group_id) {
-              fetchMessages(data.group_id);
-            }
-            return prevChat;
-          });
+        case 'USER_REMOVED':
+          console.log('User removed event received:', data);
+          // Force fetch to get updated participant lists
+          fetchChats(true);
+          
+          // If it's the current active chat, refresh messages too
+          if (activeChat && (data.group_id === activeChat.id || data.groupId === activeChat.id)) {
+            fetchMessages(activeChat.id);
+          }
           break;
           
         case 'group_deleted':
-          console.log('Group deleted:', data);
-          fetchChats();
+        case 'GROUP_DELETED':
+          console.log('Group deleted event received:', data);
+          // Force fetch to get updated group list
+          fetchChats(true);
+          
           // If the deleted group was active, clear it
-          setActiveChat(prevChat => {
-            if (prevChat && prevChat.id === data.group_id) {
-              setMessages([]);
-              // Reconnect to general chat
-              if (token && subdomain) {
-                connect(null, token, subdomain, 'chat');
-              }
-              return null;
+          const deletedGroupId = data.group_id || data.groupId;
+          if (activeChat && activeChat.id === deletedGroupId) {
+            setActiveChat(null);
+            setMessages([]);
+            // Reconnect to general chat
+            if (token && subdomain) {
+              connect(null, token, subdomain, 'chat');
             }
-            return prevChat;
-          });
+          }
           break;
           
         case 'error':
@@ -184,25 +218,30 @@ export default function ChatUI() {
           break;
           
         default:
-          console.log('Unknown message type:', data.type);
+          console.log('Unknown message type:', data.type, data);
       }
     } catch (error) {
       console.error('Error handling message:', error);
     }
-  }, [fetchChats, fetchMessages, token, subdomain, connect]);
+  }, [fetchChats, fetchMessages, activeChat, token, subdomain, connect]);
 
   // Handle connection status changes with stable callback
   const handleConnection = useCallback((event) => {
     if (isUnmountedRef.current) return;
     
+    console.log('Connection event:', event);
+    
     switch(event.type) {
       case 'connected':
         console.log('Connected to WebSocket');
         setConnectionError(null);
+        // Fetch latest data when reconnected
+        fetchChats(true);
         break;
         
       case 'disconnected':
         console.log('Disconnected from WebSocket');
+        setConnectionError('Connection lost. Reconnecting...');
         // Clear any existing reconnect timeout
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
@@ -221,35 +260,36 @@ export default function ChatUI() {
         setConnectionError('Connection failed. Retrying...');
         break;
     }
-  }, [token, subdomain, reconnect]);
+  }, [token, subdomain, reconnect, fetchChats]);
 
-  // Set up WebSocket event handlers ONCE
+  // Set up WebSocket event handlers
   useEffect(() => {
     if (!addMessageHandler || !addConnectionHandler) return;
     
+    console.log('Setting up WebSocket handlers');
     const removeMessageHandler = addMessageHandler(handleMessage);
     const removeConnectionHandler = addConnectionHandler(handleConnection);
 
     return () => {
+      console.log('Removing WebSocket handlers');
       removeMessageHandler?.();
       removeConnectionHandler?.();
     };
-  }, [addMessageHandler, addConnectionHandler]);
+  }, [addMessageHandler, addConnectionHandler, handleMessage, handleConnection]);
 
-  // Initial WebSocket connection - only run once
+  // Initial WebSocket connection
   useEffect(() => {
     if (token && subdomain && !initialConnectionMade && !isUnmountedRef.current) {
       console.log('Establishing initial WebSocket connection...');
       connect(null, token, subdomain, 'chat');
       setInitialConnectionMade(true);
     }
-  }, [token, subdomain]);
+  }, [token, subdomain, connect, initialConnectionMade]);
 
-  // Handle active chat changes - switch rooms (with debouncing)
+  // Handle active chat changes
   useEffect(() => {
     if (activeChat && isConnected && activeChat.id !== currentRoomId && !isUnmountedRef.current) {
       console.log('Switching to room:', activeChat.id);
-      // Add small delay to prevent rapid switching
       const timeoutId = setTimeout(() => {
         if (!isUnmountedRef.current) {
           connect(activeChat.id, token, subdomain, 'chat');
@@ -258,12 +298,14 @@ export default function ChatUI() {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [activeChat?.id, isConnected, currentRoomId]);
+  }, [activeChat?.id, isConnected, currentRoomId, connect, token, subdomain]);
 
+  // Initial data fetch
   useEffect(() => {
-    fetchChats();
-  }, []);
+    fetchChats(true);
+  }, [fetchChats]);
 
+  // Cleanup
   useEffect(() => {
     return () => {
       isUnmountedRef.current = true;
@@ -315,7 +357,7 @@ export default function ChatUI() {
     fetchMessages(chat.id);
   }, [activeChat?.id, fetchMessages]);
 
-  // Group management functions with better error handling
+  // Enhanced group management with better error handling and logging
   const handleCreateGroup = useCallback(async (groupData) => {
     try {
       console.log('Creating group:', groupData);
@@ -336,6 +378,7 @@ export default function ChatUI() {
         participants: groupData.participants || []
       };
       
+      console.log('Sending group creation data:', sendGroupData);
       const success = sendMessage(sendGroupData);
       
       if (success) {
@@ -368,21 +411,12 @@ export default function ChatUI() {
         room_id: groupId
       };
       
+      console.log('Sending group deletion data:', deleteGroupData);
       const success = sendMessage(deleteGroupData);
       
       if (success) {
         console.log('Group deletion message sent successfully');
         setConnectionError(null);
-        
-        // If the deleted group was active, clear active chat
-        if (activeChat?.id === groupId) {
-          setActiveChat(null);
-          setMessages([]);
-          // Reconnect to general WebSocket (no room)
-          if (token && subdomain) {
-            connect(null, token, subdomain, 'chat');
-          }
-        }
       } else {
         setConnectionError('Failed to delete group');
       }
@@ -394,7 +428,7 @@ export default function ChatUI() {
       setConnectionError('Error deleting group');
       return false;
     }
-  }, [isConnected, sendMessage, activeChat?.id, connect, token, subdomain]);
+  }, [isConnected, sendMessage]);
 
   const handleAddUser = useCallback(async (groupId, userId) => {
     try {
@@ -411,6 +445,7 @@ export default function ChatUI() {
         user_id: userId
       };
       
+      console.log('Sending add user data:', addUserData);
       const success = sendMessage(addUserData);
       
       if (success) {
@@ -444,6 +479,7 @@ export default function ChatUI() {
         user_id: userId
       };
       
+      console.log('Sending remove user data:', removeUserData);
       const success = sendMessage(removeUserData);
       
       if (success) {
@@ -462,7 +498,7 @@ export default function ChatUI() {
     }
   }, [isConnected, sendMessage]);
 
-  // Utility functions - memoized to prevent re-renders
+  // Utility functions
   const formatParticipants = useCallback((participants) => {
     if (!participants || participants.length === 0) return "No members";
     return participants.map(p => p.name).join(', ');
@@ -498,6 +534,7 @@ export default function ChatUI() {
           </div>
         )}
 
+        {/* Rest of the component remains the same... */}
         {/* Sidebar */}
         <div className={`${sidebarOpen ? 'w-80' : 'w-16'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
           {/* Sidebar Header */}
@@ -589,9 +626,7 @@ export default function ChatUI() {
                 )}
               </div>
             ) : (
-              // Collapsed sidebar - show minimal chat indicators
               <div className="p-2 space-y-2">
-                {/* Add Group Button for collapsed sidebar */}
                 <button
                   onClick={handleCreateGroupClick}
                   disabled={!isConnected}

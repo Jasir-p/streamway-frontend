@@ -406,22 +406,7 @@ const GroupChat = ({
       {chat && (
         <div className="border-t border-gray-200 p-4 bg-white">
           <form onSubmit={handleSendMessage} className="flex items-end space-x-2">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              className="hidden"
-              accept="image/*,document/*"
-            />
             
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
-              title="Attach file"
-            >
-              <Paperclip size={20} />
-            </button>
 
             <div className="flex-1 relative">
               <textarea
