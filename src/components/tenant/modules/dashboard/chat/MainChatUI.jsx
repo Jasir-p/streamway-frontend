@@ -1,5 +1,5 @@
 // components/chat/ChatUI.jsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Search, User, Plus } from 'lucide-react';
 import DashboardLayout from '../../../dashboard/DashbordLayout';
 import { useSelector } from 'react-redux';
@@ -15,19 +15,28 @@ export default function ChatUI() {
   const [groupChats, setGroupChats] = useState([]);
   const [availableUsers, setAvailableUsers] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [initialConnectionMade, setInitialConnectionMade] = useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [connectionError, setConnectionError] = useState(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger
   
   // Use refs to store stable references
   const reconnectTimeoutRef = useRef(null);
   const isUnmountedRef = useRef(false);
+  const lastFetchRef = useRef(0);
+  const connectionAttemptsRef = useRef(0);
+  const maxConnectionAttempts = 5;
   
   const userID = useSelector((state) => state.profile.id);
   const role = useSelector((state) => state.auth.role);
   const subdomain = localStorage.getItem('subdomain');
   const token = localStorage.getItem("access_token");
+  
+  // Memoize user data to prevent unnecessary re-renders
+  const userData = useMemo(() => ({
+    userID,
+    role,
+    subdomain,
+    token
+  }), [userID, role, subdomain, token]);
   
   // Use WebSocket hook
   const {
@@ -45,14 +54,16 @@ export default function ChatUI() {
     getConnectionStatus
   } = useWebSocket();
 
-  // Force refresh function
-  const forceRefresh = useCallback(() => {
-    setRefreshTrigger(prev => prev + 1);
-  }, []);
-
-  // Enhanced fetchChats with better error handling
+  // Debounced fetchChats to prevent excessive API calls
   const fetchChats = useCallback(async (forceUpdate = false) => {
     if (isUnmountedRef.current) return;
+    
+    const now = Date.now();
+    if (!forceUpdate && now - lastFetchRef.current < 1000) {
+      console.log('Skipping fetchChats - too soon since last fetch');
+      return;
+    }
+    lastFetchRef.current = now;
     
     try {
       console.log('Fetching chats...');
@@ -63,49 +74,37 @@ export default function ChatUI() {
       console.log('Fetched groups:', groups);
       setGroupChats(groups || []);
       
-      // Fetch available users for group management
-      const users = await getUser(role === 'owner' ? role : userID);
-      if (isUnmountedRef.current) return;
-      
-      setAvailableUsers(users || []);
+      // Fetch available users for group management only if we don't have them
+      if (availableUsers.length === 0 || forceUpdate) {
+        const users = await getUser(role === 'owner' ? role : userID);
+        if (isUnmountedRef.current) return;
+        setAvailableUsers(users || []);
+      }
       
       // Update active chat if it exists in the new group list
-      if (forceUpdate) {
-        setActiveChat(prevActiveChat => {
-          if (prevActiveChat) {
-            const updatedChat = groups?.find(g => g.id === prevActiveChat.id);
-            if (updatedChat) {
-              console.log('Updating active chat with new data:', updatedChat);
-              return updatedChat;
-            } else {
-              // Chat was deleted, clear active chat
-              console.log('Active chat was deleted');
-              setMessages([]);
-              return null;
-            }
-          }
-          return prevActiveChat;
-        });
-      } else {
-        // Set active chat to first group chat if available and no current active chat
-        if (groups?.length > 0) {
-          setActiveChat(prevActiveChat => {
-            if (!prevActiveChat) {
-              const firstChat = groups[0];
-              fetchMessages(firstChat.id);
-              return firstChat;
-            }
-            return prevActiveChat;
-          });
+      if (forceUpdate && activeChat) {
+        const updatedChat = groups?.find(g => g.id === activeChat.id);
+        if (updatedChat) {
+          console.log('Updating active chat with new data:', updatedChat);
+          setActiveChat(updatedChat);
+        } else {
+          console.log('Active chat was deleted');
+          setMessages([]);
+          setActiveChat(null);
         }
+      } else if (!activeChat && groups?.length > 0) {
+        // Set active chat to first group chat if available and no current active chat
+        const firstChat = groups[0];
+        setActiveChat(firstChat);
+        fetchMessages(firstChat.id);
       }
     } catch (error) {
       console.error('Error fetching chats:', error);
     }
-  }, [userID, role]);
+  }, [userID, role, availableUsers.length, activeChat?.id]);
 
   const fetchMessages = useCallback(async (chatId) => {
-    if (isUnmountedRef.current) return;
+    if (isUnmountedRef.current || !chatId) return;
     
     try {
       console.log('Fetching messages for chat:', chatId);
@@ -121,7 +120,7 @@ export default function ChatUI() {
     }
   }, []);
 
-  // Enhanced message handler with comprehensive updates
+  // Stable message handler with memoization
   const handleMessage = useCallback((data) => {
     if (isUnmountedRef.current) return;
     
@@ -131,10 +130,8 @@ export default function ChatUI() {
       switch(data.type) {
         case 'chat':
         case 'message':
-          // Handle incoming chat messages
           if (data.message) {
             setMessages(prev => {
-              // Avoid duplicate messages
               const messageExists = prev.some(msg => 
                 msg.id === data.message.id || 
                 (msg.content === data.message.content && 
@@ -153,63 +150,37 @@ export default function ChatUI() {
         case 'GROUP_CREATED':
         case 'group_created':
           console.log('Group created:', data);
-          // Force refresh chats and switch to new group
-          fetchChats(true).then(() => {
+          setShowCreateGroupModal(false);
+          // Delay the fetch to ensure server has processed the creation
+          setTimeout(() => {
+            fetchChats(true);
             if (data.group) {
               setActiveChat(data.group);
               fetchMessages(data.group.id);
             }
-          });
-          setShowCreateGroupModal(false);
-          forceRefresh();
+          }, 500);
           break;
           
         case 'group_updated':
-          console.log('Group updated:', data);
-          // Force refresh to get updated group data
-          fetchChats(true);
-          forceRefresh();
-          break;
-          
         case 'user_added':
-          console.log('User added to group:', data);
-          // Force refresh chats to get updated participant lists
-          fetchChats(true).then(() => {
-            // If this is the current active chat, refresh messages too
-            if (activeChat && activeChat.id === data.group_id) {
-              fetchMessages(data.group_id);
-            }
-          });
-          forceRefresh();
-          break;
-          
         case 'user_removed':
-          console.log('User removed from group:', data);
-          // Force refresh chats to get updated participant lists
-          fetchChats(true).then(() => {
-            // If this is the current active chat, refresh messages too
+          console.log('Group updated:', data);
+          // Delay the fetch to ensure server has processed the update
+          setTimeout(() => {
+            fetchChats(true);
             if (activeChat && activeChat.id === data.group_id) {
               fetchMessages(data.group_id);
             }
-          });
-          forceRefresh();
+          }, 500);
           break;
           
         case 'group_deleted':
           console.log('Group deleted:', data);
-          // Force refresh chats
-          fetchChats(true).then(() => {
-            // If the deleted group was active, clear active chat
-            if (activeChat && activeChat.id === data.group_id) {
-              setActiveChat(null);
-              setMessages([]);
-              // Reconnect to general chat
-              if (token && subdomain) {
-                connect(null, token, subdomain, 'chat');
-              }
-            }
-          });
-          forceRefresh();
+          if (activeChat && activeChat.id === data.group_id) {
+            setActiveChat(null);
+            setMessages([]);
+          }
+          setTimeout(() => fetchChats(true), 500);
           break;
           
         case 'error':
@@ -223,31 +194,41 @@ export default function ChatUI() {
     } catch (error) {
       console.error('Error handling message:', error);
     }
-  }, [fetchChats, fetchMessages, activeChat, token, subdomain, connect, forceRefresh]);
+  }, [fetchChats, fetchMessages, activeChat?.id]);
 
-  // Handle connection status changes with stable callback
+  // Stable connection handler with rate limiting
   const handleConnection = useCallback((event) => {
     if (isUnmountedRef.current) return;
     
     switch(event.type) {
       case 'connected':
         console.log('Connected to WebSocket');
+        connectionAttemptsRef.current = 0;
         setConnectionError(null);
         break;
         
       case 'disconnected':
         console.log('Disconnected from WebSocket');
+        
         // Clear any existing reconnect timeout
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
         }
-        // Attempt to reconnect after a delay
-        reconnectTimeoutRef.current = setTimeout(() => {
-          if (token && subdomain && !isUnmountedRef.current) {
-            console.log('Attempting to reconnect...');
-            reconnect(token, subdomain);
-          }
-        }, 3000);
+        
+        // Only attempt to reconnect if we haven't exceeded max attempts
+        if (connectionAttemptsRef.current < maxConnectionAttempts) {
+          connectionAttemptsRef.current++;
+          const delay = Math.min(1000 * Math.pow(2, connectionAttemptsRef.current), 10000);
+          
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (token && subdomain && !isUnmountedRef.current) {
+              console.log(`Attempting to reconnect... (attempt ${connectionAttemptsRef.current})`);
+              reconnect(token, subdomain);
+            }
+          }, delay);
+        } else {
+          setConnectionError('Connection failed. Please refresh the page.');
+        }
         break;
         
       case 'error':
@@ -257,7 +238,7 @@ export default function ChatUI() {
     }
   }, [token, subdomain, reconnect]);
 
-  // Set up WebSocket event handlers ONCE
+  // Set up WebSocket event handlers ONCE with stable dependencies
   useEffect(() => {
     if (!addMessageHandler || !addConnectionHandler) return;
     
@@ -268,36 +249,38 @@ export default function ChatUI() {
       removeMessageHandler?.();
       removeConnectionHandler?.();
     };
-  }, [addMessageHandler, addConnectionHandler, handleMessage, handleConnection]);
+  }, [addMessageHandler, addConnectionHandler]); // Removed unstable dependencies
 
-  // Initial WebSocket connection - only run once
+  // Initial WebSocket connection - only run once when userData changes
   useEffect(() => {
-    if (token && subdomain && !initialConnectionMade && !isUnmountedRef.current) {
-      console.log('Establishing initial WebSocket connection...');
-      connect(null, token, subdomain, 'chat');
-      setInitialConnectionMade(true);
+    if (userData.token && userData.subdomain && !isUnmountedRef.current) {
+      console.log('Establishing WebSocket connection...');
+      connect(null, userData.token, userData.subdomain, 'chat');
     }
-  }, [token, subdomain, initialConnectionMade, connect]);
+  }, [userData.token, userData.subdomain, connect]);
 
-  // Handle active chat changes - switch rooms (with debouncing)
+  // Handle active chat changes with debouncing
   useEffect(() => {
-    if (activeChat && isConnected && activeChat.id !== currentRoomId && !isUnmountedRef.current) {
+    if (!activeChat || !isConnected || !userData.token || !userData.subdomain) return;
+    
+    if (activeChat.id !== currentRoomId && !isUnmountedRef.current) {
       console.log('Switching to room:', activeChat.id);
-      // Add small delay to prevent rapid switching
+      
+      // Clear any existing timeout
       const timeoutId = setTimeout(() => {
         if (!isUnmountedRef.current) {
-          connect(activeChat.id, token, subdomain, 'chat');
+          connect(activeChat.id, userData.token, userData.subdomain, 'chat');
         }
-      }, 100);
+      }, 300);
       
       return () => clearTimeout(timeoutId);
     }
-  }, [activeChat?.id, isConnected, currentRoomId, connect, token, subdomain]);
+  }, [activeChat?.id, isConnected, currentRoomId, connect, userData.token, userData.subdomain]);
 
-  // Initial fetch and refresh trigger
+  // Initial fetch - only run once
   useEffect(() => {
     fetchChats();
-  }, [fetchChats, refreshTrigger]);
+  }, []); // Empty dependency array - only run once
 
   // Cleanup
   useEffect(() => {
@@ -351,7 +334,7 @@ export default function ChatUI() {
     fetchMessages(chat.id);
   }, [activeChat?.id, fetchMessages]);
 
-  // Enhanced group management functions
+  // Group management functions with better error handling
   const handleCreateGroup = useCallback(async (groupData) => {
     try {
       console.log('Creating group:', groupData);
@@ -488,7 +471,7 @@ export default function ChatUI() {
     }
   }, [isConnected, sendMessage]);
 
-  // Utility functions - memoized to prevent re-renders
+  // Memoized utility functions
   const formatParticipants = useCallback((participants) => {
     if (!participants || participants.length === 0) return "No members";
     return participants.map(p => p.name).join(', ');
@@ -502,12 +485,10 @@ export default function ChatUI() {
     setShowCreateGroupModal(true);
   }, []);
 
-  // Add manual refresh button for testing
   const handleManualRefresh = useCallback(() => {
     console.log('Manual refresh triggered');
     fetchChats(true);
-    forceRefresh();
-  }, [fetchChats, forceRefresh]);
+  }, [fetchChats]);
 
   return (
     <DashboardLayout>
@@ -557,7 +538,6 @@ export default function ChatUI() {
                     className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-                {/* Manual refresh button for testing */}
                 <button
                   onClick={handleManualRefresh}
                   className="mt-2 w-full text-xs text-blue-600 hover:text-blue-800 p-1 rounded"
@@ -593,7 +573,7 @@ export default function ChatUI() {
                 {groupChats.length > 0 ? (
                   groupChats.map((chat) => (
                     <div
-                      key={`${chat.id}-${refreshTrigger}`} // Force re-render with refresh trigger
+                      key={chat.id}
                       onClick={() => selectChat(chat)}
                       className={`p-3 mb-2 rounded-lg cursor-pointer transition-colors ${
                         activeChat?.id === chat.id
@@ -629,9 +609,7 @@ export default function ChatUI() {
                 )}
               </div>
             ) : (
-              // Collapsed sidebar - show minimal chat indicators
               <div className="p-2 space-y-2">
-                {/* Add Group Button for collapsed sidebar */}
                 <button
                   onClick={handleCreateGroupClick}
                   disabled={!isConnected}
@@ -647,7 +625,7 @@ export default function ChatUI() {
                 
                 {groupChats.slice(0, 8).map((chat) => (
                   <div
-                    key={`${chat.id}-${refreshTrigger}`} // Force re-render with refresh trigger
+                    key={chat.id}
                     onClick={() => selectChat(chat)}
                     className={`w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors ${
                       activeChat?.id === chat.id
@@ -692,7 +670,7 @@ export default function ChatUI() {
         <div className="flex-1 flex flex-col">
           {activeChat ? (
             <GroupChat
-              key={`${activeChat.id}-${refreshTrigger}`} // Force re-render with refresh trigger
+              key={activeChat.id}
               chat={activeChat}
               messages={messages}
               onSendMessage={handleSendMessage}
