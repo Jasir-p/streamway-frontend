@@ -15,14 +15,17 @@ export default function ChatUI() {
   const [groupChats, setGroupChats] = useState([]);
   const [availableUsers, setAvailableUsers] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [initialConnectionMade, setInitialConnectionMade] = useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [connectionError, setConnectionError] = useState(null);
   
-  // Use refs to store stable references
-  const reconnectTimeoutRef = useRef(null);
+  // Use refs to store stable references and prevent loops
   const isUnmountedRef = useRef(false);
   const lastFetchTimeRef = useRef(0);
+  const reconnectTimeoutRef = useRef(null);
+  const reconnectAttemptsRef = useRef(0);
+  const maxReconnectAttempts = 5;
+  const currentRoomRef = useRef(null);
+  const isConnectingRef = useRef(false);
   
   const userID = useSelector((state) => state.profile.id);
   const role = useSelector((state) => state.auth.role);
@@ -45,64 +48,30 @@ export default function ChatUI() {
     getConnectionStatus
   } = useWebSocket();
 
-  // Debounced fetch function to prevent multiple rapid calls
+  // Stable fetch function with debouncing
   const fetchChats = useCallback(async (force = false) => {
     if (isUnmountedRef.current) return;
     
     const now = Date.now();
-    if (!force && now - lastFetchTimeRef.current < 1000) {
-      console.log('Skipping fetch - too soon');
+    if (!force && now - lastFetchTimeRef.current < 2000) {
       return;
     }
     
     lastFetchTimeRef.current = now;
     
     try {
-      console.log('Fetching chats...');
       const groups = await GroupChatPersonal(role === 'owner' ? null : userID);
-      
       if (isUnmountedRef.current) return;
       
       setGroupChats(prevGroups => {
-        // Check if groups actually changed to avoid unnecessary updates
         const groupsChanged = JSON.stringify(prevGroups) !== JSON.stringify(groups);
-        if (groupsChanged) {
-          console.log('Groups updated:', groups);
-        }
-        return groups || [];
+        return groupsChanged ? (groups || []) : prevGroups;
       });
       
-      // Fetch available users for group management
       const users = await getUser(role === 'owner' ? role : userID);
       if (isUnmountedRef.current) return;
       
       setAvailableUsers(users || []);
-      
-      // Update active chat if it exists in the new groups
-      setActiveChat(prevActiveChat => {
-        if (prevActiveChat && groups) {
-          const updatedActiveChat = groups.find(g => g.id === prevActiveChat.id);
-          if (updatedActiveChat) {
-            // Check if participants changed
-            const participantsChanged = JSON.stringify(prevActiveChat.participents) !== JSON.stringify(updatedActiveChat.participents);
-            if (participantsChanged) {
-              console.log('Active chat participants updated');
-            }
-            return updatedActiveChat;
-          } else {
-            // Active chat was deleted
-            console.log('Active chat was deleted');
-            setMessages([]);
-            return null;
-          }
-        } else if (!prevActiveChat && groups?.length > 0) {
-          // Set first group as active if no active chat
-          const firstChat = groups[0];
-          fetchMessages(firstChat.id);
-          return firstChat;
-        }
-        return prevActiveChat;
-      });
       
     } catch (error) {
       console.error('Error fetching chats:', error);
@@ -113,9 +82,7 @@ export default function ChatUI() {
     if (isUnmountedRef.current) return;
     
     try {
-      console.log('Fetching messages for chat:', chatId);
       const data = await fetchGroupMessage(chatId);
-      
       if (isUnmountedRef.current) return;
       setMessages(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -126,11 +93,9 @@ export default function ChatUI() {
     }
   }, []);
 
-  // Enhanced message handler with better real-time updates
+  // Stable message handler - avoid dependencies that change frequently
   const handleMessage = useCallback((data) => {
     if (isUnmountedRef.current) return;
-    
-    console.log('Received WebSocket message:', data);
     
     try {
       switch(data.type) {
@@ -155,9 +120,13 @@ export default function ChatUI() {
           
         case 'GROUP_CREATED':
         case 'group_created':
-          console.log('Group created event received:', data);
-          // Force fetch to get latest groups
-          fetchChats(true); 
+          // Use setTimeout to avoid immediate refetch during message handling
+          setTimeout(() => {
+            if (!isUnmountedRef.current) {
+              fetchChats(true);
+            }
+          }, 100);
+          
           if (data.group) {
             setActiveChat(data.group);
           }
@@ -165,136 +134,140 @@ export default function ChatUI() {
           break;
           
         case 'group_updated':
-          console.log('Group updated event received:', data);
-          // Force fetch to get updated group info
-          fetchChats(true);
-          break;
-          
         case 'user_added':
         case 'USER_ADDED':
-          console.log('User added event received:', data);
-          // Force fetch to get updated participant lists
-          fetchChats(true);
-          
-          // If it's the current active chat, refresh messages too
-          if (activeChat && (data.group_id === activeChat.id || data.groupId === activeChat.id)) {
-            fetchMessages(activeChat.id);
-          }
-          break;
-          
         case 'user_removed':
         case 'USER_REMOVED':
-          console.log('User removed event received:', data);
-          // Force fetch to get updated participant lists
-          fetchChats(true);
-          
-          // If it's the current active chat, refresh messages too
-          if (activeChat && (data.group_id === activeChat.id || data.groupId === activeChat.id)) {
-            fetchMessages(activeChat.id);
-          }
+          // Debounced refetch for group updates
+          setTimeout(() => {
+            if (!isUnmountedRef.current) {
+              fetchChats(true);
+            }
+          }, 500);
           break;
           
         case 'group_deleted':
         case 'GROUP_DELETED':
-          console.log('Group deleted event received:', data);
-          // Force fetch to get updated group list
-          fetchChats(true);
-          
-          // If the deleted group was active, clear it
-          const deletedGroupId = data.group_id || data.groupId;
-          if (activeChat && activeChat.id === deletedGroupId) {
-            setActiveChat(null);
-            setMessages([]);
-            // Reconnect to general chat
-            if (token && subdomain) {
-              connect(null, token, subdomain, 'chat');
+          setTimeout(() => {
+            if (!isUnmountedRef.current) {
+              fetchChats(true);
             }
-          }
+          }, 100);
+          
+          const deletedGroupId = data.group_id || data.groupId;
+          setActiveChat(current => {
+            if (current && current.id === deletedGroupId) {
+              setMessages([]);
+              return null;
+            }
+            return current;
+          });
           break;
           
         case 'error':
           console.error('WebSocket error:', data);
           setConnectionError(data.message || 'Unknown error occurred');
           break;
-          
-        default:
-          console.log('Unknown message type:', data.type, data);
       }
     } catch (error) {
       console.error('Error handling message:', error);
     }
-  }, [fetchChats, fetchMessages, activeChat, token, subdomain, connect]);
+  }, [fetchChats]);
 
-  // Handle connection status changes with stable callback
+  // Stable connection handler with reconnection limits
   const handleConnection = useCallback((event) => {
     if (isUnmountedRef.current) return;
-    
-    console.log('Connection event:', event);
     
     switch(event.type) {
       case 'connected':
         console.log('Connected to WebSocket');
         setConnectionError(null);
-        // Fetch latest data when reconnected
-        fetchChats(true);
+        reconnectAttemptsRef.current = 0;
+        isConnectingRef.current = false;
+        
+        // Only fetch if it's been a while since last fetch
+        if (Date.now() - lastFetchTimeRef.current > 5000) {
+          setTimeout(() => {
+            if (!isUnmountedRef.current) {
+              fetchChats(true);
+            }
+          }, 1000);
+        }
         break;
         
       case 'disconnected':
         console.log('Disconnected from WebSocket');
-        setConnectionError('Connection lost. Reconnecting...');
-        // Clear any existing reconnect timeout
-        if (reconnectTimeoutRef.current) {
-          clearTimeout(reconnectTimeoutRef.current);
-        }
-        // Attempt to reconnect after a delay
-        reconnectTimeoutRef.current = setTimeout(() => {
-          if (token && subdomain && !isUnmountedRef.current) {
-            console.log('Attempting to reconnect...');
-            reconnect(token, subdomain);
+        isConnectingRef.current = false;
+        
+        // Only attempt reconnection if within limits and not unmounted
+        if (reconnectAttemptsRef.current < maxReconnectAttempts && !isUnmountedRef.current) {
+          setConnectionError(`Connection lost. Reconnecting... (${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts})`);
+          
+          // Clear any existing timeout
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
           }
-        }, 3000);
+          
+          // Exponential backoff
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 10000);
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (!isUnmountedRef.current && !isConnectingRef.current && token && subdomain) {
+              reconnectAttemptsRef.current++;
+              isConnectingRef.current = true;
+              reconnect(token, subdomain);
+            }
+          }, delay);
+        } else {
+          setConnectionError('Connection failed. Please refresh the page.');
+        }
         break;
         
       case 'error':
         console.error('WebSocket connection error:', event);
+        isConnectingRef.current = false;
         setConnectionError('Connection failed. Retrying...');
         break;
     }
   }, [token, subdomain, reconnect, fetchChats]);
 
-  // Set up WebSocket event handlers
+  // Set up WebSocket handlers only once
   useEffect(() => {
     if (!addMessageHandler || !addConnectionHandler) return;
     
-    console.log('Setting up WebSocket handlers');
     const removeMessageHandler = addMessageHandler(handleMessage);
     const removeConnectionHandler = addConnectionHandler(handleConnection);
 
     return () => {
-      console.log('Removing WebSocket handlers');
       removeMessageHandler?.();
       removeConnectionHandler?.();
     };
   }, [addMessageHandler, addConnectionHandler, handleMessage, handleConnection]);
 
-  // Initial WebSocket connection
+  // Initial connection - only once
   useEffect(() => {
-    if (token && subdomain && !initialConnectionMade && !isUnmountedRef.current) {
-      console.log('Establishing initial WebSocket connection...');
+    if (token && subdomain && !isConnectingRef.current && !isConnected) {
+      isConnectingRef.current = true;
       connect(null, token, subdomain, 'chat');
-      setInitialConnectionMade(true);
     }
-  }, [token, subdomain, connect, initialConnectionMade]);
+  }, [token, subdomain, connect, isConnected]);
 
-  // Handle active chat changes
+  // Handle room changes more carefully
   useEffect(() => {
-    if (activeChat && isConnected && activeChat.id !== currentRoomId && !isUnmountedRef.current) {
-      console.log('Switching to room:', activeChat.id);
+    if (activeChat && 
+        isConnected && 
+        activeChat.id !== currentRoomId && 
+        activeChat.id !== currentRoomRef.current &&
+        !isConnectingRef.current) {
+      
+      currentRoomRef.current = activeChat.id;
+      
+      // Debounce room changes
       const timeoutId = setTimeout(() => {
-        if (!isUnmountedRef.current) {
+        if (!isUnmountedRef.current && !isConnectingRef.current) {
+          isConnectingRef.current = true;
           connect(activeChat.id, token, subdomain, 'chat');
         }
-      }, 100);
+      }, 200);
       
       return () => clearTimeout(timeoutId);
     }
@@ -320,12 +293,10 @@ export default function ChatUI() {
     const messageText = typeof message === "string" ? message.trim() : "";
 
     if (!messageText || !activeChat) {
-      console.warn('Cannot send message: missing text or active chat');
       return false;
     }
     
     if (!isConnected) {
-      console.warn('Cannot send message: not connected');
       setConnectionError('Not connected to chat server');
       return false;
     }
@@ -339,7 +310,6 @@ export default function ChatUI() {
       timestamp: new Date().toISOString()
     };
 
-    console.log('Sending message:', messageData);
     const success = sendMessage(messageData);
     
     if (!success) {
@@ -352,16 +322,13 @@ export default function ChatUI() {
   const selectChat = useCallback((chat) => {
     if (activeChat?.id === chat.id) return;
     
-    console.log('Selecting chat:', chat);
     setActiveChat(chat);
     fetchMessages(chat.id);
   }, [activeChat?.id, fetchMessages]);
 
-  // Enhanced group management with better error handling and logging
+  // Group management functions remain the same...
   const handleCreateGroup = useCallback(async (groupData) => {
     try {
-      console.log('Creating group:', groupData);
-      
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot create group.');
         return false;
@@ -378,11 +345,9 @@ export default function ChatUI() {
         participants: groupData.participants || []
       };
       
-      console.log('Sending group creation data:', sendGroupData);
       const success = sendMessage(sendGroupData);
       
       if (success) {
-        console.log('Group creation message sent successfully');
         setConnectionError(null);
       } else {
         setConnectionError('Failed to send group creation message');
@@ -399,8 +364,6 @@ export default function ChatUI() {
 
   const handleDeleteGroup = useCallback(async (groupId) => {
     try {
-      console.log('Deleting group:', groupId);
-      
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot delete group.');
         return false;
@@ -411,11 +374,9 @@ export default function ChatUI() {
         room_id: groupId
       };
       
-      console.log('Sending group deletion data:', deleteGroupData);
       const success = sendMessage(deleteGroupData);
       
       if (success) {
-        console.log('Group deletion message sent successfully');
         setConnectionError(null);
       } else {
         setConnectionError('Failed to delete group');
@@ -432,8 +393,6 @@ export default function ChatUI() {
 
   const handleAddUser = useCallback(async (groupId, userId) => {
     try {
-      console.log('Adding user to group:', { groupId, userId });
-      
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot add user.');
         return false;
@@ -445,11 +404,9 @@ export default function ChatUI() {
         user_id: userId
       };
       
-      console.log('Sending add user data:', addUserData);
       const success = sendMessage(addUserData);
       
       if (success) {
-        console.log('Add user message sent successfully');
         setConnectionError(null);
       } else {
         setConnectionError('Failed to add user to group');
@@ -466,8 +423,6 @@ export default function ChatUI() {
 
   const handleRemoveUser = useCallback(async (groupId, userId) => {
     try {
-      console.log('Removing user from group:', { groupId, userId });
-      
       if (!isConnected) {
         setConnectionError('Not connected to chat server. Cannot remove user.');
         return false;
@@ -479,11 +434,9 @@ export default function ChatUI() {
         user_id: userId
       };
       
-      console.log('Sending remove user data:', removeUserData);
       const success = sendMessage(removeUserData);
       
       if (success) {
-        console.log('Remove user message sent successfully');
         setConnectionError(null);
       } else {
         setConnectionError('Failed to remove user from group');
@@ -534,7 +487,6 @@ export default function ChatUI() {
           </div>
         )}
 
-        {/* Rest of the component remains the same... */}
         {/* Sidebar */}
         <div className={`${sidebarOpen ? 'w-80' : 'w-16'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
           {/* Sidebar Header */}
