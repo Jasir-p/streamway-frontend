@@ -99,34 +99,36 @@ const handleDeleteGroup = async () => {
 };
 
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    
-    const trimmedMessage = messageText.trim();
-    if (!trimmedMessage || isSending) return;
+const handleSendMessage = async (e) => {
+  e.preventDefault();
+  
+  const trimmedMessage = messageText.trim();
+  if (!trimmedMessage || isSending) return;
 
-    setIsSending(true);
+  setIsSending(true);
+  
+  try {
+    const success = await onSendMessage(trimmedMessage);
     
-    try {
-      const success = await onSendMessage(trimmedMessage);
+    if (success !== false) {
+      // Only clear the input if sending was successful
+      setMessageText('');
       
-      if (success !== false) {
-        // Only clear the input if sending was successful
-        setMessageText('');
-        
-        // Reset textarea height
-        if (messageInputRef.current) {
-          messageInputRef.current.style.height = '44px';
-        }
-      } else {
-        
+      // Reset textarea height
+      if (messageInputRef.current) {
+        messageInputRef.current.style.height = '44px';
       }
-    } catch (error) {
-      
-    } finally {
-      setIsSending(false);
     }
-  };
+  } catch (error) {
+    // Handle error
+  } finally {
+    setIsSending(false);
+
+    setTimeout(() => {
+      messageInputRef.current?.focus();
+    }, 50);
+  }
+};
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -423,7 +425,12 @@ const handleDeleteGroup = async () => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     if (messageText.trim() && !isSending) {
-                      handleSendMessage(e);
+                      handleSendMessage(e).then(() => {
+                        // Refocus after message is sent
+                        setTimeout(() => {
+                          messageInputRef.current?.focus();
+                        }, 50);
+                      });
                     }
                   }
                 }}
