@@ -20,7 +20,7 @@ export const fetchAccounts = createAsyncThunk('accounts/fetchAccounts', async (u
 
 export const updateAccount = createAsyncThunk('accounts/updateAccount', async (account, {rejectWithValue}) => {
     try{
-        const response = await subdomainInterceptors.patch(`/api/accounts/?account_id=${account.id}/`,account)
+        const response = await subdomainInterceptors.patch(`/api/accounts/?account_id=${account.id}`,account)
         return response.data
         }
         catch(error){
