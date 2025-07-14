@@ -26,7 +26,7 @@ export const RecentLeadsTable = ({ leads }) => {
               <th className="pb-3 text-xs font-medium text-gray-600 uppercase tracking-wider">Phone</th>
               <th className="pb-3 text-xs font-medium text-gray-600 uppercase tracking-wider">Assigned</th>
               <th className="pb-3 text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
-              <th className="pb-3 text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
+              {/* <th className="pb-3 text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th> */}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -42,7 +42,7 @@ export const RecentLeadsTable = ({ leads }) => {
                       {lead.status.toUpperCase()}
                     </span>
                   </td>
-                  <td className="py-3">
+                  {/* <td className="py-3">
                     <div className="flex space-x-2">
                       <button className="text-blue-600 hover:text-blue-800">
                         <Eye className="h-4 w-4" />
@@ -51,7 +51,7 @@ export const RecentLeadsTable = ({ leads }) => {
                         <Edit className="h-4 w-4" />
                       </button>
                     </div>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             ) : (

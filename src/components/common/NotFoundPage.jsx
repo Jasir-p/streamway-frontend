@@ -18,13 +18,13 @@ function NotFoundPage() {
 
         {/* Action Buttons */}
         <div className="flex gap-4 justify-center">
-          <button
+          {/* <button
             onClick={() => window.location.href = '/dashboard'}
             className="flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
           >
             <Home className="h-5 w-5 mr-2" />
             Dashboard
-          </button>
+          </button> */}
           
           <button
             onClick={() => window.history.back()}

@@ -75,7 +75,7 @@ const handleClick = (item) => {
       items: [
         { icon: CheckSquare, text: 'Tasks', path: "/dashboard/activity/task" },
         { icon: Calendar, text: 'Meetings',path:"/dashboard/activity/meetings" },
-        { icon: PhoneCall, text: 'Calls' },
+        // { icon: PhoneCall, text: 'Calls' },
         { icon: Mail, text: 'Emails', path: "/dashboard/activity/email" },
       ]
     },

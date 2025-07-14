@@ -17,6 +17,18 @@ export const fetchAccounts = createAsyncThunk('accounts/fetchAccounts', async (u
         }
         }
     )
+
+export const updateAccount = createAsyncThunk('accounts/updateAccount', async (account, {rejectWithValue}) => {
+    try{
+        const response = await subdomainInterceptors.patch(`/api/accounts/${account.id}/`,account)
+        return response.data
+        }
+        catch(error){
+            return rejectWithValue(error.message)
+            }
+            }
+        )
+
 export const deleteAccounts = createAsyncThunk('accounts/deleteAccount',async(accountIds,{rejectWithValue})=>{
     
     try {
@@ -66,7 +78,23 @@ const accountsSlice = createSlice({
         .addCase(deleteAccounts.rejected,(state,action)=>{
             state.loading= false
             state.error= action.payload
-        })
+            })
+        .addCase(updateAccount.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+            })
+        .addCase(updateAccount.fulfilled, (state, action) => {
+            state.loading = false;
+            const updatedAccount = action.payload;
+            const index = state.accounts.findIndex(acc => acc.id === updatedAccount.id);
+            if (index !== -1) {
+            state.accounts[index] = updatedAccount;
+                }
+            })
+        .addCase(updateAccount.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            });
             }
             })
         

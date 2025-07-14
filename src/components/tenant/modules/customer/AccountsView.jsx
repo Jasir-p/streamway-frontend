@@ -348,13 +348,13 @@ export default function AccountList() {
         </div>
       )}
             
-            <button
+            {/* <button
               onClick={() => window.location.href = '/accounts/new'}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
             >
               <Plus size={16} className="mr-2" />
               New Account
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
@@ -516,11 +516,11 @@ export default function AccountList() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(account.updated_at).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <a href={`/accounts/${account.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
                       <ExternalLink size={16} />
                     </a>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             ) : (
