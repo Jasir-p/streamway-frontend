@@ -5,7 +5,8 @@ export const BulkActions = ({
   selectedCount, 
   onBulkEdit, 
   onBulkDelete, 
-  onClearSelection 
+  onClearSelection,
+  canDeleteDeal
 }) => (
   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
     <div className="flex items-center justify-between">
@@ -19,12 +20,15 @@ export const BulkActions = ({
         >
           Bulk Edit
         </button>
-        <button 
+        {canDeleteDeal &&(
+          <button 
           onClick={onBulkDelete}
           className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
         >
           Delete Selected
         </button>
+        ) }
+        
         <button 
           onClick={onClearSelection} 
           className="p-1 text-blue-600 hover:text-blue-700"

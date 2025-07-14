@@ -14,9 +14,9 @@ export const useDealPermissions = (selectedLeads = []) => {
   const isOwner = role === "owner";
 
   return {
-    canAddLead: hasAddLead || isOwner,
-    canEditLead:  (hasEditLead || isOwner),
-    canDeleteLead: hasDeleteLead || isOwner,
-    canViewLead: hasViewLead || isOwner,
+    canAddDeal: hasAddLead || isOwner,
+    canEditDeal:  (hasEditLead || isOwner),
+    canDeleteDeal: hasDeleteLead || isOwner,
+    canViewDeal: hasViewLead || isOwner,
   };
 };

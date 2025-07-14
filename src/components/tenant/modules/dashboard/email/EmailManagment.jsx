@@ -21,6 +21,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { EmailDetailModal } from './EmailDetail';
 import ComposeEmailModal from './AddMail';
 import ContactsModal from './ContactsModal';
+import { useEmailPermissions } from '../../../authorization/useEmailPermissions';
+
 
 export default function EmailManagementUI() {
   const [activeTab, setActiveTab] = useState('sent');
@@ -34,6 +36,7 @@ export default function EmailManagementUI() {
   const [selectedItem, setSelectedItem] = useState(null);
   const role = useSelector((state) =>state.auth.role)
   const userID = useSelector((state) =>state.profile.id)
+  const {canAdd,canEdit,canDelete}=useEmailPermissions()
   
   // New filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -137,13 +140,14 @@ export default function EmailManagementUI() {
         {/* Sidebar */}
         <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
           <div className="p-4">
-            <button
+            {canAdd &&(<button
               onClick={handleComposeEmail}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
             >
               <Send size={16} />
               <span>Compose</span>
-            </button>
+            </button>)}
+            
           </div>
 
           <nav className="flex-1 overflow-y-auto">

@@ -12,6 +12,7 @@ import TaskFilters, { applyTaskFilters } from './TaskFilter';
 import { fetchTask, deleteTask } from '../../../../../redux/slice/TaskSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import DashbordLoading from '../../../../common/DashbordLoading';
+import { useTaskPermissions } from '../../../authorization/useTaskPermissions';
 
 const initialColumns = [
   { id: 'backlog', title: 'Backlog', color: 'bg-gray-300', tasks: [] },
@@ -62,6 +63,7 @@ const TaskManagement = () => {
   
   const role = useSelector((state) => state.auth.role);
   const userID = useSelector((state) => state.profile.id);
+  const {canAdd,canEdit,canDelete}=useTaskPermissions()
   const { tasks, loading, error, next, previous } = useSelector(state => state.tasks);
   const dispatch = useDispatch();
 
@@ -235,13 +237,14 @@ const TaskManagement = () => {
               {task.lead ? `Lead: ${task.lead.lead_id}` : (task.contact ? `Contact: ${task.contact.name}` : 'No assignment')}
             </p>
           </div>
-          <button 
+          {canEdit &&(<button 
             className="text-gray-500 hover:text-gray-700" 
             onClick={handleEditClick}
             type="button"
           >
             <MoreHorizontal size={16} />
-          </button>
+          </button>)}
+          
         </div>
         
         <p className="text-xs text-gray-600 mb-3 line-clamp-2">{task.description}</p>
@@ -428,13 +431,14 @@ const TaskManagement = () => {
               />
               <Search size={16} className="absolute left-2 top-3 text-gray-400" />
             </div>
-            <button 
+            {canAdd &&(<button 
               className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700" 
               onClick={handleAddTask}
             >
               <Plus size={16} />
               <span>Create Task</span>
-            </button>
+            </button>)}
+            
           </div>
         </div>
 
@@ -510,12 +514,13 @@ const TaskManagement = () => {
                   <h2 className="text-sm font-semibold text-gray-700">
                     {column.title} ({column.tasks.length})
                   </h2>
-                  <button 
+                  {canAdd &&(<button 
                     className="text-gray-500 hover:text-gray-700" 
                     onClick={handleAddTask}
                   >
                     <Plus size={16} />
-                  </button>
+                  </button>)}
+                  
                 </div>
                 <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto">
                   {column.tasks.map((task) => (
@@ -597,22 +602,23 @@ const TaskManagement = () => {
                       {new Date(task.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button 
+                      {canEdit &&(<button 
                         className="text-blue-600 hover:text-blue-900 mr-3" 
                         onClick={(e) => { e.stopPropagation(); handleEditTask(task); }}
                       >
                         <Edit size={16} />
-                      </button>
-                      <button 
+                      </button>)}
+                      {canDelete &&(<button 
                         className="text-red-600 hover:text-red-900" 
                         onClick={(e) => { 
                           e.stopPropagation(); 
-                          if (window.confirm("Are you sure you want to delete this task?")) 
+                           
                             handleDeleteTask(task.id); 
                         }}
                       >
                         <Trash size={16} />
-                      </button>
+                      </button>)}
+                      
                     </td>
                   </tr>
                 ))}
@@ -665,7 +671,8 @@ const TaskManagement = () => {
                 task={selectedTask} 
                 onClose={closeTaskDetailView} 
                 onDelete={handleDeleteTask} 
-                onChange={handleChange} 
+                onChange={handleChange}
+                canDelete={canDelete} 
               />
             </div>
           

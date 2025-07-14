@@ -174,6 +174,7 @@ const TaskDetailView = ({
   onClose, 
   onDelete, 
   onChange,
+  canDelete,
   
 }) => {
   const role = useSelector(state => state.auth.role);
@@ -326,20 +327,21 @@ const TaskDetailView = ({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-900">{task.title}</h2>
           <div className="flex space-x-2">
-            <button 
+            {/* <button 
               className="text-blue-600 border border-blue-600 px-3 py-1 rounded hover:bg-blue-50 transition-colors"
               onClick={navigationHandlers.editTask}
               disabled={isLoading}
             >
               Edit
-            </button>
-            <button 
+            </button> */}
+            {canDelete &&(<button 
               className="text-red-600 border border-red-600 px-3 py-1 rounded hover:bg-red-50 transition-colors"
               onClick={actionHandlers.confirmDelete}
               disabled={isLoading}
             >
               Delete
-            </button>
+            </button>)}
+            
             <button 
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 text-xl leading-none"
@@ -437,7 +439,7 @@ const TaskDetailView = ({
                 <PersonInfo person={task.created_by} />
               </DetailField>
 
-              {/* Assigned By */}
+              
               
 
               {/* Dates */}

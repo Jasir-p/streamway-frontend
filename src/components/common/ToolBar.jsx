@@ -211,11 +211,11 @@ return (
     </div>
 
     <div className="flex items-center space-x-2 flex-grow">
-      <ToolbarButton Icon={Mail} label="Mass Email" onClick={() => handleAction('Mass Email')} />
-      <ToolbarButton Icon={Tag} label="Add to Tag" onClick={() => handleAction('Add to Tag')} />
+      {/* <ToolbarButton Icon={Mail} label="Mass Email" onClick={() => handleAction('Mass Email')} /> */}
+      {/* <ToolbarButton Icon={Tag} label="Add to Tag" onClick={() => handleAction('Add to Tag')} /> */}
       <div ref={assignButtonRef} className="relative">
         <ToolbarButton 
-          Icon={Send} 
+          Icon={Send}  
           label={assigning ? "Assigning..." : "Assign to"} 
           onClick={toggleAssignDropdown} 
           isActive={assignDropdownOpen || assigning}

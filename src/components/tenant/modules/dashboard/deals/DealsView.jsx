@@ -29,6 +29,8 @@ import { EmptyState } from './components/EmptyState';
 import { deleteDealsBulk } from '../../../../../redux/slice/DealSlice';
 import { useDispatch } from 'react-redux';
 import useBulkDelete from './components/BulkDeleteHandler';
+import { useDealPermissions } from '../../../authorization/DealPermission';
+
 const DealsListPage = () => {
   // Modal states
   const [isOpen, setIsOpen] = useState(false);
@@ -36,6 +38,7 @@ const DealsListPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState(null);
+  const {canAddDeal,canEditDeal,canDeleteDeal,canViewDeal}=useDealPermissions()
   
   const dispatch = useDispatch();
 
@@ -195,6 +198,7 @@ const handleDeleteDeal = (dealId) => {
             onBulkEdit={() => setShowBulkEditModal(true)}
             onBulkDelete={handleBulkDelete}
             onClearSelection={clearSelection}
+            canDeleteDeal={canDeleteDeal}
           />
         )}
 
