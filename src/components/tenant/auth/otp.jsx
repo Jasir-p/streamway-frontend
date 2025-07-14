@@ -47,25 +47,33 @@ function OtpCheck() {
       
       const response = await defaultInterceptor.post('/register/', requestData);
       
+      
+      
       if (response.status === 201) {
         setVerificationStatus(response.data.message);
         clearErrors('otp');
         showSuccess("Account verified successfully!");
         navigate('/login');
-      } else {
-        setError('otp', {
-          type: 'manual',
-          message: 'Invalid OTP. Please try again.'
-        });
-        setVerificationStatus('error');
-        showError("Invalid OTP. Please try again.");
-      }
-    } catch (error) {
+      }  else {
+  
       setError('otp', {
         type: 'manual',
-        message: error.response?.data?.message || 'An error occurred. Please try again.'
+        message: 'Invalid OTP. Please try again.'
       });
-      showError(error.response?.data?.message || 'An error occurred. Please try again.');
+      setVerificationStatus('error');
+      showError("Invalid OTP. Please try again.");
+    }
+    } catch (error) {
+    
+      
+      const errorMessage = error.response?.data?.otp?.[0] ||  error.response?.data?.error ||
+       error.response?.data?.message || 'An error occurred. Please try again.';
+      setError('otp', {
+      type: 'manual',
+      message: errorMessage
+    });
+    showError(errorMessage);
+    setVerificationStatus('error');
     } finally {
       setIsVerifying(false);
     }

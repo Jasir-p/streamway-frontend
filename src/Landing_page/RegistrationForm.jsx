@@ -19,30 +19,39 @@ const RegistrationForm = () => {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm();
 
   const dispatch = useDispatch();
 
   const navigate = useNavigate()
   const onSubmit = async (data) => {
-    
+  try {
+    const response = await defaultInterceptor.post('/action/', data);
 
-    try {
-      const response = await defaultInterceptor.post('/action/', 
-        
-          data,
-      );
-
-      if (response.status === 200) {
-        dispatch(setTenantEmail(data.email))
-        navigate('/otp')
-
-
-      }
-    } catch (error) {
-      
+    if (response.status === 200) {
+      dispatch(setTenantEmail(data.email));
+      navigate('/otp');
     }
-  };
+  } catch (error) {
+    if (error.response && error.response.status === 400) {
+      const errorData = error.response.data;
+
+
+      for (const field in errorData) {
+        if (errorData.hasOwnProperty(field)) {
+          setError(field, {
+            type: "server",
+            message: errorData[field][0],
+          });
+        }
+      }
+    } else {
+      console.log("Unexpected error:", error);
+    }
+  }
+};
+
   
 
   return (
@@ -72,13 +81,23 @@ const RegistrationForm = () => {
                     <input
                       type="text"
                       id="fullName"
-                      {...register("owner_name", { required: "Name is required" })}
+                      {...register("owner_name", {
+                            required: "Name is required",
+                            validate: (value) => {
+                              const trimmed = value.trim();
+                              if (!trimmed) return "Name cannot be empty";
+                              if (!/[A-Za-z]/.test(trimmed)) return "Name must contain at least one letter";
+                              if (/^[^A-Za-z0-9]+$/.test(trimmed)) return "Name cannot be only special characters";
+                              return true;
+                            }
+                          })}
+
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                       placeholder="John Doe"
                       aria-describedby="name-error"
                     />
-                    {errors.name && (
-                      <span id="name-error" className="text-red-500 text-sm">{errors.name.message}</span>
+                    {errors.owner_name && (
+                      <span id="name-error" className="text-red-500 text-sm">{errors.owner_name.message}</span>
                     )}
                   </div>
                 </div>
@@ -124,7 +143,16 @@ const RegistrationForm = () => {
                     <input
                       type="text"
                       id="company"
-                      {...register("name", { required: "Company Name is required" })}
+                      {...register("name", {
+                                required: "Company name is required",
+                                validate: (value) => {
+                                  const trimmed = value.trim();
+                                  if (!trimmed) return "Company name cannot be empty";
+                                  if (!/[A-Za-z]/.test(trimmed)) return "Company name must contain at least one letter";
+                                  if (/^[^A-Za-z0-9]+$/.test(trimmed)) return "Company name cannot be only special characters";
+                                  return true;
+                                }
+                              })}
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                       placeholder="Your Company"
                       aria-describedby="company-error"
@@ -152,6 +180,12 @@ const RegistrationForm = () => {
                         pattern: {
                           value: /^[0-9]{10}$/,
                           message: "Enter a valid 10-digit number",
+                        },
+                        validate: (value) => {
+                          if (/^0{10}$/.test(value)) {
+                            return "Contact number cannot be all zeros";
+                          }
+                          return true;
                         },
                       })}
                       className="block w-full pl-14 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"

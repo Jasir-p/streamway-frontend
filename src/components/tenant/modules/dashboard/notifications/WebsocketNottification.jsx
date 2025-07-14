@@ -70,6 +70,8 @@ export const useNotificationWebSocket = () => {
 
 
     const wsUrl = `wss://api.streamway.solutions/${subdomain}/ws/${type}/?token=${token}`;
+      // const wsUrl = `ws://localhost:8000/${subdomain}/ws/${type}/?token=${token}`;
+    
 
 
 
