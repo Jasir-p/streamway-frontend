@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useSelector } from "react-redux";
 
 // Wait until `subdomain` is set in localStorage
 const waitForSubdomain = (maxWaitTime = 3000) => {
@@ -87,6 +88,8 @@ subdomainInterceptors.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refresh_token");
         let subdomain = localStorage.getItem("subdomain");
+        const state = store.getState();
+        const role = state.auth.role;
 
         // Extract subdomain from URL token if not in localStorage
         if (!subdomain) {
@@ -110,7 +113,11 @@ subdomainInterceptors.interceptors.response.use(
         }
 
         const baseUrl = import.meta.env.VITE_API_SUBDOMAIN_URL.replace("{subdomain}", subdomain);
-        const refreshResponse = await axios.post(`${baseUrl}/api/token/refresh/`, {
+        let refreshUrl = `${baseUrl}/api/token/refresh/`;
+        if (role !=='owner'){
+          refreshUrl = `${baseUrl}/api/token/employee_refresh/`;
+        }
+        const refreshResponse = await axios.post(refreshUrl, {
           refresh: refreshToken,
         });
 

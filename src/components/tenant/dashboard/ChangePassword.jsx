@@ -39,7 +39,7 @@ const ChangePassword = () => {
     formState: { errors: passwordErrors } 
   } = useForm({
     defaultValues: {
-      
+      oldPassword:'',
       newPassword: '',
       confirmPassword: '',
     }
@@ -72,8 +72,8 @@ const ChangePassword = () => {
         email:email };
     
     await passwordVerify(requestData);
-    setIsOtpStep(false); // Proceed to password change step after OTP verification
-    // You would typically verify OTP and complete the password change
+    setIsOtpStep(false);
+
     showSuccess('Password changed successfully!');
   };
 
@@ -129,6 +129,32 @@ const ChangePassword = () => {
                     
                     
                 <div>
+                  <div>
+                        <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                        Old Password
+                        </label>
+                        <div className="relative">
+                        <input
+                            id="oldPassword"
+                            {...registerPassword("oldPassword", { 
+                            required: "Old password is required",
+              
+                            })}
+                            type={showPassword ? "text" : "password"}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        <button 
+                            type="button"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                            onClick={() => setShowPassword(!showPassword)}
+                        >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                        </div>
+                        {passwordErrors.oldPassword && (
+                        <p className="mt-1 text-sm text-red-600">{passwordErrors.oldPassword.message}</p>
+                        )}
+                    </div>
                     <div>
                         <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
                         New Password

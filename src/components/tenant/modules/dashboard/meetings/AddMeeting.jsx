@@ -98,7 +98,15 @@ const [formData, setFormData] = useState(initialFormData);
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.title.trim()&& !meeting) newErrors.title = 'Title is required';
+    if (!formData.title.trim() && !meeting) {
+  newErrors.title = 'Title is required';
+      } else {
+        // Disallow /, -, _
+        const invalidChars = /[\/\-_]/;
+        if (invalidChars.test(formData.title)) {
+          newErrors.title = 'Title cannot contain "/", "-", or "_"';
+        }
+      }
     if (!formData.date && !meeting) newErrors.date = 'Date is required';
     if (!formData.time && !meeting) newErrors.time = 'Time is required';
      if (role !== 'owner' && !formData.host && !meeting) {
