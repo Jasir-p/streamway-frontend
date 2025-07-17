@@ -21,8 +21,8 @@ function SettingSidebar() {
 
   const sections = [
     { title: 'General', items: menuItems.slice(0, 3) },
-    { title: 'Account', items: menuItems.slice(3, 5) },
-    { title: 'Management', items: menuItems.slice(5) }
+    { title: 'Account', items: menuItems.slice(3, 4) },
+    { title: 'Management', items: menuItems.slice(4) }
   ];
 
   return (

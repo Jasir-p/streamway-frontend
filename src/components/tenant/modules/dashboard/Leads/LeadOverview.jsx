@@ -9,6 +9,8 @@ import { addLeadNote } from '../../../../../Intreceptors/LeadsApi';
 import ComposeEmailModal from '../email/AddMail';
 import { useDropdown } from '../../customer/contact/hooks/Contactshooks';
 import { useLeadPermissions } from '../../../authorization/LeadPermissions';
+import { validateEmail, validateName, validatePhone } from '../../../../../utils/ValidateFunctions';
+
 const fetchLeadById = async (lead_id) => {
     try {
         const response = await subdomainInterceptors.get("api/lead-overview/",
@@ -33,8 +35,23 @@ export default function LeadDetailPage() {
   const {lead_id} = useParams();
   const dispatch = useDispatch();
   const { isOpen, toggle, open, close } = useDropdown();
-  const {canEditLead}=useLeadPermissions()
+  const {canEditLead} = useLeadPermissions();
   
+  // Validation errors state
+  const [validationErrors, setValidationErrors] = useState({
+    name: '',
+    email: '',
+    phone_number: ''
+  });
+
+  // Success and error messages for lead editing
+  const [editStatus, setEditStatus] = useState({
+    success: false,
+    error: false,
+    message: '',
+    loading: false
+  });
+
   // Initialize leadData with proper structure
   const [leadData, setLeadData] = useState({
     name: "",
@@ -45,17 +62,14 @@ export default function LeadDetailPage() {
     custome_fields: {},
   });
 
-  
-  
   useEffect(() => {
     const fetchLead = async () => {
       const lead = await fetchLeadById(lead_id);
-      
       setLead(lead);
     };
   
     fetchLead(); 
-  }, [lead_id, change]); // Removed dispatch from dependencies as it's stable
+  }, [lead_id, change]);
 
   useEffect(() => {
     if (leads) {
@@ -71,9 +85,40 @@ export default function LeadDetailPage() {
     }
   }, [leads]);
 
-  // Memoize the change handler to prevent unnecessary re-renders
+  // Validation function
+  const validateField = useCallback((name, value) => {
+    switch (name) {
+      case 'name':
+        return validateName(value);
+      case 'email':
+        return validateEmail(value);
+      case 'phone_number':
+        return validatePhone(value);
+      default:
+        return null;
+    }
+  }, []);
+
+  // Enhanced change handler with validation
   const handleChange = useCallback((e) => {
     const {name, value} = e.target;
+    
+
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: ''
+    }));
+
+    // Clear edit status when user starts editing
+    if (editStatus.success || editStatus.error) {
+      setEditStatus({
+        success: false,
+        error: false,
+        message: '',
+        loading: false
+      });
+    }
+
     if (name.startsWith("custom_")) {
       const key = name.replace("custom_", "");
       setLeadData((prev) => ({
@@ -89,18 +134,87 @@ export default function LeadDetailPage() {
         [name]: value,
       }));
     }
-  }, []);
+  }, [editStatus]);
 
+  // Validate form on blur
+  const handleBlur = useCallback((e) => {
+    const {name, value} = e.target;
+    
+    if (['name', 'email', 'phone_number'].includes(name)) {
+      const error = validateField(name, value);
+      setValidationErrors(prev => ({
+        ...prev,
+        [name]: error || ''
+      }));
+    }
+  }, [validateField]);
 
-  const handleEdit = (e) => {
-    e.preventDefault(); // Prevent form submission from reloading page
+  // Validate all fields
+  const validateForm = useCallback(() => {
+    const errors = {
+      name: validateField('name', leadData.name),
+      email: validateField('email', leadData.email),
+      phone_number: validateField('phone_number', leadData.phone_number)
+    };
+
+    setValidationErrors(errors);
+    return !Object.values(errors).some(error => error);
+  }, [leadData, validateField]);
+
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+
+    // Reset previous status
+    setEditStatus({
+      success: false,
+      error: false,
+      message: '',
+      loading: true
+    });
     
     const updatedata = {
       ...leadData,
       lead_id: leads.lead_id
     };
 
-    dispatch(editLead(updatedata));
+    try {
+      await dispatch(editLead(updatedata)).unwrap();
+      
+      // Success handling
+      setEditStatus({
+        success: true,
+        error: false,
+        message: 'Lead updated successfully!',
+        loading: false
+      });
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setEditStatus(prev => ({ ...prev, success: false, message: '' }));
+      }, 3000);
+
+      // Trigger data refresh
+      setChange(!change);
+      
+    } catch (error) {
+      // Error handling
+      setEditStatus({
+        success: false,
+        error: true,
+        message: error.message || 'Failed to update lead. Please try again.',
+        loading: false
+      });
+
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setEditStatus(prev => ({ ...prev, error: false, message: '' }));
+      }, 5000);
+    }
   };
   
   const handleNoteSubmit = async() => {
@@ -117,15 +231,12 @@ export default function LeadDetailPage() {
       notes: noteText
     };
     
-    
     try {
       const res = await addLeadNote(data);
       setNoteText("");
       setError("");
       setChange(!change);
-      
     } catch (error) {
-      
       setError('Failed to add note. Please try again.');
     }
   };
@@ -166,8 +277,10 @@ export default function LeadDetailPage() {
               onClose={close}
               isOpen={isOpen}
               isType = {true}
+              manualType="lead"
               />
             )}
+
             {/* Lead Profile Card */}
             <div className="bg-white rounded-lg shadow mb-6">
               <div className="p-6">
@@ -209,7 +322,6 @@ export default function LeadDetailPage() {
             <div className="bg-white rounded-lg shadow">
               <div className="border-b border-gray-200">
                 <nav className="flex">
-                  
                   <TabButton 
                     text="Notes" 
                     active={activeTab === 'notes'} 
@@ -229,9 +341,6 @@ export default function LeadDetailPage() {
               </div>
 
               <div className="p-6">
-                {/* Activities Tab */}
-                
-
                 {/* Notes Tab */}
                 {activeTab === 'notes' && (
                   <div>
@@ -280,8 +389,6 @@ export default function LeadDetailPage() {
                 {/* Tasks Tab */}
                 {activeTab === 'tasks' && (
                   <div>
-                    
-
                     {(leadData?.tasks).map(task => (
                       <div key={task.id} className="flex items-center p-4 border border-gray-200 rounded-md mb-3 bg-white">
                         <input 
@@ -310,53 +417,90 @@ export default function LeadDetailPage() {
                     ))}
                     {(!leads?.tasks || leads.tasks.length === 0) && (
                         <p className="text-center text-gray-500 py-4">No tasks found.</p>
-                      )}
+                    )}
                   </div>
                 )}
 
-                {/* Edit Tab */}
-                {activeTab === 'edit' && canEditLead &&  (
+                {/* Edit Tab with Validation */}
+                {activeTab === 'edit' && canEditLead && (
                   <div>
+                    {/* Success Message */}
+                    {editStatus.success && (
+                      <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md flex items-center">
+                        <Check className="w-5 h-5 mr-2 text-green-500" />
+                        {editStatus.message}
+                      </div>
+                    )}
+
+                    {/* Error Message */}
+                    {editStatus.error && (
+                      <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
+                        {editStatus.message}
+                      </div>
+                    )}
+
                     <form className="grid grid-cols-1 md:grid-cols-3 gap-4" onSubmit={handleEdit}>
+                      {/* Name Field */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Name
+                          Name *
                         </label>
                         <input
                           type="text"
                           name="name"
                           onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md"
+                          onBlur={handleBlur}
+                          className={`w-full p-2 border rounded-md ${
+                            validationErrors.name ? 'border-red-500 focus:border-red-500' : 'border-gray-300'
+                          }`}
                           value={leadData.name}
                         />
+                        {validationErrors.name && (
+                          <p className="text-red-500 text-xs mt-1">{validationErrors.name}</p>
+                        )}
                       </div>
                       
+                      {/* Email Field */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Email
+                          Email *
                         </label>
                         <input
                           type="email"
                           name="email"
                           onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md"
+                          onBlur={handleBlur}
+                          className={`w-full p-2 border rounded-md ${
+                            validationErrors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300'
+                          }`}
                           value={leadData.email}
                         />
+                        {validationErrors.email && (
+                          <p className="text-red-500 text-xs mt-1">{validationErrors.email}</p>
+                        )}
                       </div>
                       
+                      {/* Phone Field */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Phone
+                          Phone *
                         </label>
                         <input
                           type="tel"
                           name="phone_number"
                           onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md"
+                          onBlur={handleBlur}
+                          className={`w-full p-2 border rounded-md ${
+                            validationErrors.phone_number ? 'border-red-500 focus:border-red-500' : 'border-gray-300'
+                          }`}
                           value={leadData.phone_number}
                         />
+                        {validationErrors.phone_number && (
+                          <p className="text-red-500 text-xs mt-1">{validationErrors.phone_number}</p>
+                        )}
                       </div>
                       
+                      {/* Status Field */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Lead Status
@@ -375,6 +519,7 @@ export default function LeadDetailPage() {
                         </select>
                       </div>
                       
+                      {/* Custom Fields */}
                       {leadData.custome_fields && Object.entries(leadData.custome_fields).map(([key, value]) => (
                         <div key={key}>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -390,18 +535,29 @@ export default function LeadDetailPage() {
                         </div>
                       ))}
                       
+                      {/* Action Buttons */}
                       <div className="md:col-span-3 flex justify-end space-x-2 mt-4">
                         <button
                           type="button"
-                          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => setActiveTab('notes')}
+                          disabled={editStatus.loading}
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                          disabled={Object.values(validationErrors).some(error => error) || editStatus.loading}
                         >
-                          Save Changes
+                          {editStatus.loading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Saving...
+                            </>
+                          ) : (
+                            'Save Changes'
+                          )}
                         </button>
                       </div>
                     </form>

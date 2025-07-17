@@ -10,6 +10,8 @@ import api from '../../../api';
 import { useToast } from '../../common/ToastNotification';
 import { updateProfile } from '../../../redux/slice/ProfileSlice';
 import subdomainInterceptors from '../../../Intreceptors/getSubdomainInterceptors';
+import { validateName,validatePhone } from '../../../utils/ValidateFunctions';
+
 
 
 
@@ -26,7 +28,7 @@ const Personal = () => {
   const [personalDetails, setPersonalDetails] = useState({});
   const dispatch = useDispatch();
   const userId = profile.id 
-  
+  const isNotOwner = role !== 'owner' ? true : false;
   
   useEffect(() => {
     setPersonalDetails({ ...profile, role });
@@ -65,14 +67,21 @@ const Personal = () => {
    
     try{
       setIsLoading(true)
-      if (!personalDetails.name?.trim()){
-        showWarning('Please enter your name')
+      const nameError = validateName(personalDetails.name);
+      const phoneError = validatePhone(personalDetails.phone);
+      if (nameError){
+        showWarning(nameError)
         return
       }
       if (!personalDetails.email?.trim()){
         showWarning('Please enter your email')
         return
         }
+
+      if (phoneError){
+        showWarning(phoneError)
+        return
+      }
         const profileData ={
           ...personalDetails,
         }
@@ -113,11 +122,12 @@ const Personal = () => {
           <input
             type={type}
             value={personalDetails[field] || ''}
+            placeholder={!personalDetails[field]?"Add your"+label:""}
             onChange={(e) => handleInputChange(field, e.target.value)}
             className="mt-2 w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
           />
         ) : (
-          <p className="text-sm font-medium text-gray-800 mt-1">{personalDetails[field] || 'Not specified'}</p>
+          <p className="text-sm font-medium text-gray-800 mt-1">{personalDetails[field] || 'Not Added'}</p>
         )}
       </div>
     </div>
@@ -243,14 +253,16 @@ const Personal = () => {
                   <Mail className="w-5 h-5 text-green-500" />, 
                   'Email Address', 
                   'email',
-                  'email'
+                  'email',
+                  false
                 )}
                 
                 {renderDetailRow(
                   <Phone className="w-5 h-5 text-purple-500" />, 
                   'Phone Number', 
                   'phone',
-                  'tel'
+                  'tel',
+                  isNotOwner
                 )}
               </div>
               
@@ -271,11 +283,7 @@ const Personal = () => {
                   false
                 )}
                 
-                {renderDetailRow(
-                  <Users className="w-5 h-5 text-amber-500" />, 
-                  'Team Members', 
-                  'employees'
-                )}
+                
               </div>
             </div>
           </div>

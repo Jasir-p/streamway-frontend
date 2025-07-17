@@ -55,6 +55,44 @@ export const  addTask =  createAsyncThunk('task/addTask', async (taskData, {reje
     }
             })
 
+  // export const  addTask =  createAsyncThunk('task/addTask', async (taskData, {rejectWithValue}) => {
+  //   try {
+  //       const token = localStorage.getItem("access_token");
+  //       const subdomain = localStorage.getItem("subdomain");
+    
+  //       if (!token) return rejectWithValue("No token found, please log in again.");
+  //       if (!subdomain) return rejectWithValue("Subdomain not set.");
+    
+        
+    
+  //       const response = await axios.post(`http://localhost:8000/${subdomain}/api/tasks/`, taskData, {
+  //           headers: {
+  //               Authorization: `Bearer ${token}`,
+  //               "Content-Type": "multipart/form-data",
+  //           },
+  //       });
+    
+  //       return response.data
+        
+  //   } catch (error) {
+        
+  //       return rejectWithValue(error.response?.data || "Failed to submit task");
+  //   }
+  //           })
+
+// export const addTask = createAsyncThunk('task/addTask', async (taskData, {rejectWithValue}) => {
+//     try {
+
+//         const response = await subdomainInterceptors.post('/api/tasks/', taskData);
+    
+//         return response.data
+        
+//     } catch (error) {
+        
+//         return rejectWithValue(error.response?.data || "Failed to submit task");
+//     }
+//             })
+
 export const deleteTask = createAsyncThunk('task/deleteTask', async(task_id,{rejectWithValue})=>{
     
     

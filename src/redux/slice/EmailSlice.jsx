@@ -6,7 +6,9 @@ import { fixPaginationUrl } from "../../components/utils/fixPaginationUrl";
 
 export const fetchEmails = createAsyncThunk(
   "emails/fetchEmails",
-  async ({ userID = null, url = "/api/tenant-email/" }, { rejectWithValue }) => {
+  async ({ userID = null, url}, { rejectWithValue }) => {
+    console.log(url);
+    
     try {
       const params = {};
       
@@ -50,6 +52,8 @@ const emailSlice = createSlice({
       hasNext: false,
       hasPrevious: false,
       totalCount: 0,
+      next:null,
+      previous:null
     },
     reducers: {
       resetEmailState: (state) => {
@@ -80,6 +84,8 @@ const emailSlice = createSlice({
             state.totalCount = action.payload.count;
             state.hasNext = !!action.payload.next;
             state.hasPrevious = !!action.payload.previous;
+            state.next = action.payload.next;
+            state.previous = action.payload.previous;
             
             // Calculate total pages if page_size is available
             if (action.payload.page_size) {

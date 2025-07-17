@@ -6,7 +6,8 @@ import {
 import { fetchCompany, updateCompany } from '../../../../redux/slice/CompanyDetails';
 import { useDispatch, useSelector } from 'react-redux';
 import { useToast } from '../../../common/ToastNotification';
-
+import { validateEmail,validateName,validatePhone } from '../../../../utils/ValidateFunctions';
+import { updateProfile } from '../../../../redux/slice/ProfileSlice';
 const Company = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [logo, setLogo] = useState(null);
@@ -69,8 +70,12 @@ const Company = () => {
 
   const saveChanges = async() => {
     // Validate required fields
-    if (!companyDetails.name?.trim()) return showWarning('Please enter company name');
-    if (!companyDetails.email?.trim()) return showWarning('Please enter company email');
+    const emailError = validateEmail(companyDetails.email)
+    const phoneError = validatePhone(companyDetails.phone)
+    const nameError = validateName(companyDetails.name)
+    if (nameError) return showWarning(nameError);
+    if (emailError) return showWarning(emailError);
+    if (phoneError) return showWarning(phoneError);
 
     try {
       showInfo('Saving company information...');
@@ -85,6 +90,11 @@ const Company = () => {
       
       if (updateCompany.fulfilled.match(resultAction)) {
         showSuccess('Company information updated successfully!');
+        dispatch(updateProfile({
+          phone:companyDetails.phone,
+          email:companyDetails.email,
+        }
+        ))
         setIsEditing(false);
         setShowUploadOption(false);
         dispatch(fetchCompany(userId)); // Refresh data

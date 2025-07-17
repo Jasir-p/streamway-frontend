@@ -34,8 +34,10 @@ const ChangePassword = () => {
   // Password form
   const { 
     register: registerPassword, 
-    handleSubmit: handleSubmitPassword, 
+    handleSubmit: handleSubmitPassword,
+    reset:resetPasswordForm,
     watch,
+    setError, 
     formState: { errors: passwordErrors } 
   } = useForm({
     defaultValues: {
@@ -49,32 +51,76 @@ const ChangePassword = () => {
   const { 
     register: registerOtp, 
     handleSubmit: handleSubmitOtp,
+    reset: resetOtpForm,
+    setError:setOtpError,
     formState: { errors: otpErrors } 
   } = useForm();
  
 
-  const onSubmitPassword = async (data) => {
-    
-    const requestData = { ...data, email };
-    
-    try {
-      await passwordSet(requestData); 
-      setIsOtpStep(true); 
-    } catch (error) {
-      showError('Password change failed:', error);
+ const onSubmitPassword = async (data) => {
+  const requestData = { ...data, email };
+
+  try {
+    const response = await passwordSet(requestData);
+    setIsOtpStep(true);
+    resetPasswordForm();
+  } catch (error) {
+    const errData = error.response?.data;
+
+    if (errData?.oldPassword) {
+      setError("oldPassword", {
+        type: "manual",
+        message: Array.isArray(errData.oldPassword) ? errData.oldPassword[0] : errData.oldPassword,
+      });
+    } else if (errData?.old_password) {
+      setError("oldPassword", {
+        type: "manual",
+        message: Array.isArray(errData.old_password) ? errData.old_password[0] : errData.old_password,
+      });
+    } else if (errData?.message) {
+      showError(errData.message);
+    } else if (errData?.error) {
+      showError(errData.error);
+    } else if (errData?.detail) {
+      showError(errData.detail);
+    } else {
+      showError("Password change failed. Please try again.");
     }
-}
+  }
+};
+
 
   const onSubmitOtp =async (data) => {
 
-    showError('OTP submitted');
+
     const requestData = { otp:data.otp, 
         email:email };
     
-    await passwordVerify(requestData);
-    setIsOtpStep(false);
+    try {
+    const response = await passwordVerify(requestData);
 
+    setIsOtpStep(false);
+    resetOtpForm();
+    resetPasswordForm();
     showSuccess('Password changed successfully!');
+  } catch (error) {
+    console.error('OTP verification error:', error); // Add logging
+    
+    const errData = error.response?.data;
+    
+    if (errData?.otp) {
+      setOtpError("otp", {
+        type: "manual",
+        message: Array.isArray(errData.otp) ? errData.otp[0] : errData.otp,
+      });
+    } else if (errData?.message) {
+      showError(errData.message);
+    } else if (errData?.error) {
+      showError(errData.error);
+    } else {
+      showError("OTP verification failed. Please try again.");
+    }
+  }
   };
 
   return (

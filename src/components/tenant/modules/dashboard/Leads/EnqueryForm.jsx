@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchFields } from "../../../../../redux/slice/LeadFormSlice";
 import subdomainInterceptors from "../../../../../Intreceptors/getSubdomainInterceptors";
 import { useToast } from "../../../../common/ToastNotification";
+import { validateEmail, validateName, validatePhone } from "../../../../../utils/ValidateFunctions";
 
 const addEnquiry = async (data, showSuccess, showError) => {
   try {
@@ -18,8 +19,6 @@ const addEnquiry = async (data, showSuccess, showError) => {
   }
 };
 
-  
-
 const EnquiryForm = () => {
   const dispatch = useDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,42 +26,39 @@ const EnquiryForm = () => {
   const [formErrors, setFormErrors] = useState({});
   const { showSuccess, showError, showWarning } = useToast();
 
-
-
   useEffect(() => {
     dispatch(fetchFields());
   }, [dispatch]);
 
-
   const { formfields = [] } = useSelector((state) => state.fields.field);
   
-
   const requiredFields = [
     { id: "name", field_name: "Full Name", field_type: "text", is_required: true },
     { id: "email", field_name: "Email Address", field_type: "email", is_required: true },
     { id: "phone_number", field_name: "Contact Number", field_type: "tel", is_required: true },
-     {id:'source', field_name: 'Source', field_type: 'select', is_required: true,
-       options: [
-      { value: 'website', label: 'Website' },
-      { value: 'whatsapp', label: 'WhatsApp' },
-      { value: 'facebook', label: 'Facebook' },
-      { value: 'instagram', label: 'Instagram' },
-      { value: 'google_ads', label: 'Google Ads' },
-      { value: 'referral', label: 'Referral' },
-      { value: 'other', label: 'Other' }
-    ]},
+    {
+      id: 'source', 
+      field_name: 'Source', 
+      field_type: 'select', 
+      is_required: true,
+      options: [
+        { value: 'website', label: 'Website' },
+        { value: 'whatsapp', label: 'WhatsApp' },
+        { value: 'facebook', label: 'Facebook' },
+        { value: 'instagram', label: 'Instagram' },
+        { value: 'google_ads', label: 'Google Ads' },
+        { value: 'referral', label: 'Referral' },
+        { value: 'other', label: 'Other' }
+      ]
+    },
     { id: "location", field_name: "Location", field_type: "text", is_required: true },
-      
   ];
-
 
   const contactFields = requiredFields.slice(0, 4);
   const locationFields = [requiredFields[4]];
   const additionalFields = formfields;
 
-
   const [formValues, setFormValues] = useState({});
-
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -71,7 +67,7 @@ const EnquiryForm = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
     
-
+    // Clear error for this field when user starts typing
     if (formErrors[name]) {
       setFormErrors(prev => ({...prev, [name]: null}));
     }
@@ -82,12 +78,41 @@ const EnquiryForm = () => {
     const allFields = [...requiredFields, ...formfields];
     
     allFields.forEach(field => {
-      if (field.is_required && !formValues[field.id]) {
-        errors[field.id] = `${field.field_name} is required`;
-      }
+      const fieldValue = formValues[field.id];
       
-      if (field.id === 'email' && formValues.email && !/\S+@\S+\.\S+/.test(formValues.email)) {
-        errors.email = 'Email address is invalid';
+      // Check if required field is empty
+      if (field.is_required && !fieldValue) {
+        errors[field.id] = `${field.field_name} is required`;
+        return;
+      }
+
+      if (fieldValue) {
+        switch (field.id) {
+          case 'email':
+            const emailError = validateEmail(fieldValue);
+            if (emailError) {
+              errors[field.id] = emailError;
+            }
+            break;
+            
+          case 'name':
+            const nameError = validateName(fieldValue);
+            if (nameError) {
+              errors[field.id] = nameError;
+            }
+            break;
+            
+          case 'phone_number':
+            const phoneError = validatePhone(fieldValue);
+            if (phoneError) {
+              errors[field.id] = phoneError;
+            }
+            break;
+            
+          default:
+            // No specific validation for other fields
+            break;
+        }
       }
     });
     
@@ -101,6 +126,8 @@ const EnquiryForm = () => {
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      // Show warning for validation errors
+      showWarning("Please fix the errors below before submitting");
       return;
     }
   
@@ -115,40 +142,32 @@ const EnquiryForm = () => {
         let label = key;
 
         if (field) {
-            
-            label = field.field_name;
-            readableFormData[field.id] = formValues[key];
+          label = field.field_name;
+          readableFormData[field.id] = formValues[key];
         } else {
-    
-            field = formfields.find(f => f.id.toString() === key);
-            label = field ? field.field_name : key;
-            readableFormData[label] = formValues[key]; 
+          field = formfields.find(f => f.id.toString() === key);
+          label = field ? field.field_name : key;
+          readableFormData[label] = formValues[key]; 
         }
-            });
+      });
       
+      const response = await addEnquiry(readableFormData, showSuccess, showError);
       
-  
-
-      const response = await addEnquiry(readableFormData,showSuccess,showError);
-      
-  
       setSubmitSuccess(true);
   
       setTimeout(() => {
         setFormValues({});
         setSubmitSuccess(false);
+        setFormErrors({});
       }, 5000);
   
     } catch (error) {
-      showError(error.message)
-      
-      
+      showError(error.message || "Failed to submit form");
     } finally {
       setIsSubmitting(false);
     }
   };
   
-
   const renderField = (field) => {
     const { id, field_name, field_type, is_required, options = [] } = field;
     const hasError = formErrors[id];

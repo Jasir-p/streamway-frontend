@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchFields } from "../../../../../redux/slice/LeadFormSlice";
 import { useToast } from "../../../../common/ToastNotification";
 import { addLeads } from "../../../../../redux/slice/leadsSlice";
+import { validateEmail, validateName, validatePhone } from "../../../../../utils/ValidateFunctions";
 
 const AddLeadModal = ({ isOpen, onClose, onChange }) => {
   const dispatch = useDispatch();
@@ -72,38 +73,47 @@ const AddLeadModal = ({ isOpen, onClose, onChange }) => {
     const allFields = [...leadFormFields, ...formfields];
 
     allFields.forEach(field => {
-      if (field.is_required && !formValues[field.id]) {
+      const value = formValues[field.id];
+      
+      // Check if required field is empty
+      if (field.is_required && !value) {
         errors[field.id] = `${field.field_name} is required`;
+        return;
       }
 
-      if (field.id === 'name' && value) {
-        if (value.trim().length < 2) {
-          errors.name = 'Name must be at least 2 characters';
-        } else if (/^\d+$/.test(value)) {
-          errors.name = 'Name cannot be only numbers';
+      // Skip validation if field is empty and not required
+      if (!value) return;
+
+      // Validate name field using utility function
+      if (field.id === 'name') {
+        const nameValidation = validateName(value);
+        if (nameValidation) {
+          errors.name = nameValidation
         }
-    }
-
-    // Specific: Location should not be only numbers or empty
-    if (field.id === 'location' && value) {
-      if (value.trim().length < 2) {
-        errors.location = 'Location must be at least 2 characters';
-      } else if (/^\d+$/.test(value)) {
-        errors.location = 'Location cannot be only numbers';
-      }
-    }
-      // Email validation
-      if (field.id === 'email' && formValues.email && !/\S+@\S+\.\S+/.test(formValues.email)) {
-        errors.email = 'Please enter a valid email address';
       }
 
-      // Phone number validation
-      if (field.id === 'phone_number' && formValues.phone_number) {
-        const phoneValue = formValues.phone_number.toString();
-        if (!/^\d+$/.test(phoneValue)) {
-          errors.phone_number = 'Phone number must contain only numbers';
-        } else if (phoneValue.length !== 10) {
-          errors.phone_number = 'Phone number must be exactly 10 digits';
+      // Validate email field using utility function
+      if (field.id === 'email') {
+        const emailValidation = validateEmail(value);
+        if (emailValidation) {
+          errors.email = emailValidation;
+        }
+      }
+
+      // Validate phone number field using utility function
+      if (field.id === 'phone_number') {
+        const phoneValidation = validatePhone(value);
+        if (phoneValidation) {
+          errors.phone_number = phoneValidation;
+        }
+      }
+
+      // Validate location field (similar to name validation)
+      if (field.id === 'location') {
+        if (value.trim().length < 2) {
+          errors.location = 'Location must be at least 2 characters';
+        } else if (/^\d+$/.test(value.trim())) {
+          errors.location = 'Location cannot be only numbers';
         }
       }
     });
@@ -136,6 +146,7 @@ const AddLeadModal = ({ isOpen, onClose, onChange }) => {
           formData[customField.field_name] = formValues[key];
         }
       });
+      
       formData.employee = role !== 'owner' ? userId : null
       formData.granted_by = role !== 'owner' ? userId : null
 
@@ -149,7 +160,7 @@ const AddLeadModal = ({ isOpen, onClose, onChange }) => {
 
     } catch (error) {
       showError("Failed to submit lead information");
-
+      console.error("Error submitting lead:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -165,8 +176,9 @@ const AddLeadModal = ({ isOpen, onClose, onChange }) => {
     const { id, field_name, field_type, is_required, options = [] } = field;
     const hasError = formErrors[id];
 
-    const baseClasses = `w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${hasError ? "border-red-500" : "border-gray-300"
-      }`;
+    const baseClasses = `w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+      hasError ? "border-red-500" : "border-gray-300"
+    }`;
 
     switch (field_type) {
       case "select":
@@ -307,7 +319,6 @@ const AddLeadModal = ({ isOpen, onClose, onChange }) => {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-gray-800">Lead Information</h2>
-
               </div>
               <button
                 onClick={handleClose}
@@ -339,8 +350,9 @@ const AddLeadModal = ({ isOpen, onClose, onChange }) => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-                    }`}
+                  className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                    isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
                 >
                   {isSubmitting ? (
                     <>

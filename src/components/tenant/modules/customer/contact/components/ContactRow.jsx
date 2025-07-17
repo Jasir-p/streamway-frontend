@@ -4,6 +4,8 @@ import userprofile from "../../../../../../assets/user-profile.webp";
 import { updateContact } from '../../../../../../redux/slice/contactSlice';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useDropdown } from '../hooks/Contactshooks';
+import ComposeEmailModal from '../../../dashboard/email/AddMail';
 
 const ContactRow = ({ 
   contact, 
@@ -18,6 +20,8 @@ const ContactRow = ({
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const subdomain = localStorage.getItem("subdomain")
+  const isEditable = !contact.is_primary_contact;
+  const { isOpen, toggle, open, close } = useDropdown();
 
   const handleStatusChange = (contact) => {
     const data = {
@@ -108,6 +112,15 @@ const ContactRow = ({
           </div>
         </div>
       </td>
+      { isOpen &&(
+                    <ComposeEmailModal
+                    contacts={contact}
+                    onClose={close}
+                    isOpen={isOpen}
+                    isType = {true}
+                    manualType="contact"
+                    />
+                  )}
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center">
           <div className="flex items-center">
@@ -127,13 +140,14 @@ const ContactRow = ({
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium relative">
         <div className="flex items-center justify-end space-x-2">
-          <button 
+          {isEditable &&(<button 
             className="p-1 text-indigo-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50"
             onClick={handleEditClick}
             title="Edit Contact"
           >
             <Edit size={18} />
-          </button>
+          </button>)}
+          
           
           <div className="relative">
             <button 
@@ -155,17 +169,23 @@ const ContactRow = ({
                 </button>
                 <button 
                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                  onClick={toggle}
+                >
+                  Send Mail
+                </button>
+                <button 
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
                   onClick={handleScheduleClick}
                 >
                   Schedule Meeting
                 </button>
-                
-                <button 
+                {isEditable &&(<button 
                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
                   onClick={handleEditClick}
                 >
                   Edit Contact
-                </button>
+                </button>)}
+                
               </div>
             )}
           </div>

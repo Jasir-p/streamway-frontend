@@ -28,6 +28,8 @@ import CustomFieldModal from './CustomeField';
 import { addCustomFields, deleteCustomFields, AddNote } from '../../../../Intreceptors/CustomerApi';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateAccount } from '../../../../redux/slice/AccountsSlice';
+import { useDropdown } from './contact/hooks/Contactshooks';
+import ComposeEmailModal from '../dashboard/email/AddMail';
 
 export default function AccountDetail() {
   const [activeTab, setActiveTab] = useState('Deals');
@@ -44,6 +46,7 @@ export default function AccountDetail() {
   const role = useSelector((state) => state.auth.role);
   const [change, setChange] = useState(false);
   const dispatch = useDispatch();
+  const { isOpen, toggle, open, close } = useDropdown();
 
   // Edit form state
   const [editMode, setEditMode] = useState(false);
@@ -242,19 +245,20 @@ export default function AccountDetail() {
             </span>
           </div>
           
-          {/* <div className="flex space-x-2">
-            <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
+          <div className="flex space-x-2">
+            <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            onClick={toggle}>
+              <Mail className="h-4 w-4 mr-2" />
+              Email
             </button>
             
-            <div className="relative inline-block text-left">
+            {/* <div className="relative inline-block text-left">
               <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                 <MoreVertical className="h-4 w-4" />
               </button>
               
-            </div>
-          </div> */}
+            </div> */}
+          </div>
         </div>
         
         {/* Overview Cards */}
@@ -331,7 +335,15 @@ export default function AccountDetail() {
             </div>
           </div>
         </div>
-        
+        { isOpen &&(
+                            <ComposeEmailModal
+                            contacts={accounts}
+                            onClose={close}
+                            isOpen={isOpen}
+                            isType = {true}
+                            manualType="account"
+                            />
+                          )}
         {/* Main Content */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1 space-y-6">

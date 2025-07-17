@@ -4,7 +4,7 @@ import { addEmail } from '../../../../../redux/slice/EmailSlice';
 import { useDispatch, useSelector } from 'react-redux'
 import { useToast } from '../../../../common/ToastNotification';
 
-export default function ComposeEmailModal({ isOpen, onClose, onSelectContact=null,contacts,isType=false }) {
+export default function ComposeEmailModal({ isOpen, onClose, onSelectContact=null,contacts,isType=false,manualType=null}) {
   const [contact, setContact] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [subject, setSubject] = useState('');
@@ -34,26 +34,29 @@ const handleSubmit = async(e) =>
       body: body,
      
     }
-    if (type === 'lead') {
+    if (type === 'lead' ||manualType === 'lead') {
     data.to_lead = [contacts.lead_id];
-  } else if (type === 'contact') {
+  } else if (type === 'contact' || manualType === 'contact') {
     data.to_contacts = [contacts.id];
-  } else if (type === 'account') {
+  } else if (type === 'account' || manualType === 'account') {
     data.to_accounts = [contacts.id];
   }
   if (role !== 'owner') {
      data.sender_id= userID 
   }
+    console.log(data);
     
      try {
-        await dispatch(addEmail(data)).unwrap(); // unwrap resolves or throws error
-        showSuccess("Email sent successfully!"); // or use toast
-        onClose();
-      } catch (error) {
+        const result = await dispatch(addEmail(data)).unwrap();
         
-        showError("Failed to send email. Please try again."); // or use toast
-      }
-  }
+        showSuccess("Email queued successfully!");
+        onClose();
+        
+
+      } catch (error) {
+        showError("Failed to queue email. Please try again.");
+        }
+}
   
 
   if (!isOpen) return null;
@@ -75,6 +78,7 @@ const handleSubmit = async(e) =>
               <div className="flex-1 flex items-center">
                 <input
                   type="text"
+                  readOnly
                   disabled={isType}
                   className="flex-1 border-b border-gray-300 focus:border-blue-500 focus:outline-none py-1"
                   placeholder="Enter email address"

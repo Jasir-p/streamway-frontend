@@ -14,7 +14,7 @@ export const DealsCard = ({ deals }) => (
 
             <div className="flex justify-between items-center text-xs text-gray-600 mb-2">
               <span>Stage: <span className="font-medium">{deal.stage}</span></span>
-              <span>Rep: <span className="font-medium">{deal?.owner.name}</span></span>
+              <span>Rep: <span className="font-medium">{deal?.owner?.name}</span></span>
             </div>
 
             <div className="mt-2">

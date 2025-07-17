@@ -13,7 +13,9 @@ import {
   CheckCircle,
   Inbox,
   Calendar,
-  X
+  X,
+  RefreshCcw,
+  ArrowLeft, ArrowRight
 } from 'lucide-react';
 import DashboardLayout from '../../../dashboard/DashbordLayout';
 import { fetchEmails } from '../../../../../redux/slice/EmailSlice';
@@ -31,7 +33,7 @@ export default function EmailManagementUI() {
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [showContactsModal, setShowContactsModal] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState(null);
-  const { emails, loading } = useSelector((state) => state.emails);
+  const { emails, loading,hasNext,hasPrevious,next,previous } = useSelector((state) => state.emails);
   const [selectedContact, setSelectedContact] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const role = useSelector((state) =>state.auth.role)
@@ -46,18 +48,30 @@ export default function EmailManagementUI() {
   
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    const fetchData = () => {
+
+    const fetchData = (url='/api/tenant-email/') => {
       const params = {
         userID: role !== 'owner' ? userID : null,
-
+        url,
       };
       dispatch(fetchEmails(params));
     };
-    
-    fetchData();
-  }, [dispatch, role, userID]);
-  
+
+    useEffect(() => {
+      fetchData();  // Initial load
+    }, [dispatch, role, userID]);
+
+    const handleNextPage = () => {
+      if (hasNext) {
+        fetchData(next);  
+      }
+    };
+
+    const handlePreviousPage = () => {
+      if (hasPrevious) {
+        fetchData(previous); 
+      }
+    };
 
   const emailCategories = [
     { id: 'all', name: 'All Emails', count: 256 },
@@ -189,9 +203,45 @@ export default function EmailManagementUI() {
                 </div>
               </div>
 
+
+                <div className="flex items-center gap-4">
+                  {/* Previous Button */}
+                  <button
+                    onClick={handlePreviousPage}
+                    disabled={!hasPrevious}
+                    className={`p-2 rounded-full ${
+                      hasPrevious
+                        ? 'bg-blue-100 hover:bg-blue-200 text-blue-600'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+
+                  {/* Next Button */}
+                  <button
+                    onClick={handleNextPage}
+                    disabled={!hasNext}
+                    className={`p-2 rounded-full ${
+                      hasNext
+                        ? 'bg-blue-100 hover:bg-blue-200 text-blue-600'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
+
+
               <div className="flex items-center gap-2">
+                
+                <button onClick={fetchData} className="flex items-center gap-1 text-sm text-blue-600 hover:underline">
+                  <RefreshCcw className="w-4 h-4" />
+                  Refresh
+                </button>
                 <div className="relative">
-                  <button 
+                  
+                   <button 
                     onClick={() => setShowFilters(!showFilters)}
                     className={`flex items-center justify-center gap-1 rounded-md px-3 py-1.5 ${hasActiveFilters ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}
                   >
@@ -422,6 +472,7 @@ export default function EmailManagementUI() {
               </ul>
             )}
           </div>
+          
         </div>
 
         {emailDetailModal && (
@@ -444,6 +495,7 @@ export default function EmailManagementUI() {
           onClose={() => setShowContactsModal(false)}
           onSelectContact={selected}
         />
+        
       </div>
     </DashboardLayout>
   );

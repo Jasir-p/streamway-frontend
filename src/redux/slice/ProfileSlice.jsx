@@ -19,10 +19,10 @@ const profileSlice = createSlice({
             state.id = action.payload.id;
             state.name = action.payload.name;
             state.email = action.payload.email;
-            state.phone = action.payload.phone;
+            state.phone = action.payload.phone||action.payload.contact_number;
             state.role = action.payload.role;
             state.company = action.payload.company;
-            state.joined_date = action.payload.joined_date;
+            state.joined_date = action.payload.joined_date ||action.payload.joined ;
             state.status = 'succeeded';
         },
         updateProfile(state, action) {
