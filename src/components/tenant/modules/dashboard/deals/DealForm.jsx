@@ -3,6 +3,7 @@ import { AlertCircle, DollarSign, Calendar, User, Building, Target, TrendingUp, 
 import { addDeal, editDeal } from '../../../../../redux/slice/DealSlice';
 import { useDispatch } from 'react-redux';
 import { AccountDropdown } from '../meetings/components/MeetingDropDown';
+import { validateTitle } from '../../../../../utils/ValidateFunctions';
 
 export default function DealModal({ 
   isOpen, 
@@ -127,12 +128,13 @@ export default function DealModal({
 
   const validateForm = () => {
     const newErrors = {};
+    const tittleError = validateTitle(formData.title)
 
     if (!formData.account_id) {
       newErrors.account_id = 'Account is required';
     }
-    if (!formData.title.trim()) {
-      newErrors.title = 'Deal title is required';
+    if (tittleError) {
+      newErrors.title = tittleError;
     }
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
       newErrors.amount = 'Valid amount is required';

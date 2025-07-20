@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { fetchRoles } from "../../../../redux/slice/roleSlice";
 
 import { addUsers } from "../../../../redux/slice/UsersSlice";
-
+import { validateEmail,validateName } from "../../../../utils/ValidateFunctions";
+import { useToast } from "../../../common/ToastNotification";
 
 
 
@@ -13,9 +14,12 @@ export default function AddUserModal({ isOpen, onClose,changes }) {
     register,
     handleSubmit,
     formState: { errors },
+    reset
   } = useForm();
 
   const dispatch = useDispatch();
+  const { roles } = useSelector((state) => state.roles);
+  const {showError,showSuccess}= useToast()
   
 
   useEffect(() => {
@@ -23,9 +27,6 @@ export default function AddUserModal({ isOpen, onClose,changes }) {
       dispatch(fetchRoles());
     }
   }, [dispatch]); 
-
-  const { roles } = useSelector((state) => state.roles);
-
 
   const getAllRoles = (roles) => {
     let result = [];
@@ -48,8 +49,12 @@ export default function AddUserModal({ isOpen, onClose,changes }) {
       await dispatch(addUsers(data)).unwrap();
       
       changes();
+      reset()
       onClose();
+      showSuccess("succesfully added user");
+      
     } catch (error) {
+      showError(error.message ?? "Something went wrong while adding the user")
       
     }
   };
@@ -73,7 +78,17 @@ export default function AddUserModal({ isOpen, onClose,changes }) {
             <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
               id="name"
-              {...register("name", { required: "Name is required" })}
+              {...register("name", {
+                            required: "Name is required",
+                            validate: (value) => {
+                                const trimmed = value.trim();
+                                if (!trimmed) return "Name cannot be empty";
+                                if (!/[A-Za-z]/.test(trimmed)) return "Name must contain at least one letter";
+                                if (/^[^A-Za-z0-9]+$/.test(trimmed)) return "Name cannot be only special characters";
+                                if (/^[^A-Za-z]+/.test(trimmed)) return "Name cannot start with special characters";
+                                return true;
+                              }
+                              })}
               className="w-full border border-gray-300 rounded-2xl px-3 py-2 mt-1 focus:border-blue-300 focus:ring focus:ring-blue-300 focus:outline-none"
               placeholder="Enter name"
             />
@@ -89,10 +104,10 @@ export default function AddUserModal({ isOpen, onClose,changes }) {
               id="email"
               type="email"
               {...register("email", {
-                required: "Email is required",
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address",
+                    required: "Email is required",
+                    pattern: {
+                    value: /^[A-Za-z0-9][A-Za-z0-9._%+-]*@[A-Za-z0-9-]+\.[A-Za-z]{2,}$/,
+                    message: "Enter a valid email address",
                 },
               })}
               className="w-full border border-gray-300 rounded-2xl px-3 py-2 mt-1 focus:border-blue-300 focus:ring focus:ring-blue-300 focus:outline-none"

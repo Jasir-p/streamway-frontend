@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Filter } from "lucide-react";
+import { Filter,X } from "lucide-react";
 
 
 export const FilterSection = ({ filters, onFiltersChange, onApplyFilters }) => {
@@ -12,7 +12,7 @@ export const FilterSection = ({ filters, onFiltersChange, onApplyFilters }) => {
       setShowCustomDateRange(true);
     } else {
       setShowCustomDateRange(false);
-      // Auto-apply for predefined filters
+  
       const newFilters = { ...tempFilters, type };
       onFiltersChange(newFilters);
       onApplyFilters(newFilters);

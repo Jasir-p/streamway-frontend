@@ -331,13 +331,7 @@ export default function EmailManagementUI() {
                   )}
                 </div>
 
-                <button
-                  onClick={() => setShowContactsModal(true)}
-                  className="flex items-center justify-center gap-1 text-gray-700 hover:bg-gray-100 rounded-md px-3 py-1.5"
-                >
-                  <Users size={16} />
-                  <span>Contacts</span>
-                </button>
+                
               </div>
             </div>
 

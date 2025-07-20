@@ -80,18 +80,6 @@ export const  addTask =  createAsyncThunk('task/addTask', async (taskData, {reje
   //   }
   //           })
 
-// export const addTask = createAsyncThunk('task/addTask', async (taskData, {rejectWithValue}) => {
-//     try {
-
-//         const response = await subdomainInterceptors.post('/api/tasks/', taskData);
-    
-//         return response.data
-        
-//     } catch (error) {
-        
-//         return rejectWithValue(error.response?.data || "Failed to submit task");
-//     }
-//             })
 
 export const deleteTask = createAsyncThunk('task/deleteTask', async(task_id,{rejectWithValue})=>{
     

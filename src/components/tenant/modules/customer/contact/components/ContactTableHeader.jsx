@@ -52,9 +52,9 @@ const ContactTableHeader = ({
         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
           Account
         </th>
-        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        {/* <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
           Last Contact
-        </th>
+        </th> */}
         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
           Actions
         </th>

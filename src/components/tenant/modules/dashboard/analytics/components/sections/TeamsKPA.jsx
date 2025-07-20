@@ -34,7 +34,7 @@ const teamStats = mapteamStats(teamTaskData)
           subtitle="Across all teams"
           icon={CheckCircle}
           color="text-blue-600"
-          trend="+12% from last month"
+          
         />
         <KPACard 
           title="Completed" 
@@ -42,7 +42,7 @@ const teamStats = mapteamStats(teamTaskData)
           subtitle="86.9% completion rate"
           icon={Target}
           color="text-green-600"
-          trend="+8% from last month"
+        
         />
         <KPACard 
           title="Pending" 

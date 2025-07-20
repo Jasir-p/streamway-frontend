@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import { addTask,editTask } from '../../../../../../redux/slice/TaskSlice';
 
 import { fetchLeadsEmployee,fetchLeadsOwner } from '../../../../../../redux/slice/leadsSlice';
+import { validateTitle } from '../../../../../../utils/ValidateFunctions';
 
 export const useTaskFormHandlers = ({
   formData,
@@ -27,7 +28,8 @@ export const useTaskFormHandlers = ({
   resetForm
 }) => {
   const dispatch = useDispatch();
-
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   // Generic form data updater
   const updateFormData = useCallback((updates) => {
     setFormData(prev => ({ ...prev, ...updates }));
@@ -122,12 +124,17 @@ export const useTaskFormHandlers = ({
   // Validation handler
   const validateForm = useCallback(() => {
     const newErrors = {};
-    
+    const titleError = validateTitle(formData.title)
     // Common validations for both create and edit
     const commonValidations = [
-      [!formData.title.trim(), 'title', 'Task title is required'],
+      [titleError, 'title', titleError],
       [!formData.description || formData.description.trim().split(/\s+/).length < 30, 'description', 'Task description must be at least 30 words'],
-      [!formData.dueDate, 'dueDate', 'Due date is required']
+      [!formData.dueDate, 'dueDate', 'Due date is required'],
+       [
+      new Date(formData.dueDate) && new Date(formData.dueDate) < today,
+      'dueDate',
+      'Due date cannot be in the past',
+    ],
     ];
 
     // Assignment validations only for new tasks

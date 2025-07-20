@@ -25,6 +25,8 @@ import { addRole } from '../../../../redux/slice/roleSlice';
 
 import DashboardLayout from '../../dashboard/DashbordLayout';
 import { useTeamPermissions } from '../../authorization/useTeamPermissions';
+import { useToast } from '../../../common/ToastNotification';
+
 
 
 
@@ -42,6 +44,7 @@ const TeamManagement = () => {
   const userId = useSelector((state) =>state.profile.id)
   const {canAdd,canDelete,canEdit,canView}= useTeamPermissions()
   const subdomain = localStorage.getItem("subdomain")
+  const {showSuccess, showError} = useToast()
 
   useEffect(()=>{
     dispatch(fetchTeams(role==='owner'?null:userId))
@@ -55,27 +58,53 @@ const TeamManagement = () => {
     team?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     team?.team_lead?.name?.toLowerCase().includes(searchTerm.toLowerCase())
 );
-const horizontalClick = () => setIsModalOpen(true);
+  const horizontalClick = () => setIsModalOpen(true);
 
-const onSubmit = async (data) => {
-
+const onSubmit = async (data,setError,reset) => {
   try {
     const resultAction = await dispatch(addTeam({
-      name: data.name, 
-      description: data.description, 
-      team_lead: parseInt(data.team_lead, 10), 
+      name: data.name,
+      description: data.description,
+      team_lead: parseInt(data.team_lead, 10),
     }));
 
     if (addTeam.fulfilled.match(resultAction)) {
-     
       dispatch(fetchTeams());
-      setChange(prev => !prev); 
+      setChange(prev => !prev);
+      showSuccess('Team created successfully');
+      setIsModalOpen(false);
+      reset();
+    } else {
+
+      const backendErrorPayload = resultAction.payload;
+      const backendErrors = backendErrorPayload?.error;
+
+      let handled = false;
+
+      if (backendErrors && typeof backendErrors === 'object') {
+        Object.entries(backendErrors).forEach(([field, messages]) => {
+          if (field && messages?.length > 0) {
+            handled = true;
+            setError(field, {
+              type: "server",
+              message: Array.isArray(messages) ? messages[0] : messages,
+            });
+          }
+        });
+      }
+
+      if (!handled) {
+        showError('Something went wrong. Please try again.');
+      }
     }
-    setIsModalOpen(false);
   } catch (error) {
     console.error("Error adding team:", error);
+    showError('Error adding team');
   }
 };
+
+
+
 
   const getStatusColor = (status) => {
     switch(status) {

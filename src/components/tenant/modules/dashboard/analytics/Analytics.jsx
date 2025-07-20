@@ -244,17 +244,7 @@ const CRMAnalytics = () => {
                 <h1 className="text-3xl font-bold text-gray-900">Stream Way CRM Analytics</h1>
                 <p className="text-gray-600 mt-1">Track performance across teams, employees, and business metrics</p>
               </div>
-              {activeTab && (
-                <div className="flex items-center space-x-3 mt-4 sm:mt-0">
-                  <button 
-                    onClick={exportData}
-                    className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Export</span>
-                  </button>
-                </div>
-              )}
+              
             </div>
           </div>
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAnalyticsData} from '../api/AdminApi'; // adjust path
 
-const useAnalytics = () => {
+const useAnalytics = (filters) => {
   const [tenantPayments, setTenantPayments] = useState([]);
   const [globalStats, setGlobalStats] = useState({
     total_paid: 0,
@@ -12,10 +12,18 @@ const useAnalytics = () => {
   const [monthlyData, setMonthlyData] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  
   useEffect(() => {
     const loadAnalytics = async () => {
       try {
-        const data = await getAnalyticsData();
+        const params = {
+          filter_type: filters.type || 'month', 
+          ...(filters.type === 'custom' && filters.startDate && filters.endDate && {
+            start_date: filters.startDate,
+            end_date: filters.endDate,
+          }),
+        };
+        const data = await getAnalyticsData(params);
         
         
         const invoices = data?.invoices || [];
@@ -129,7 +137,7 @@ const useAnalytics = () => {
     };
 
     loadAnalytics();
-  }, []);
+  }, [filters]);
 
   return { tenantPayments, globalStats, monthlyData, loading };
 };

@@ -18,7 +18,7 @@ const TenantAnalytics = () => {
       endDate: ''
     });
   const {tenants}= useSelector((state)=>state.tenants)
-  const {tenantPayments,globalStats,monthlyData, loading}= useAnalytics()
+  const {tenantPayments,globalStats,monthlyData, loading}= useAnalytics(filters)
   const dispatch = useDispatch()
   const handleFiltersChange = (newFilters) => {
     setFilters(newFilters);
@@ -94,34 +94,21 @@ const TenantAnalytics = () => {
             onApplyFilters={handleApplyFilters}
           />
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
           <MetricCard
             title="Total Revenue"
             value={`$${totalRevenue.toLocaleString()}`}
             icon={DollarSign}
             color="bg-gradient-to-r from-green-500 to-emerald-600"
-            trend={12.5}
+
           />
-          <MetricCard
-            title="Active Tenants"
-            value={activeTenants}
-            icon={Building2}
-            color="bg-gradient-to-r from-blue-500 to-cyan-600"
-            trend={8.3}
-          />
-          <MetricCard
-            title="Total Employees"
-            value={totalEmployees}
-            icon={Users}
-            color="bg-gradient-to-r from-purple-500 to-violet-600"
-            trend={15.2}
-          />
+     
           <MetricCard
             title="Avg Payment"
             value={`$${avgPayment.toLocaleString()}`}
             icon={TrendingUp}
             color="bg-gradient-to-r from-orange-500 to-red-500"
-            trend={5.7}
+
           />
         </div>
 
@@ -316,29 +303,22 @@ const TenantAnalytics = () => {
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
               <AlertTriangle className="w-5 h-5 mr-2 text-purple-600" />
-              Quick Stats
+              Quick Stats(all)
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Largest Tenant</span>
-                <span className="font-semibold text-gray-900">TechCorp</span>
+                <span className="text-gray-600">Active  Tenants</span>
+                <span className="font-semibold text-gray-900">{activeTenants}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total Employees</span>
+                <span className="font-semibold text-gray-900">{totalEmployees}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Avg Employees/Tenant</span>
                 <span className="font-semibold text-gray-900">{avgEmployees}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">New Tenants (30d)</span>
-                <span className="font-semibold text-green-600">+3</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Retention Rate</span>
-                <span className="font-semibold text-blue-600">94%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Avg Growth Rate</span>
-                <span className="font-semibold text-purple-600">+9.7%</span>
-              </div>
+             
             </div>
           </div>
         </div>

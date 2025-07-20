@@ -97,7 +97,7 @@ const safeRadarData = Array.isArray(radarData) ? radarData : [];
           
           icon={Users}
           color="text-blue-600"
-          trend={hasEmployeeData ? "+15% from last month" : "No trend data"}
+          
         />
         <KPACard 
           title="Conversions" 
@@ -105,7 +105,7 @@ const safeRadarData = Array.isArray(radarData) ? radarData : [];
           
           icon={Target}
           color="text-green-600"
-          trend={hasEmployeeData ? "+5% from last month" : "No trend data"}
+          
         />
         <KPACard 
           title="Deals Closed" 
@@ -113,7 +113,7 @@ const safeRadarData = Array.isArray(radarData) ? radarData : [];
           
           icon={DollarSign}
           color="text-purple-600"
-          trend={hasEmployeeData ? "+22% from last month" : "No trend data"}
+          
         />
         <KPACard 
           title="Meetings" 
@@ -121,7 +121,7 @@ const safeRadarData = Array.isArray(radarData) ? radarData : [];
           
           icon={Calendar}
           color="text-orange-600"
-          trend={hasEmployeeData ? "+8% from last month" : "No trend data"}
+          
         />
       </div>
 

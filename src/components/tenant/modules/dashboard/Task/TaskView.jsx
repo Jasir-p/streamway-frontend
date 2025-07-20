@@ -452,13 +452,13 @@ const TaskManagement = () => {
             />
           </div>
           <div className="flex items-center space-x-2">
-            {['list', 'board', 'columns'].map(mode => (
+            {['list', 'board',].map(mode => (
               <button 
                 key={mode} 
                 onClick={() => setViewMode(mode)} 
                 className={`p-2 rounded-lg ${viewMode === mode ? 'bg-blue-100 text-blue-600' : 'text-gray-500'}`}
               >
-                {mode === 'list' ? <List size={16} /> : mode === 'board' ? <Grid size={16} /> : <Columns size={16} />}
+                {mode === 'list' ? <List size={16} /> : <Grid size={16} /> }
               </button>
             ))}
           </div>

@@ -1,3 +1,5 @@
+
+
 export function validateEmail(value) {
   const trimmed = value.trim();
 
@@ -74,6 +76,10 @@ export function teamValidateDescription(value) {
 
 
 export function validateTitle(value) {
+  if (typeof value !== 'string') {
+    return "Title must be a valid string";
+  }
+
   const trimmed = value.trim();
 
   if (trimmed.length < 3) {

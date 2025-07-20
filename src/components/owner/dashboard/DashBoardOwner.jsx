@@ -56,7 +56,7 @@ const overDueInvoices = dashboardData?.invoices?.filter((inv) => {
           <DashboardCard
             title="Total Tenants"
             value={dashboardData?.tenants_count || 0}
-            trend="↑ 12% from last month"
+
             icon={<Building2 className="w-8 h-8 text-blue-500" />}
           />
 
@@ -64,7 +64,7 @@ const overDueInvoices = dashboardData?.invoices?.filter((inv) => {
           <DashboardCard
             title="Invoices Generated"
             value={dashboardData?.invoices.length || 0}
-            trend="↑ 10% from last month"
+
             icon={<FileText className="w-8 h-8 text-purple-500" />}
           />
 
@@ -72,7 +72,7 @@ const overDueInvoices = dashboardData?.invoices?.filter((inv) => {
           <DashboardCard
             title="Total Revenue"
             value={`$${totalPaidRevenue.toFixed(2).toLocaleString() || '0'}`}
-            trend="↑ 15% from last month"
+  
             icon={<CreditCard className="w-8 h-8 text-green-500" />}
           />
 
@@ -128,7 +128,7 @@ const overDueInvoices = dashboardData?.invoices?.filter((inv) => {
     </div>
 
           {/* Top Paying Tenants */}
-          <div className="bg-white p-4 rounded-lg shadow">
+          {/* <div className="bg-white p-4 rounded-lg shadow">
             <div className="flex items-center gap-2 mb-3">
               <Award className="w-5 h-5 text-yellow-500" />
               <h3 className="font-bold text-gray-700">Top Paying Tenants</h3>
@@ -144,15 +144,15 @@ const overDueInvoices = dashboardData?.invoices?.filter((inv) => {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           {/* Active Subscriptions */}
-          <DashboardCard
+          {/* <DashboardCard
             title="Active Subscriptions"
             value={dashboardData?.active_subscriptions || 0}
             trend="↑ 8% from last month"
             icon={<Users className="w-8 h-8 text-indigo-500" />}
-          />
+          /> */}
         </div>
       </main>
     </Layout>

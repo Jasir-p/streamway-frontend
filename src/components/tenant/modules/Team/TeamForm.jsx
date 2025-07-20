@@ -19,11 +19,11 @@ const checkMade = (data)=>{
   if(isEqual(data,selectedFieldsFromTeam)){
             
         return}
-  onSubmit(data)}
+  onSubmit(data, setError, reset)}
 
 
 
-const { register, handleSubmit, reset, formState: { errors } } = useForm();
+const { register, handleSubmit, reset,setError, formState: { errors } } = useForm();
 const {employees}=useTeam()
 
 
@@ -39,8 +39,8 @@ const {employees}=useTeam()
       </div>
       <form onSubmit={handleSubmit((data) => {
                 
-                checkMade(data);
-                reset();
+                 checkMade(data, setError, reset);
+                
               })} className="mt-4 space-y-4">
 
         <div>
@@ -48,11 +48,22 @@ const {employees}=useTeam()
           <input
             id="teamName"
             defaultValue={team?.name}
-            {...register("name", { required: "Team Name is required" })}
+            {...register("name", {
+                required: "Team Name is required",
+                minLength: {
+                  value: 3,
+                  message: "Team Name must be at least 3 characters",
+                },
+                pattern: {
+                  value: /^(?![_-])[A-Za-z0-9 _-]+$/,
+                  message: "Team Name cannot start with _ or - and only allows letters, numbers, spaces, _ or -",
+                },
+              })}
+
             className="w-full border border-gray-300 rounded-2xl px-3 py-2 mt-1 focus:border-blue-300 focus:ring focus:ring-blue-300 focus:outline-none"
             placeholder="Enter team name"
           />
-          {errors.teamName && <div className="text-red-500 text-sm">{errors.teamName.message}</div>}
+          {errors.name && <div className="text-red-500 text-sm">{errors.name.message}</div>}
         </div>
 
         <div>
@@ -60,10 +71,29 @@ const {employees}=useTeam()
           <textarea
             id="description"
             defaultValue={team?.description}
-            {...register("description")}
+            {...register("description", {
+                required: "Team Description is required",
+                minLength: {
+                  value: 10,
+                  message: "Team Description must be at least 10 characters",
+                },
+                validate: (value) => {
+                  const trimmed = value.trim();
+
+                  if (!/[A-Za-z]/.test(trimmed)) {
+                    return "Description must contain at least one letter";
+                  }
+                  if (/^[^A-Za-z0-9]+$/.test(trimmed)) {
+                    return "Description cannot be only special characters";
+                  }
+                  return true;
+                }
+              })}
+
             className="w-full border border-gray-300 rounded-2xl px-3 py-2 mt-1 focus:border-blue-300 focus:ring focus:ring-blue-300 focus:outline-none"
             placeholder="Enter team description"
           />
+          {errors.description && <div className="text-red-500 text-sm">{errors.description.message}</div>}
         </div>
 
         <div>
@@ -79,7 +109,7 @@ const {employees}=useTeam()
             </option>
             ))}
           </select>
-          {errors.teamLeader && <div className="text-red-500 text-sm">{errors.teamLeader.message}</div>}
+          {errors.team_lead && <div className="text-red-500 text-sm">{errors.team_lead.message}</div>}
         </div>
 
         <div className="mt-6 flex justify-end space-x-2">

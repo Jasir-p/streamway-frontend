@@ -73,7 +73,7 @@ const leadSourcesData = tenantData?.leads?.lead_source?.map((item) => {
           subtitle="This month"
           icon={DollarSign}
           color="text-green-600"
-          trend="+18% from last month"
+          
         />
         <KPACard 
           title="Total Leads" 
@@ -81,7 +81,7 @@ const leadSourcesData = tenantData?.leads?.lead_source?.map((item) => {
           subtitle="All channels"
           icon={Users}
           color="text-blue-600"
-          trend="+12% from last month"
+          
         />
         <KPACard 
           title="Conversion Rate" 
@@ -89,7 +89,7 @@ const leadSourcesData = tenantData?.leads?.lead_source?.map((item) => {
           subtitle="Lead to sale"
           icon={Target}
           color="text-purple-600"
-          trend="+3% from last month"
+          
         />
         <KPACard 
           title="Active Customers" 
@@ -97,7 +97,7 @@ const leadSourcesData = tenantData?.leads?.lead_source?.map((item) => {
           subtitle="Customer base"
           icon={Award}
           color="text-orange-600"
-          trend="+8% from last month"
+          
         />
       </div>
 

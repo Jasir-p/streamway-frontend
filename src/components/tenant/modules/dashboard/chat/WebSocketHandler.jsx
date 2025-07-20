@@ -76,6 +76,11 @@ export const useWebSocket = () => {
       ? `wss://api.streamway.solutions/${subdomain}/ws/${type}/${roomId}/?token=${token}`
       : `wss://api.streamway.solutions/${subdomain}/ws/${type}/?token=${token}`;
 
+      //  const wsUrl = roomId
+      // ? `ws://localhost:8000/${subdomain}/ws/${type}/${roomId}/?token=${token}`
+      // : `ws://localhost:8000/${subdomain}/ws/${type}/?token=${token}`;
+
+
     
 
     try {

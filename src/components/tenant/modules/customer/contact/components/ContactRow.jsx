@@ -135,9 +135,9 @@ const ContactRow = ({
           </div>
         </div>
       </td>
-      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+      {/* <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
         {contact.lastContact}
-      </td>
+      </td> */}
       <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium relative">
         <div className="flex items-center justify-end space-x-2">
           {isEditable &&(<button 
