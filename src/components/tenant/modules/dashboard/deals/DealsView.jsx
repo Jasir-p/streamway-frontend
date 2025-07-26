@@ -43,35 +43,31 @@ const DealsListPage = () => {
   const dispatch = useDispatch();
 
   // Custom hooks
-  const { 
-    deals, 
-    loading, 
-    error, 
-    role, 
-    userID,
-    next,
-    previous,
-    employees,
-    onNext,
-    onPrevious,
-    refreshDeals, 
-    handleBulkUpdate 
-  } = useDealsData();
+const {
+  searchTerm,
+  debouncedSearchTerm,
+  setSearchTerm,
+  filters,
+  setFilters,
+  activeFiltersCount,
+  clearFilters,
+} = useDealsFilters();
 
-  const {
-    searchTerm,
-    setSearchTerm,
-    sortBy,
-    setSortBy,
-    sortOrder,
-    setSortOrder,
-    filters,
-    setFilters,
-    filteredDeals,
-    activeFiltersCount,
-    
-    clearFilters
-  } = useDealsFilters(deals);
+const { 
+  deals, 
+  loading, 
+  error, 
+  role, 
+  userID,
+  next,
+  previous,
+  employees,
+  onNext,
+  onPrevious,
+  refreshDeals, 
+  handleBulkUpdate 
+} = useDealsData({debouncedSearchTerm, filters});
+
 
   const {
     selectedDeals,
@@ -88,7 +84,7 @@ const DealsListPage = () => {
     totalPages,
     startIndex,
     totalItems
-  } = usePagination(filteredDeals);
+  } = usePagination(deals);
   const handleBulkDelete = useBulkDelete({ selectedDeals, refreshDeals, clearSelection });
   // Event handlers
   const onBulkUpdate = async (dealIds, updates) => {
@@ -96,7 +92,7 @@ const DealsListPage = () => {
       const result = await handleBulkUpdate(dealIds, updates);
       if (result.success) {
         clearSelection();
-        alert(`Successfully updated ${dealIds.length} deals`);
+        
       }
     } catch (error) {
       console.error('Bulk update failed:', error);
@@ -147,7 +143,7 @@ const handleDeleteDeal = (dealId) => {
     setIsEditModalOpen(false);
     setEditingDeal(null);
   };
-  if (loading) return <DashbordLoading />;
+  // if (loading) return <DashbordLoading />;
 
   return (
     <DashboardLayout>
@@ -157,7 +153,7 @@ const handleDeleteDeal = (dealId) => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Deals</h1>
             <p className="text-gray-600">
-              {filteredDeals.length} deals found
+              {deals.length} deals found
               {activeFiltersCount > 0 && ` (${activeFiltersCount} filters applied)`}
             </p>
           </div>
@@ -178,10 +174,6 @@ const handleDeleteDeal = (dealId) => {
         <SearchAndFilters
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
           showFilters={showFilters}
           setShowFilters={setShowFilters}
           filters={filters}
@@ -203,7 +195,7 @@ const handleDeleteDeal = (dealId) => {
         )}
 
         {/* Deals Table or Empty State */}
-        {filteredDeals.length === 0 ? (
+        {deals.length === 0 ? (
           <EmptyState
             hasFilters={searchTerm || activeFiltersCount > 0}
             onClearFilters={clearFilters}
@@ -237,7 +229,7 @@ const handleDeleteDeal = (dealId) => {
         <div className="grid md:grid-cols-4 gap-4 mt-6">
           <StatsCard 
             icon={Tag} 
-            value={filteredDeals.length} 
+            value={deals.length} 
             label="Total Deals" 
             bgColor="bg-blue-100" 
             iconColor="text-blue-600" 
@@ -245,7 +237,7 @@ const handleDeleteDeal = (dealId) => {
           <StatsCard 
             icon={DollarSign} 
            value={dealsUtils.formatAmount(
-  filteredDeals.reduce((sum, deal) => sum + parseFloat(deal.amount || 0), 0)
+  deals.reduce((sum, deal) => sum + parseFloat(deal.amount || 0), 0)
 )}
  
             label="Total Value" 
@@ -254,14 +246,14 @@ const handleDeleteDeal = (dealId) => {
           />
           <StatsCard 
             icon={Clock} 
-            value={filteredDeals.filter(deal => deal.status === 'in_progress').length} 
+            value={deals.filter(deal => deal.status === 'in_progress').length} 
             label="In Progress" 
             bgColor="bg-yellow-100" 
             iconColor="text-yellow-600" 
           />
           <StatsCard 
             icon={CheckCircle} 
-            value={`${Math.round(filteredDeals.reduce((sum, deal) => sum + (deal.probability || 0), 0) / filteredDeals.length) || 0}%`} 
+            value={`${Math.round(deals.reduce((sum, deal) => sum + (deal.probability || 0), 0) / deals.length) || 0}%`} 
             label="Avg. Probability" 
             bgColor="bg-purple-100" 
             iconColor="text-purple-600" 

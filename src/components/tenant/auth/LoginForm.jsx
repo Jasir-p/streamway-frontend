@@ -55,9 +55,6 @@ const onSubmit = async (data) => {
         throw new Error("Subdomain not found in token.");
       }
 
-      
-
-      // ✅ Save tokens and subdomain to localStorage
       localStorage.setItem("access_token", access_token);
       localStorage.setItem("refresh_token", refresh_token);
       localStorage.setItem("subdomain", subdomain);
@@ -75,10 +72,6 @@ const onSubmit = async (data) => {
             role: decodedToken.role, 
             permissions: decodedToken.permissions || [] 
           }));
-
-
-
-      // ✅ Redirect to dashboard using subdomain as subfolder
       const redirectUrl = `/${subdomain}/dashboard`;
       
 
@@ -87,13 +80,13 @@ const onSubmit = async (data) => {
       }, 100);
     } else {
       
-      setError(response.data.message || "Login failed. Please try again.");
+      setError(response.data.error|| "Login failed. Please try again.");
     }
   } catch (error) {
     
 
-    if (error.response?.data?.message) {
-      setError(error.response.data.message);
+    if (error.response?.data?.error) {
+      setError(error.response.data.error);
     } else if (error.response?.data?.detail) {
       setError(error.response.data.detail);
     } else {

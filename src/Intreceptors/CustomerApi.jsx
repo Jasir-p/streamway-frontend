@@ -60,6 +60,14 @@ export const AddNote = async (data) => {
     }
   };
   
+export const deleteNote = async (data) => {
+    try {
+        const response = await subdomainInterceptors.delete('/api/notes/',{data:data});
+        return response.data;
+        } catch (error) {
+            return Promise.reject(error.response?.data || error.message);
+            }
+            };
 export const assignUserToAccount = async (data) =>
     {
         try {

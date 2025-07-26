@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Clock, Mail, Phone, Globe, FileText, ChevronRight, Edit, Trash, Check, Calendar, DollarSign, Users, MoreVertical } from 'lucide-react';
+import { Clock, Mail, Phone, Globe, FileText, ChevronRight, Edit, Trash, Check, MoreVertical } from 'lucide-react';
 import DashboardLayout from '../../../dashboard/DashbordLayout';
 import { useParams } from 'react-router-dom';
 import subdomainInterceptors from '../../../../../Intreceptors/getSubdomainInterceptors';
 import { editLead } from '../../../../../redux/slice/leadsSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { addLeadNote } from '../../../../../Intreceptors/LeadsApi';
+import { addLeadNote,deleteLeadNote } from '../../../../../Intreceptors/LeadsApi';
 import ComposeEmailModal from '../email/AddMail';
 import { useDropdown } from '../../customer/contact/hooks/Contactshooks';
 import { useLeadPermissions } from '../../../authorization/LeadPermissions';
-import { validateEmail, validateName, validatePhone } from '../../../../../utils/ValidateFunctions';
+import { validateEmail, validateName, validatePhone,validateNotes } from '../../../../../utils/ValidateFunctions';
 
 const fetchLeadById = async (lead_id) => {
     try {
@@ -218,9 +218,9 @@ export default function LeadDetailPage() {
   };
   
   const handleNoteSubmit = async() => {
-    const wordCount = noteText.trim().split(/\s+/).length;
-    if (wordCount < 5) {
-      setError("Note must be at least 5 words.");
+    const worderror = validateNotes(noteText);
+    if (worderror) {
+      setError(worderror);
       return;
     }
     
@@ -240,6 +240,17 @@ export default function LeadDetailPage() {
       setError('Failed to add note. Please try again.');
     }
   };
+  const handleDeleteNote = async(id) => {
+    const data = {
+      notes_id : id,
+    }
+    try {
+      const res = await deleteLeadNote(data);
+      setChange(!change);
+      } catch (error) {
+        setError('Failed to delete note. Please try again.');
+        }
+      }
 
   // Show loading state while leads data is being fetched
   if (!leads) {
@@ -377,8 +388,8 @@ export default function LeadDetailPage() {
                               {note.notes}
                             </div>
                           </div>
-                          <button className="text-gray-400 hover:text-gray-500">
-                            <MoreVertical className="h-5 w-5" />
+                          <button className="text-red-400 hover:text-red-500" onClick={()=>handleDeleteNote(note.id)}>
+                            <Trash className="h-5 w-5" />
                           </button>
                         </div>
                       </div>

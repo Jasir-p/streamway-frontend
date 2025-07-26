@@ -136,41 +136,46 @@ function UserList() {
           </div>
         </div>
 
-        {loading ? (
-          <div className="text-center py-4 text-gray-500"><LoadingScreen/></div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="text-center py-4 text-gray-500">No users found</div>
-        ) : (
-          filteredUsers.map((user) => (
-            <div
-              key={user.id}
-              className={`flex items-center p-2 hover:bg-gray-200 cursor-pointer ${
-                selectedUsers.includes(user.id) ? "bg-gray-300" : ""
-              }`}
-            >
-              <input
-                type="checkbox"
-                className="mr-3 w-4 h-4"
-                checked={selectedUsers.includes(user.id)}
-                onChange={() => handleUserClick(user.id)}
-              />
-              <div 
-                className="flex items-center w-full" 
-                onClick={() => handleClick(user)}
+        {loading && (
+            <div className="text-center py-4 text-gray-500">Loading users...</div>
+          )}
+
+          {!loading && filteredUsers.length === 0 && (
+            <div className="text-center py-4 text-gray-500">No users found</div>
+          )}
+
+          {!loading && filteredUsers.length > 0 && (
+            filteredUsers.map((user) => (
+              <div
+                key={user.id}
+                className={`flex items-center p-2 hover:bg-gray-200 cursor-pointer ${
+                  selectedUsers.includes(user.id) ? "bg-gray-300" : ""
+                }`}
               >
-                <img
-                  src={userprofile || "default-avatar.png"}
-                  alt="User Avatar"
-                  className="w-12 h-12 mr-3 rounded-full object-cover border-2 border-amber-300"
+                <input
+                  type="checkbox"
+                  className="mr-3 w-4 h-4"
+                  checked={selectedUsers.includes(user.id)}
+                  onChange={() => handleUserClick(user.id)}
                 />
-                <div>
-                  <p className="font-semibold text-gray-800">{user.name}</p>
-                  <p className="text-gray-600 text-sm">{user.role?.name || "No Role"}</p>
+                <div 
+                  className="flex items-center w-full" 
+                  onClick={() => handleClick(user)}
+                >
+                  <img
+                    src={userprofile || "default-avatar.png"}
+                    alt="User Avatar"
+                    className="w-12 h-12 mr-3 rounded-full object-cover border-2 border-amber-300"
+                  />
+                  <div>
+                    <p className="font-semibold text-gray-800">{user.name}</p>
+                    <p className="text-gray-600 text-sm">{user.role?.name || "No Role"}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+
       </div>
 
       <div className="bg-white flex-1 p-4 overflow-auto">

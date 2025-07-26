@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { addContact, updateContact } from '../../../../redux/slice/contactSlice';
 import { useToast } from '../../../common/ToastNotification';
 import { fetchAccounts } from '../../../../redux/slice/AccountsSlice';
+import { validateEmail,validateName,validatePhone } from '../../../../utils/ValidateFunctions';
 
 const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false }) => {
   const role = useSelector((state) => state.auth.role);
@@ -48,24 +49,25 @@ const ContactForm = ({ isOpen, onClose, onChange, contact = null, isEdit = false
 
   const validateForm = () => {
     const newErrors = {};
+    const nameError = validateName(formData.name);
+    const emailError = validateEmail(formData.email);
+    const phoneError = validatePhone(formData.phone_number);
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+    if (nameError) {
+      newErrors.name = nameError;
     } else if (!/^[A-Za-z ]{3,}$/.test(formData.name.trim())) {
       newErrors.name = 'Name must be at least 3 letters and contain only alphabets and spaces';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+    if (emailError) {
+      newErrors.email =emailError;
     }
     
-    if (!formData.phone_number.trim()) {
-      newErrors.phone_number = 'Phone number is required';
-    } else if (!/^\d{10}$/.test(formData.phone_number.trim())) {
-      newErrors.phone_number = 'Phone number must be exactly 10 digits';
-    }
+    if (phoneError) {
+      newErrors.phone_number = phoneError;
+    } 
     
-    // Only validate department if it's not a primary contact
+
     if (!contact?.is_primary_contact) {
       if (!formData.department.trim()) {
         newErrors.department = 'Department is required';

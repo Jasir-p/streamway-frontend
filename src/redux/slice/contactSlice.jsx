@@ -2,9 +2,14 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 import { fixPaginationUrl } from "../../components/utils/fixPaginationUrl";
 
-export const fetchContacts = createAsyncThunk('contacts/fetchAll', async (url = '/api/contact/', { rejectWithValue }) => {
+export const fetchContacts = createAsyncThunk('contacts/fetchAll', async ({url = '/api/contact/', userId } ={}, { rejectWithValue }) => {
     try {
-        const response = await subdomainInterceptors.get(url);
+        const params = {}
+
+      if (userId) {
+        params.user_id = userId;
+      }
+        const response = await subdomainInterceptors.get(url,params);
         const data = response.data
         data.next = fixPaginationUrl(data.next)
         data.previous = fixPaginationUrl(data.previous)

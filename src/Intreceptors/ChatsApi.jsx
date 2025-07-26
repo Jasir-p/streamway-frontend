@@ -59,3 +59,38 @@ export const fetchGroupMessage = async (roomId) => {
 };
 
 
+
+// export const fetchGroupMessage = async (roomId) => {
+//   const subdomain = localStorage.getItem("subdomain");
+//   const accessToken = localStorage.getItem("access_token");
+
+//   if (!subdomain) {
+    
+//     throw new Error("Subdomain is required");
+//   }
+
+//   if (!accessToken) {
+    
+//     throw new Error("User is not authenticated");
+//   }
+
+
+
+
+//   try {
+//     const response = await axios.get(
+//       `http://localhost:8000/${subdomain}/api/rooms/${roomId}/messages/`,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${accessToken}`,
+//         },
+//       }
+//     );
+
+//     return response.data;
+//   } catch (error) {
+    
+//     throw error;
+//   }
+// };
+

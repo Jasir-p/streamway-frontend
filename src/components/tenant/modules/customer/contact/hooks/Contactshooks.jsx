@@ -17,15 +17,18 @@ export const useContacts = () => {
   const [change, setChange] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchContacts());
+    const payload = role === 'owner' ? {} : {userId }
+    dispatch(fetchContacts(payload));
   }, [dispatch, change]);
 
   const handleNext = () => {
-    dispatch(fetchContacts(next));
+    const payload = role === 'owner' ? { url: next } : { url: next, userId }
+    dispatch(fetchContacts(payload));
   };
 
   const handlePrevious = () => {
-    dispatch(fetchContacts(previous));
+    const payload = role === 'owner' ? { url: previous } : { url: previous, userId }
+    dispatch(fetchContacts(payload));
   };
 
   const handleBulkAction = async (action, selectedContacts, options = {}) => {

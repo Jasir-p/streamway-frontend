@@ -24,3 +24,14 @@ export const dealAddNote = async (data) =>{
     
   }
 }
+
+export const dealDeleteNote = async (data) =>{
+  try {
+    const response = await subdomainInterceptors.delete('/api/deal-note/', {
+      data:data
+    }
+  )
+}catch(error){
+  return error
+}
+}

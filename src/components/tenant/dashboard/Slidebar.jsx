@@ -27,7 +27,7 @@ import userProfile from '../../../assets/user-profile.webp';
 
 
 function Sidebar() {
-  const [activeItem, setActiveItem] = useState("Dashboard");
+  const [activeItem, setActiveItem] = useState("");
   const [expandedSection, setExpandedSection] = useState("Main");
   const name = useSelector((state) =>state.profile.name)
   const role = useSelector((state) =>state.auth.role)

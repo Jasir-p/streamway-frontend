@@ -14,25 +14,13 @@ const RoleForm = () => {
   const [selectedParentId, setSelectedParentId] = useState(null);
   const [change,setChange] = useState(false)
 
+  
   useEffect(() => {
-
-    const timer = setTimeout(() => {
-      updateApiBaseUrl();
-
-      dispatch(fetchRoles())
-        .then(() => {
-          
-          
-        })
-        .catch(error => {
-          
-
-          
-        });
-    }, 300); 
-
-    return () => clearTimeout(timer);
+    updateApiBaseUrl();
+    dispatch(fetchRoles());
   }, [dispatch, change]);
+
+
 
   const handleAddRole = async(data) => {
     
@@ -47,7 +35,7 @@ const RoleForm = () => {
     setChange(true)
   };
 
-  if (loading) return <LoadingScreen />;
+  if (loading) return;
 
   return (
     <div className="bg-white rounded-lg shadow-lg">

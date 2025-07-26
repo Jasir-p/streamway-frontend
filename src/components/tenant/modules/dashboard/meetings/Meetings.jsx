@@ -5,6 +5,7 @@ import { Badge } from './components/UiComponent';
 import { MeetingDetailModal } from './MeetingDetail';
 import { useMeetingPermissions } from '../../../authorization/useMeetingPermissions';
 
+
 // Meeting Card Component
 const MeetingCard = ({ meeting, onEdit, onDelete,onClick,canDelete,canEdit }) => {
   const getStatusColor = (status) => {
@@ -91,20 +92,13 @@ const formatTime = (startTime) => {
 };
 
 // Meetings List Component
-const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew,onStatusChange,onAssigneeChange }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew,onStatusChange,onAssigneeChange,
+  searchQuery,setSearchQuery,statusFilter,setStatusFilter }) => {
   const [selectedMeeting, setSelectedMeeting] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const {canAdd,canDelete,canEdit}=useMeetingPermissions()
 
-  const filteredMeetings = meetings?.filter(meeting => {
-    const matchesSearch = meeting.title.toLowerCase().includes(searchTerm.toLowerCase())
-                         
-    const matchesFilter = filterStatus === 'all' || meeting.status === filterStatus;
-    
-    return matchesSearch && matchesFilter;
-  });
+
     const handleMeetingClick = (meeting) => {
     setSelectedMeeting(meeting);
     setIsModalOpen(true);
@@ -138,17 +132,17 @@ const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew,onStatusChange,o
             <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search meetings..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search ..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex items-center space-x-2">
             <Filter size={20} className="text-gray-400" />
             <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {statusOptions.map(option => (
@@ -187,25 +181,25 @@ const MeetingsList = ({ meetings, onEdit, onDelete, onCreateNew,onStatusChange,o
         </div>
 
         {/* Meetings Grid */}
-        {filteredMeetings?.length === 0 ? (
+        {meetings?.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
               <Calendar size={48} className="mx-auto" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings found</h3>
             <p className="text-gray-600 mb-4">
-              {searchTerm || filterStatus !== 'all' 
+              {searchQuery || statusFilter !== 'all' 
                 ? 'Try adjusting your search or filter criteria.'
                 : 'Get started by creating your first meeting.'
               }
             </p>
-            {!searchTerm && filterStatus === 'all' && canAdd && (
+            {searchQuery || statusFilter === 'all' && canAdd && (
               <Button onClick={onCreateNew}>Create Meeting</Button>
             )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredMeetings?.map(meeting => (
+            {meetings?.map(meeting => (
               <MeetingCard
                 key={meeting.id}
                 meeting={meeting}

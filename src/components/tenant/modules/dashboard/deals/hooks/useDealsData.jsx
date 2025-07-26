@@ -4,15 +4,16 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchDeals,updateDealsBulk } from '../../../../../../redux/slice/DealSlice';
 import { getUser } from '../../../../../../Intreceptors/LeadsApi';
 
-export const useDealsData = () => {
+export const useDealsData = ({debouncedSearchTerm,filters}) => {
   const [change, setChange] = useState(false);
   const dispatch = useDispatch();
   
   const { deals, loading, error,next,previous } = useSelector((state) => state.deals);
   const role = useSelector((state) => state.auth.role);
   const userId = useSelector((state) => state.profile.id);
-    const [employees, setEmployees] = useState([]);
-
+  const [employees, setEmployees] = useState([]);
+  console.log(debouncedSearchTerm,filters);
+  
   useEffect(() => {
     const fetchEmployees = async () => {
       const data = await getUser(role==='owner'?role:userId);
@@ -24,8 +25,15 @@ export const useDealsData = () => {
     fetchEmployees();
   }, []);
   useEffect(() => {
-    dispatch(fetchDeals({role, userId:userId}));
-  }, [dispatch, change, role, userId]);
+    const payload = {
+      role,
+      userId,
+      search: debouncedSearchTerm,
+      filters,
+    };
+    dispatch(fetchDeals(payload));
+  }, [dispatch, debouncedSearchTerm, filters, change, role, userId]);
+
 
   const refreshDeals = () => {
   dispatch(fetchDeals({role, userId: userId}));
@@ -42,7 +50,7 @@ const onPrevious = () => {
   const handleBulkUpdate = async (dealIds, updates) => {
     try {
       await dispatch(updateDealsBulk({ dealIds, updates }));
-      dispatch(fetchDeals(role, userId));
+      dispatch(fetchDeals({role, userId}));
       return { success: true };
     } catch (error) {
       

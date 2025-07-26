@@ -21,7 +21,7 @@ import DashboardLayout from '../../../dashboard/DashbordLayout';
 import { useParams } from 'react-router-dom';
 import { getDealOverView } from './api/DealsAPI';
 import NotesDescription from './components/NotesDescription';
-import { dealAddNote } from './api/DealsAPI';
+import { dealAddNote,dealDeleteNote } from './api/DealsAPI';
 import { useToast } from '../../../../common/ToastNotification';
 import { dealsUtils } from './utils/dealsUtils';
 
@@ -102,12 +102,22 @@ const DealViewUI = () => {
   try {
     const res = await dealAddNote(data);
     
-    setChange(true)
+    setChange(!change)
  
   } catch (error) {
     
   }
 };
+const handleDeleteNote = async (note_id) => {
+  const data = {
+    note_id: note_id
+    };
+    try {
+      const res = await dealDeleteNote(data);
+      setChange(!change)
+      } catch (error) {
+      }
+    }  
 
   const notes = Array.isArray(deals.dealNotes) ? deals.dealNotes : [];
   
@@ -193,7 +203,7 @@ const DealViewUI = () => {
       </div>
 
       {/* Deal Description / Notes */}
-     <NotesDescription notes={notes} onAddNote={handleAddNote} dealId={deals.deal_id} />
+     <NotesDescription notes={notes} onAddNote={handleAddNote} dealId={deals.deal_id} onDeleteNote ={handleDeleteNote} />
 
       {/* Tags & Meta */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">

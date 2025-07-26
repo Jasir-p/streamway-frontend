@@ -241,7 +241,7 @@ export const MeetingDetailModal = ({ meeting, isOpen, onClose, onStatusChange, o
                         selectedUser={meeting.host}
                         placeholder="Select meeting host"
                         className="absolute top-full left-0 right-0 mt-1"
-                        currentHost={meeting.host.id}
+                        currentHost={meeting.host?.id}
                       />
                     </div>
                   </div>)}

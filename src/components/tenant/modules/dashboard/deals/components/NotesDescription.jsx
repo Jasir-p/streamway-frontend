@@ -1,17 +1,18 @@
 import { useState } from "react";
-import { FileText } from "lucide-react";
+import { FileText,Trash } from "lucide-react";
 import { useSelector } from "react-redux";
+import { validateNotes } from "../../../../../../utils/ValidateFunctions";
 
-const NotesDescription = ({ notes, onAddNote,dealId }) => {
+const NotesDescription = ({ notes, onAddNote,dealId,onDeleteNote }) => {
   const [inputValue, setInputValue] = useState("");
   const [error, setError] = useState("");
   const userId = useSelector((state) =>state.profile.id)
   const role = useSelector((state) =>state.auth.role)
 
   const handleSubmit = () => {
-    const wordCount = inputValue.trim().split(/\s+/).length;
-    if (wordCount < 5) {
-      setError("Please enter at least 5 words.");
+    const worderror = validateNotes(inputValue)
+    if (worderror) {
+      setError(worderror);
       return;
     }
     setError("");
@@ -24,6 +25,11 @@ const NotesDescription = ({ notes, onAddNote,dealId }) => {
     setInputValue("");
   };
 
+  const handleDelete = (id) => {
+    onDeleteNote(id);
+    };
+
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -33,17 +39,25 @@ const NotesDescription = ({ notes, onAddNote,dealId }) => {
 
       <div className="bg-gray-50 rounded-lg p-4 mb-4">
   {notes.length > 0 ? (
-    notes.map((note) => (
-      <div key={note.id} className="mb-4 last:mb-0">
-        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-          {note.notes}
-        </p>
-        <p className="text-xs text-gray-500 mt-1">
-          {new Date(note.created_at).toLocaleString()}
-        </p>
-        <hr className="mt-3" />
+        notes.map((note) => (
+      <div key={note.id} className="flex items-start justify-between mb-4 last:mb-0">
+        <div>
+          <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+            {note.notes}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {new Date(note.created_at).toLocaleString()}
+          </p>
+        </div>
+        <button
+          className="text-red-400 hover:text-red-500"
+          onClick={() => handleDelete(note.id)}
+        >
+          <Trash className="h-5 w-5" />
+        </button>
       </div>
     ))
+
   ) : (
     <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
       No notes added yet.

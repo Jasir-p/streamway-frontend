@@ -34,43 +34,7 @@ const TaskFilters = ({
     { value: 'COMPLETED', label: 'Completed', color: 'bg-green-100 text-green-700', icon: CheckCircle }
   ];
 
-  const availableUsers = users.length > 0 ? users : getUniqueUsersFromTasks(tasks);
-  const availableTeams = teams.length > 0 ? teams : getUniqueTeamsFromTasks(tasks);
 
-  function getUniqueUsersFromTasks(tasks) {
-    const userSet = new Set();
-    const users = [];
-
-    tasks.forEach(task => {
-      task.assignees?.forEach(assignee => {
-        if (assignee.role !== 'Team' && !userSet.has(assignee.id)) {
-          userSet.add(assignee.id);
-          users.push({
-            id: assignee.id,
-            name: assignee.name,
-            role: assignee.role?.name
-          });
-        }
-      });
-    });
-
-    return users;
-  }
-
-  function getUniqueTeamsFromTasks(tasks) {
-    const teamSet = new Set();
-    const teams = [];
-
-    tasks.forEach(task => {
-      const team = task.assigned_to_team;
-      if (team && !teamSet.has(team.id)) {
-        teamSet.add(team.id);
-        teams.push({ id: team.id, name: team.name });
-      }
-    });
-
-    return teams;
-  }
 
   useEffect(() => {
     onFiltersChange(filters);
@@ -212,62 +176,7 @@ const TaskFilters = ({
               ))}
             </FilterSection>
 
-            {/* Assigned Users Filter */}
-            {availableUsers.length > 0 && (
-              <FilterSection
-                title="Assigned to User"
-                icon={User}
-                onClear={() => clearFilterType('assignedUsers')}
-                hasItems={filters.assignedUsers.length > 0}
-              >
-                {availableUsers.map(user => (
-                  <FilterCheckbox
-                    key={user.id}
-                    checked={filters.assignedUsers.includes(user.id)}
-                    onChange={(e) => handleFilterChange('assignedUsers', user.id, e.target.checked)}
-                  >
-                    <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-medium">
-                      {user.name.charAt(0)}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-medium">{user.name}</span>
-                      <span className="text-[10px] text-gray-500">{user.role}</span>
-                    </div>
-                  </FilterCheckbox>
-                ))}
-              </FilterSection>
-            )}
-
-            {/* Assigned Teams Filter */}
-            {availableTeams.length > 0 && (
-              <FilterSection
-                title="Assigned to Team"
-                icon={Users}
-                onClear={() => clearFilterType('assignedTeams')}
-                hasItems={filters.assignedTeams.length > 0}
-              >
-                {availableTeams.map(team => (
-                  <FilterCheckbox
-                    key={team.id}
-                    checked={filters.assignedTeams.includes(team.id)}
-                    onChange={(e) => handleFilterChange('assignedTeams', team.id, e.target.checked)}
-                  >
-                    <div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center">
-                      <Users size={10} />
-                    </div>
-                    <span className="text-xs font-medium">{team.name}</span>
-                  </FilterCheckbox>
-                ))}
-              </FilterSection>
-            )}
-
-            {/* Empty message */}
-            {availableUsers.length === 0 && availableTeams.length === 0 && (
-              <div className="text-center py-3 text-gray-500 text-xs">
-                <Users size={20} className="mx-auto mb-1 opacity-50" />
-                <p>No assignees available to filter</p>
-              </div>
-            )}
+            
           </div>
         </>
       )}

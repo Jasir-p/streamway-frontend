@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { X, AlertTriangle, Mail, UserPlus, Trash } from 'lucide-react';
+import { X, AlertTriangle, Mail, UserPlus, Trash2,MailIcon } from 'lucide-react';
 
 const ConfirmationModal = ({ 
   isOpen, 
@@ -10,16 +10,21 @@ const ConfirmationModal = ({
   const confirmationRef = useRef(null);
 
   const actionConfigs = {
-    mass_email: {
-      title: "Send Mass Email",
-      message: "Are you sure you want to send an email to the selected contacts?",
-      icon: <Mail size={18} className="text-blue-500" />
-    },
-    delete: {
-      title: "Delete Contacts",
-      message: "Are you sure you want to delete the selected contacts? This action cannot be undone.",
-      icon: <Trash size={18} className="text-red-500" />
-    }
+   mass_email: {
+    title: "Send Mass Email",
+    message: "Are you sure you want to send an email to the selected contacts?",
+    icon: <MailIcon size={18} className="text-blue-500" />
+  },
+  assign: {
+    title: "Assign Contacts", 
+    message: "Are you sure you want to reassign the selected contacts?",
+    icon: <UserPlus size={18} className="text-green-500" />
+  },
+  delete: {
+    title: "Delete Contacts",
+    message: "Are you sure you want to delete the selected contacts? This action cannot be undone.",
+    icon: <Trash2 size={18} className="text-red-500" />
+  }
   };
 
   if (!isOpen || !actionType) return null;

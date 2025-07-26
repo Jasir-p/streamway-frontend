@@ -51,11 +51,11 @@ export default function EmployeeAccessModal({ onClose, tenantBilling }) {
             <div className="space-y-2 text-sm text-gray-600">
               <div className="flex items-center">
                 <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                <span>Contact your company's IT support</span>
+                <span>Contact your company's  support</span>
               </div>
               <div className="flex items-center">
                 <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                <span>Reach out to your system administrator</span>
+                <span>Reach out to your company administrator</span>
               </div>
             </div>
           </div>

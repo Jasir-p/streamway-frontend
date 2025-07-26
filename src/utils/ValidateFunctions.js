@@ -111,4 +111,62 @@ export function validatePassword(value) {
   return null; 
 }
 
+export function validateNotes(value) {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return "Notes cannot be empty.";
+  }
+
+  const words = trimmed.split(/\s+/);
+  if (words.length < 5) {
+    return "Notes should be at least 5 words.";
+  }
+
+  const startsWithValidChar = /^[A-Za-z0-9]/.test(trimmed);
+  if (!startsWithValidChar) {
+    return "Notes must start with a letter or number.";
+  }
+
+  const onlySpecialChars = /^[^A-Za-z0-9]+$/.test(trimmed);
+  if (onlySpecialChars) {
+    return "Notes cannot consist of only special characters.";
+  }
+
+  return null; 
+}
+
+export function validateCustomFieldName(name) {
+  const trimmed = name.trim();
+
+  if (!trimmed) return "Field name cannot be empty.";
+  if (/^[^a-zA-Z0-9]/.test(trimmed)) return "Field name cannot start with a special character.";
+  if (/[^a-zA-Z0-9\s_-]/.test(trimmed)) return "Field name contains invalid characters.";
+  if (trimmed.length < 3) return "Field name must be at least 3 characters.";
+  if (/^\d+$/.test(trimmed)) {
+    return "Field name cannot be only numbers.";
+  }
+
+  if (/[_-]$/.test(trimmed)) {
+    return "Field name cannot end with an underscore or dash.";
+  }
+   if (/^([A-Za-z0-9\s_-])\1+$/.test(trimmed)) {
+    return "Field name cannot be the same character repeated.";
+  }
+
+  return null; 
+}
+export function validateCustomFieldValue(value) {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return "Field value cannot be empty.";
+  }
+
+  const allowedCharsRegex = /^[A-Za-z0-9\s.,@!#$%&*()_+\-="']+$/;
+  if (!allowedCharsRegex.test(trimmed)) {
+    return "Field value contains invalid characters.";
+  }
+  return null; 
+}
 

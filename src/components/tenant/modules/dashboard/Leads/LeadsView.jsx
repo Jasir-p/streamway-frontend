@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import DashboardLayout from '../../../dashboard/DashbordLayout';
-
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchLeadsEmployee, fetchLeadsOwner } from '../../../../../redux/slice/leadsSlice';
 import ExactToolbar from '../../../../common/ToolBar';
 import userprofile from "../../../../../assets/user-profile.webp";
 import formatTimeAgo from '../../../../utils/formatTimeAgo';
-
 import { useNavigate } from 'react-router-dom';
 import StatusUpdateConfirmation from './StatusUpdate';
 import { useDropdown } from '../../customer/contact/hooks/Contactshooks';
@@ -14,12 +12,11 @@ import AddLeadModal from './AddLead';
 import { getUser } from '../../../../../Intreceptors/LeadsApi';
 import { useLeadPermissions } from '../../../authorization/LeadPermissions';
 
-
 const MondayStyleLeadsTable = () => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
   const { isOpen, toggle, close } = useDropdown();
   const role = useSelector((state) => state.auth.role);
-  const subdomain = localStorage.getItem("subdomain")
+  const subdomain = localStorage.getItem("subdomain");
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { leads, loading, error, next, previous } = useSelector((state) => state.leads);
@@ -29,25 +26,41 @@ const MondayStyleLeadsTable = () => {
   const [change, setChange] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("New");
-  
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceTimer = useRef(null);
+  const filterTimer = useRef(null);
+  const [employees, setEmployees] = useState([]);
 
   const [status, setStatus] = useState(false);
 
-  // Filter states
+  // Filter states - only source and status
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
-    source: '',
-    assigned_to: '',
-    location: ''
+    source: ''
   });
-const { canAddLead, canEditLead, canDeleteLead, canViewLead } = useLeadPermissions(selectedLeads);
 
-  
-  const uniqueStatuses = [...new Set(leads.map(lead => lead.status))];
-  const uniqueSources = [...new Set(leads.map(lead => lead.source))];
-  const uniqueLocations = [...new Set(leads.map(lead => lead.location))];
-  const [employees, setEmployees] = useState([]);
+  const { canAddLead, canEditLead, canDeleteLead, canViewLead } = useLeadPermissions(selectedLeads);
+
+  const statusOptions = [
+    "new",
+    "contacted",
+    "follow_up",
+    "Proposal",
+    "Negotiation",
+    "converted",
+    "lost"
+  ];
+
+  const sourceOptions = [
+    'website',
+    'whatsapp',
+    'facebook',
+    'instagram', 
+    'google_ads',
+    'referral',
+    'other'
+  ];
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -58,8 +71,80 @@ const { canAddLead, canEditLead, canDeleteLead, canViewLead } = useLeadPermissio
     };
 
     fetchEmployees();
+  }, [role, userId]);
+
+  // Debounce search input
+  const debounceSearch = useCallback((searchValue) => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+    }, 500); 
   }, []);
 
+  // Debounce filter changes
+  const debounceFilters = useCallback((filterValues) => {
+    if (filterTimer.current) {
+      clearTimeout(filterTimer.current);
+    }
+
+    filterTimer.current = setTimeout(() => {
+      fetchLeadsWithFilters(debouncedSearch, filterValues);
+    }, 300);
+  }, [debouncedSearch]);
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearch(value);
+    debounceSearch(value);
+  };
+
+  // Centralized function to fetch leads with current search and filters
+  const fetchLeadsWithFilters = useCallback((searchTerm = debouncedSearch, filterValues = filters) => {
+    const searchParams = {
+      search: searchTerm,
+      filters: filterValues
+    };
+
+    if (role === "owner") {
+      dispatch(fetchLeadsOwner(searchParams));
+    } else {
+      dispatch(fetchLeadsEmployee({ 
+        userId, 
+        ...searchParams
+      }));
+    }
+    setSelectedLeads([]);
+  }, [dispatch, role, userId, debouncedSearch, filters]);
+
+  // Effect for search changes
+  useEffect(() => {
+    if (debouncedSearch !== search) return; 
+    fetchLeadsWithFilters();
+  }, [debouncedSearch]);
+
+  // Effect for filter changes
+  useEffect(() => {
+    fetchLeadsWithFilters();
+  }, [filters]);
+
+  // Initial load and change effect
+  useEffect(() => {
+    fetchLeadsWithFilters();
+  }, [change]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      if (filterTimer.current) {
+        clearTimeout(filterTimer.current);
+      }
+    };
+  }, []);
 
   const updateLeadStatus = (success) => {
     if (success) {
@@ -68,21 +153,16 @@ const { canAddLead, canEditLead, canDeleteLead, canViewLead } = useLeadPermissio
     }
     setShowStatusPopup(false);
   };
-    
-  useEffect(() => {
-    role === "owner" ? dispatch(fetchLeadsOwner()) : dispatch(fetchLeadsEmployee(userId),
-    )
-    setSelectedLeads([]);;
-  }, [change]);
 
   const handleChnage = () => {
     setChange(!change);
-    }
+  };
+
   const handleCheckboxChange = (leadId) => {
     setSelectedLeads((prev) =>
       prev.includes(leadId)
-        ? prev.filter((id) => id !== leadId) // Remove if already selected
-        : [...prev, leadId] // Add if not selected
+        ? prev.filter((id) => id !== leadId)
+        : [...prev, leadId]
     );
   };
   
@@ -101,14 +181,24 @@ const { canAddLead, canEditLead, canDeleteLead, canViewLead } = useLeadPermissio
 
   const handleNextPage = () => {
     if (next) {
-      dispatch(fetchLeadsOwner(next));
+      if (role === "owner") {
+        dispatch(fetchLeadsOwner({ url: next }));
+      } else {
+        // For employee, you might need to handle pagination differently
+        // based on your backend implementation
+        dispatch(fetchLeadsEmployee({ userId, url: next }));
+      }
       setSelectedLeads([]);
     }
   };
 
   const handlePrevPage = () => {
     if (previous) {
-      dispatch(fetchLeadsOwner(previous));
+      if (role === "owner") {
+        dispatch(fetchLeadsOwner({ url: previous }));
+      } else {
+        dispatch(fetchLeadsEmployee({ userId, url: previous }));
+      }
       setSelectedLeads([]);
     }
   };
@@ -118,59 +208,34 @@ const { canAddLead, canEditLead, canDeleteLead, canViewLead } = useLeadPermissio
   };
 
   const handleFilterChange = (field, value) => {
-    setFilters({
+    const newFilters = {
       ...filters,
       [field]: value
-    });
+    };
+    setFilters(newFilters);
   };
 
   const clearFilters = () => {
-    setFilters({
+    const clearedFilters = {
       status: '',
-      source: '',
-      assigned_to: '',
-      location: ''
-    });
+      source: ''
+    };
+    setFilters(clearedFilters);
   };
 
   const handleLeadOverView = (lead) => {
-    navigate (`/${subdomain}/dashboard/sale/leads/${lead.lead_id}/`);
-    };
-
-const filteredLeads = leads.filter(lead => {
-  const name = lead?.name || '';
-  const email = lead?.email || '';
-  const phone = lead?.phone_number || '';
-
-  const matchesSearch =
-    name.toLowerCase().includes(search.toLowerCase()) ||
-    email.toLowerCase().includes(search.toLowerCase()) ||
-    phone.includes(search);
-
-  const matchesStatus = !filters.status || lead.status === filters.status;
-
-  const matchesSource = !filters.source || lead.source === filters.source;
- 
- 
-  const matchesAssignee =
-    !filters.assigned_to ||
-    (lead.employee?.id && String(lead.employee.id) === String(filters.assigned_to))||
-    (role === 'owner' && !lead.employee);
-
-  const matchesLocation = !filters.location || lead.location === filters.location;
-
-  return matchesSearch && matchesStatus && matchesSource && matchesAssignee && matchesLocation;
-});
-
+    navigate(`/${subdomain}/dashboard/sale/leads/${lead.lead_id}/`);
+  };
 
   const activeFilterCount = Object.values(filters).filter(value => value !== '').length;
+
   const handleSelectAllChange = (event) => {
-    setSelectedLeads(event.target.checked ? filteredLeads.map((lead) => lead.lead_id) : []);
+    setSelectedLeads(event.target.checked ? leads.map((lead) => lead.lead_id) : []);
   };
 
   return (
     <DashboardLayout>
-      <div className=" min-h-screen font-sans">
+      <div className="min-h-screen font-sans">
         {/* Header */}
         <header className="bg-white border-b border-gray-200">
           <div className="flex items-center justify-between px-6 py-4">
@@ -201,7 +266,6 @@ const filteredLeads = leads.filter(lead => {
                 />
               )}
               
-              
               <button 
                 className={`${showFilters ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'} px-3 py-2 rounded-md text-sm font-medium transition flex items-center`}
                 onClick={toggleFilters}
@@ -216,14 +280,6 @@ const filteredLeads = leads.filter(lead => {
                   </span>
                 )}
               </button>
-              <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition">
-                <span className="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
-                  </svg>
-                  Sort
-                </span>
-              </button>
               {canAddLead && (
                 <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
                 onClick={toggle}>
@@ -232,21 +288,19 @@ const filteredLeads = leads.filter(lead => {
               )}
             </div>
           </div>
-          {
-            isOpen && (
-              <AddLeadModal
+
+          {isOpen && (
+            <AddLeadModal
               isOpen={isOpen}
               onClose={close}
-              onChange ={()=>setChange(true)}/>
-            )
-              
-
-          }
+              onChange={() => setChange(true)}
+            />
+          )}
 
           {showFilters && (
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
               <div className="flex flex-wrap items-center gap-4">
-
+                {/* Status Filter */}
                 <div className="w-56">
                   <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
                   <select 
@@ -255,24 +309,8 @@ const filteredLeads = leads.filter(lead => {
                     onChange={(e) => handleFilterChange('status', e.target.value)}
                   >
                     <option value="">All Statuses</option>
-                    {uniqueStatuses.map((status) => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                {/* Assigned To Filter */}
-                <div className="w-56">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Assigned To</label>
-                  <select 
-                    className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={filters.assigned_to}
-                    onChange={(e) => handleFilterChange('assigned_to', e.target.value)}
-                  >
-                    <option value="">All Assignees</option>
-                    <option value={userId}>You</option>
-                    {employees.map((user) => (
-                      <option key={user.id} value={user.id}>{user.name}</option>
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>{status.toUpperCase()}</option>
                     ))}
                   </select>
                 </div>
@@ -286,23 +324,8 @@ const filteredLeads = leads.filter(lead => {
                     onChange={(e) => handleFilterChange('source', e.target.value)}
                   >
                     <option value="">All Sources</option>
-                    {uniqueSources.map((source) => (
-                      <option key={source} value={source}>{source}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                {/* Location Filter */}
-                <div className="w-56">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Location</label>
-                  <select 
-                    className="w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={filters.location}
-                    onChange={(e) => handleFilterChange('location', e.target.value)}
-                  >
-                    <option value="">All Locations</option>
-                    {uniqueLocations.map((location) => (
-                      <option key={location} value={location}>{location}</option>
+                    {sourceOptions.map((source) => (
+                      <option key={source} value={source}>{source.toUpperCase()}</option>
                     ))}
                   </select>
                 </div>
@@ -324,7 +347,7 @@ const filteredLeads = leads.filter(lead => {
           )}
 
           <div className="flex items-center px-6 py-3 bg-gray-50 border-t border-b border-gray-200">
-            {canEditLead && selectedLeads.length>0? (
+            {canEditLead && selectedLeads.length > 0 ? (
               <ExactToolbar count={selectedLeads.length} leads={selectedLeads} onUpdate={handleChnage} onClose={() => setShowToolbar(false)} onUpdateComplete={updateLeadStatus}/>
             ) : (
               <>
@@ -334,7 +357,7 @@ const filteredLeads = leads.filter(lead => {
                       type="text" 
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       placeholder="Search leads..." 
-                      onChange={(e) => setSearch(e.target.value)}
+                      onChange={handleSearchChange}
                       value={search}
                     />
                     <span className="absolute left-3 top-2.5 text-gray-400">
@@ -377,7 +400,7 @@ const filteredLeads = leads.filter(lead => {
                       type="checkbox" 
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" 
                       onChange={handleSelectAllChange} 
-                      checked={selectedLeads.length > 0 && selectedLeads.length === filteredLeads.length}
+                      checked={selectedLeads.length > 0 && selectedLeads.length === leads.length}
                     />
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -404,7 +427,7 @@ const filteredLeads = leads.filter(lead => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredLeads.map((lead) => (
+                {leads.map((lead) => (
                   <tr key={lead.lead_id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <input
@@ -416,28 +439,30 @@ const filteredLeads = leads.filter(lead => {
                     </td>
                     
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button onClick={()=> handleLeadOverView(lead)}>
-                      <div className="font-medium text-gray-900">{lead.name}</div>
+                      <button onClick={() => handleLeadOverView(lead)}>
+                        <div className="font-medium text-gray-900">{lead.name}</div>
                       </button>
-                      
                     </td>
-                    
                     
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{lead.email}</div>
                       <div className="text-sm text-gray-500">{lead.phone_number}</div>
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full text-white ${getStatusColor(lead.status)}`}>
                         {lead.status}
                       </span>
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{lead.location}</div>
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {lead.source}
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex items-center space-x-3">
@@ -455,15 +480,16 @@ const filteredLeads = leads.filter(lead => {
                         </div>
                       </div>
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatTimeAgo(lead.updated_at)}
                     </td>
                   </tr>
                 ))}
-                {filteredLeads.length === 0 && (
+                {leads.length === 0 && (
                   <tr>
                     <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
-                      No leads match your current filters. Try adjusting your search criteria.
+                      {loading ? 'Loading leads...' : 'No leads found. Try adjusting your search criteria.'}
                     </td>
                   </tr>
                 )}
@@ -475,7 +501,7 @@ const filteredLeads = leads.filter(lead => {
               <div className="flex-1 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-700">
-                    Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredLeads.length}</span> of <span className="font-medium">{leads.length}</span> results
+                    Showing <span className="font-medium">1</span> to <span className="font-medium">{leads.length}</span> of <span className="font-medium">{leads.length}</span> results
                   </p>
                 </div>
                 <div className="flex space-x-1">

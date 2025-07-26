@@ -15,6 +15,7 @@ import {
   Pencil, 
   Trash, 
   MoreVertical,
+  MoreHorizontal,
   X,
   Save,
   Settings,
@@ -25,11 +26,12 @@ import DashboardLayout from '../../dashboard/DashbordLayout';
 import { useParams } from 'react-router-dom';
 import { fetchAccountByID } from '../../../../Intreceptors/CustomerApi';
 import CustomFieldModal from './CustomeField';
-import { addCustomFields, deleteCustomFields, AddNote } from '../../../../Intreceptors/CustomerApi';
+import { addCustomFields, deleteCustomFields, AddNote,deleteNote } from '../../../../Intreceptors/CustomerApi';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateAccount } from '../../../../redux/slice/AccountsSlice';
 import { useDropdown } from './contact/hooks/Contactshooks';
 import ComposeEmailModal from '../dashboard/email/AddMail';
+import { validateNotes,validateEmail,validatePhone,validateName } from '../../../../utils/ValidateFunctions';
 
 export default function AccountDetail() {
   const [activeTab, setActiveTab] = useState('Deals');
@@ -84,9 +86,9 @@ export default function AccountDetail() {
   const [error, setError] = useState('');
   
   const handleNoteSubmit = async() => {
-    const wordCount = noteText.trim().split(/\s+/).length;
-    if (wordCount < 5) {
-      setError("Note must be at least 5 words.");
+    const worderror = validateNotes(noteText);
+    if (worderror) {
+      setError(worderror);
       return;
     }
     
@@ -102,6 +104,14 @@ export default function AccountDetail() {
     setError("");
     setChange(!change);
   };
+
+  const handleDeleteNote = async (note_id) => {
+    const data = {
+      note_id: note_id
+      };
+    const res = await deleteNote(data);
+    setChange(!change);
+    };
   
   const addCustomField = async () => {
     if (newFieldName.trim() === '') return;
@@ -145,19 +155,18 @@ export default function AccountDetail() {
   // Edit form validation
   const validateEditForm = () => {
     const errors = {};
-    
-    if (!editFormData.name.trim()) {
-      errors.name = 'Name is required';
+    const nameError = validateName(editFormData.name)
+    const emailError = validateEmail(editFormData.email)
+    const phoneError = validatePhone(editFormData.phone_number)
+    if (nameError) {
+      errors.name = nameError;
     }
     
-    if (!editFormData.email.trim()) {
-      errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(editFormData.email)) {
-      errors.email = 'Email is invalid';
-    }
-    
-    if (!editFormData.phone_number.trim()) {
-      errors.phone_number = 'Phone number is required';
+    if (emailError) {
+      errors.email = emailError;
+    } 
+    if (phoneError) {
+      errors.phone_number =phoneError;
     }
     
     return errors;
@@ -510,16 +519,6 @@ export default function AccountDetail() {
             <div className="bg-white shadow rounded-lg">
               <div className="border-b border-gray-200">
                 <nav className="flex -mb-px">
-                   {/* <button
-                    onClick={() => setActiveTab('contacts')}
-                    className={`whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm ${
-                      activeTab === 'contacts'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    Contacts
-                  </button> */}
                   <button
                     onClick={() => setActiveTab('Deals')}
                     className={`whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm ${
@@ -687,8 +686,8 @@ export default function AccountDetail() {
                                 {note.notes}
                               </div>
                             </div>
-                            <button className="text-gray-400 hover:text-gray-500">
-                              <MoreVertical className="h-5 w-5" />
+                            <button className="text-red-400 hover:text-red-500" onClick={()=>handleDeleteNote(note.id)}>
+                              <Trash className="h-5 w-5" />
                             </button>
                           </div>
                         </div>

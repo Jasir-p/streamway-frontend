@@ -1,15 +1,27 @@
 import { createSlice,createAsyncThunk } from "@reduxjs/toolkit";
 import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 
-export const fetchEnquiry = createAsyncThunk('enquiry/fetchEnquiry', async (_,{rejectWithValue}) => {
+export const fetchEnquiry = createAsyncThunk(
+  'enquiry/fetchEnquiry',
+  async (search = '', { rejectWithValue }) => {
     try {
-        const response = await subdomainInterceptors.get('/api/webenquiry/')
-        return response.data;
+      let params = {}; 
+
+      if (search && search.trim()) {
+        params = { search: search.trim() };
+      }
+
+      const response = await subdomainInterceptors.get('/api/webenquiry/', {
+        params,
+      });
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message);
     }
-    catch(error){
-        return rejectWithValue(error.message);
-        }
-        })
+  }
+);
+
 export const deleteEnquiry = createAsyncThunk('enquiry/deleteEnquiry', async (ids,{rejectWithValue}) => {
     
     const data= {

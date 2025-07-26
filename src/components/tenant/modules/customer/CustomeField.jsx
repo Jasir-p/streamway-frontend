@@ -1,6 +1,7 @@
 // CustomFieldModal.jsx
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { validateCustomFieldName,validateCustomFieldValue } from '../../../../utils/ValidateFunctions';
 
 export default function CustomFieldModal({ 
   isOpen, 
@@ -11,11 +12,17 @@ export default function CustomFieldModal({
   newFieldValue = '', 
   setNewFieldValue 
 }) {
+  const [nameError, setNameError] = useState('');
+  const [valueError, setValueError] = useState('');
   if (!isOpen) return null;
   
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (newFieldName.trim() === '') return;
+    const nameError = validateCustomFieldName(newFieldName);
+    const valueError = validateCustomFieldValue(newFieldValue);
+    setNameError(nameError || '');
+    setValueError(valueError || '');
+    if (nameError|| valueError) return;
     
     onAddField();
   };
@@ -56,6 +63,7 @@ export default function CustomFieldModal({
                     placeholder="e.g., Account Manager"
                     required
                   />
+                  { nameError && <p className="text-sm text-red-500 mt-1">{nameError}</p> }
                 </div>
                 
                 <div>
@@ -70,6 +78,7 @@ export default function CustomFieldModal({
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     placeholder="e.g., John Doe"
                   />
+                  { valueError && <p className="text-sm text-red-500 mt-1">{valueError}</p> }
                 </div>
               </div>
               

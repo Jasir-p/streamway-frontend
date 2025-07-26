@@ -3,20 +3,37 @@ import subdomainInterceptors from "../../Intreceptors/getSubdomainInterceptors";
 import { fixPaginationUrl } from "../../components/utils/fixPaginationUrl";
 
 
-export const fetchAccounts = createAsyncThunk('accounts/fetchAccounts', async (url='/api/accounts/',{rejectWithValue}) => {
-    try{
-        const response = await subdomainInterceptors.get(url)
+export const fetchAccounts = createAsyncThunk(
+  'accounts/fetchAccounts',
+  async ({ url = '/api/accounts/', userId,search,status} = {}, { rejectWithValue }) => {
+    try {
+        console.log(search);
         
-        const data = response.data
-        data.next = fixPaginationUrl(data.next)
-        data.previous= fixPaginationUrl(data.previous)
-        return data;
+      const params = {}
+
+      if (userId) {
+        params.user_id = userId;
+      }
+      if (search) {
+        params.search = search
+        }
+        if (status) {
+            params.status = status
+            }
+      
+
+      const response = await subdomainInterceptors.get(url, {params});
+
+      const data = response.data;
+      data.next = fixPaginationUrl(data.next);
+      data.previous = fixPaginationUrl(data.previous);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
     }
-    catch(error){
-        return rejectWithValue(error.message)
-        }
-        }
-    )
+  }
+);
+
 
 export const updateAccount = createAsyncThunk('accounts/updateAccount', async (account, {rejectWithValue}) => {
     try{

@@ -24,6 +24,7 @@ import { EmailDetailModal } from './EmailDetail';
 import ComposeEmailModal from './AddMail';
 import ContactsModal from './ContactsModal';
 import { useEmailPermissions } from '../../../authorization/useEmailPermissions';
+import { useDebounce } from '../../../../../hooks/useDebounce';
 
 
 export default function EmailManagementUI() {
@@ -33,6 +34,8 @@ export default function EmailManagementUI() {
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [showContactsModal, setShowContactsModal] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
   const { emails, loading,hasNext,hasPrevious,next,previous } = useSelector((state) => state.emails);
   const [selectedContact, setSelectedContact] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -49,18 +52,24 @@ export default function EmailManagementUI() {
   const dispatch = useDispatch();
 
 
-    const fetchData = (url='/api/tenant-email/') => {
-      const params = {
-        userID: role !== 'owner' ? userID : null,
-        url,
-      };
-      dispatch(fetchEmails(params));
+  const fetchData = (url = '/api/tenant-email/', filterParams = {}) => {
+   const isPaginatedURL = String(url).includes('?');
+    const params = {
+      ...(role !== 'owner' && !isPaginatedURL ? { userID } : {}),
+      ...(isPaginatedURL ? {} : filterParams)
     };
+    
+    dispatch(fetchEmails({ userID: role !== 'owner' ? userID : null, url, ...params }));
+  };
 
     useEffect(() => {
-      fetchData();  // Initial load
+      fetchData();  
     }, [dispatch, role, userID]);
 
+    useEffect(() => {
+    const filterParams = buildFilterParams();
+    fetchData('/api/tenant-email/', filterParams);  
+  }, [debouncedSearchQuery, activeCategory, dateFilter, deliveryFilter, customDateRange]);
     const handleNextPage = () => {
       if (hasNext) {
         fetchData(next);  
@@ -74,53 +83,41 @@ export default function EmailManagementUI() {
     };
 
   const emailCategories = [
-    { id: 'all', name: 'All Emails', count: 256 },
-    { id: 'follow_up', name: 'Follow-up', count: 42 },
-    { id: 'aftersale', name: 'After Sale', count: 38 },
-    { id: 'leads', name: 'Leads', count: 87 },
+    { id: 'all', name: 'All Emails' },
+    { id: 'follow_up', name: 'Follow-up' },
+    { id: 'after_sale', name: 'After Sale' },
+    { id: 'leads', name: 'Leads' },
   ];
 
-  // Helper function to check if date is within range
-  const isDateInRange = (emailDate, filter) => {
-    const today = new Date();
-    const emailDateObj = new Date(emailDate);
-    
-    switch(filter) {
-      case 'today':
-        return emailDateObj.toDateString() === today.toDateString();
-      case 'week':
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        return emailDateObj >= weekAgo;
-      case 'month':
-        const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-        return emailDateObj >= monthAgo;
-      case 'custom':
-        if (!customDateRange.start || !customDateRange.end) return true;
-        const startDate = new Date(customDateRange.start);
-        const endDate = new Date(customDateRange.end);
-        return emailDateObj >= startDate && emailDateObj <= endDate;
-      default:
-        return true;
-    }
-  };
-
-  // Enhanced filtering logic
-  const filteredEmails = emails.filter(email => {
-    // Category filter
-    const categoryMatch = activeCategory === 'all' || email.category === activeCategory;
-    
   
-    const dateMatch = dateFilter === 'all' || isDateInRange(email.sent_at, dateFilter);
-    
-    
+  const buildFilterParams = () => {
+  const params = {};
 
-    const deliveryMatch = deliveryFilter === 'all' || 
-      (deliveryFilter === 'delivered' && email.is_sent) ||
-      (deliveryFilter === 'failed' && !email.is_sent);
-    
-    return categoryMatch && dateMatch && deliveryMatch;
-  });
+  if (debouncedSearchQuery.trim()) {
+    params.search = debouncedSearchQuery.trim();
+  }
 
+  if (activeCategory !== 'all') {
+    params.category = activeCategory;
+  }
+
+  if (deliveryFilter === 'delivered') {
+    params.status = true;
+  } else if (deliveryFilter === 'failed') {
+    params.status = false;
+  }
+
+  if (dateFilter !== 'all' && dateFilter !== 'custom') {
+    params.date_range = dateFilter;
+  }
+
+  if (dateFilter === 'custom' && customDateRange.start && customDateRange.end) {
+    params.start_date = customDateRange.start;
+    params.end_date = customDateRange.end;
+  }
+  
+  return params;
+};
   const openEmailDetailModal = (email) => {
     setSelectedEmail(email);
     setEmailDetailModal(true);
@@ -140,11 +137,14 @@ export default function EmailManagementUI() {
     
   }
 
-  const clearFilters = () => {
-    setDateFilter('all');
-    setDeliveryFilter('all');
-    setCustomDateRange({ start: '', end: '' });
-  };
+const clearFilters = () => {
+  setDateFilter('all');
+  setDeliveryFilter('all');
+  setCustomDateRange({ start: '', end: '' });
+  setSearchQuery('');
+  
+  fetchData('/api/tenant-email/', {});  // ✅ Fixed
+};
 
   const hasActiveFilters = dateFilter !== 'all' || deliveryFilter !== 'all';
 
@@ -178,7 +178,7 @@ export default function EmailManagementUI() {
                         <Tag size={16} className="mr-2" />
                         <span>{category.name}</span>
                       </div>
-                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100">{category.count}</span>
+                      {/* <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100">{category.count}</span> */}
                     </button>
                   </li>
                 ))}
@@ -196,6 +196,8 @@ export default function EmailManagementUI() {
                 <input
                   type="text"
                   placeholder="Search sent emails..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <div className="absolute left-3 top-2.5 text-gray-400">
@@ -235,10 +237,10 @@ export default function EmailManagementUI() {
 
               <div className="flex items-center gap-2">
                 
-                <button onClick={fetchData} className="flex items-center gap-1 text-sm text-blue-600 hover:underline">
+                {/* <button onClick={fetchData} className="flex items-center gap-1 text-sm text-blue-600 hover:underline">
                   <RefreshCcw className="w-4 h-4" />
                   Refresh
-                </button>
+                </button> */}
                 <div className="relative">
                   
                    <button 
@@ -281,7 +283,8 @@ export default function EmailManagementUI() {
                             <option value="all">All Time</option>
                             <option value="today">Today</option>
                             <option value="week">This Week</option>
-                            <option value="month">Last Month</option>
+                            <option value="month">This Month</option>
+                            <option value="last_month">Last Month</option>
                             <option value="custom">Custom Range</option>
                           </select>
 
@@ -321,11 +324,15 @@ export default function EmailManagementUI() {
                         </div>
 
                         <button
-                          onClick={() => setShowFilters(false)}
-                          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                          Apply Filters
-                        </button>
+                            onClick={() => {
+                              setShowFilters(false);
+                              const filterParams = buildFilterParams();
+                              fetchData('/api/tenant-email/', filterParams);
+                            }}
+                            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            Apply Filters
+                          </button>
                       </div>
                     </div>
                   )}
@@ -368,11 +375,11 @@ export default function EmailManagementUI() {
           <div className="flex-1 overflow-y-auto bg-white">
             <div className="p-4 bg-gray-50 border-b border-gray-200">
               <h2 className="text-lg font-medium text-gray-800">
-                Sent Emails ({filteredEmails.length})
+                Sent Emails ({emails.length})
               </h2>
             </div>
 
-            {filteredEmails.length === 0 ? (
+            {emails.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500">
                 <Send size={48} />
                 <p className="mt-2">No sent emails match your filters</p>
@@ -387,7 +394,7 @@ export default function EmailManagementUI() {
               </div>
             ) : (
               <ul className="divide-y divide-gray-200">
-                {filteredEmails.map(email => (
+                {emails.map(email => (
                   <li
                     key={email.id}
                     onClick={() => openEmailDetailModal(email)}
@@ -413,26 +420,21 @@ export default function EmailManagementUI() {
                         </div>
 
                         <div className="flex items-center mt-2">
-                          {email.category === 'followup' && (
+                          {email.category === 'follow_up' && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
                               <Clock size={12} className="mr-1" />
                               Follow-up
                             </span>
                           )}
 
-                          {email.category === 'aftersale' && (
+                          {email.category === 'after_sale' && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
                               <Tag size={12} className="mr-1" />
                               After Sale
                             </span>
                           )}
 
-                          {email.category === 'won' && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                              <CheckCircle size={12} className="mr-1" />
-                              Won Deal
-                            </span>
-                          )}
+                          
 
                           {email.category === 'leads' && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">

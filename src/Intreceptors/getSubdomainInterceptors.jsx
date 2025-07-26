@@ -1,165 +1,116 @@
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { jwtDecode } from "jwt-decode";
+import store from "../redux/store";// ✅ adjust path if needed
 
-// Wait until `subdomain` is set in localStorage
-const waitForSubdomain = (maxWaitTime = 3000) => {
-  return new Promise((resolve, reject) => {
-    const startTime = Date.now();
-
-    const check = () => {
-      const subdomain = localStorage.getItem("subdomain");
-      if (subdomain) {
-        
-        resolve(subdomain);
-        return;
-      }
-      if (Date.now() - startTime > maxWaitTime) {
-        
-        reject(new Error("Subdomain not found within timeout period"));
-        return;
-      }
-      setTimeout(check, 100);
-    };
-
-    check();
-  });
+// Utility: extract subdomain from token
+const getSubdomainFromToken = (token) => {
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.subdomain || decoded.tenant || null;
+  } catch {
+    return null;
+  }
 };
 
-const subdomainInterceptors = axios.create({
+// Utility: get tokens and subdomain (from localStorage or token)
+const getAuthContext = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const accessFromUrl = urlParams.get("access");
+
+  const accessToken = localStorage.getItem("access_token") || accessFromUrl;
+  const refreshToken = localStorage.getItem("refresh_token");
+
+  let subdomain = localStorage.getItem("subdomain");
+
+  if (!subdomain && accessToken) {
+    subdomain = getSubdomainFromToken(accessToken);
+    if (subdomain) localStorage.setItem("subdomain", subdomain); // ✅ persist it
+  }
+
+  return { accessToken, refreshToken, subdomain };
+};
+
+// Axios instance
+const subdomainAxios = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-subdomainInterceptors.interceptors.request.use(
-  async (config) => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessTokenFromUrl = urlParams.get("access");
+// Request Interceptor
+subdomainAxios.interceptors.request.use(
+  (config) => {
+    const { accessToken, subdomain } = getAuthContext();
 
-    let token = localStorage.getItem("access_token") || accessTokenFromUrl;
-    let subdomain = localStorage.getItem("subdomain");
-
-    // Extract subdomain from token if not in localStorage
-    if (!subdomain && accessTokenFromUrl) {
-      try {
-        const { jwtDecode } = await import("jwt-decode");
-        const decoded = jwtDecode(accessTokenFromUrl);
-        subdomain = decoded.subdomain || decoded.tenant;
-        
-      } catch (err) {
-        
-      }
-    }
-
-    // Wait for subdomain if not available
     if (!subdomain) {
-      try {
-        
-        subdomain = await waitForSubdomain(2000);
-      } catch (err) {
-        
-        return Promise.reject(new Error("Subdomain required for this request"));
-      }
+      return Promise.reject(new Error("Subdomain is required"));
     }
 
-    // Set authorization header
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
 
-    // Set subdomain-based baseURL
-    const subdomainBaseUrl = import.meta.env.VITE_API_SUBDOMAIN_URL.replace("{subdomain}", subdomain);
-    config.baseURL = subdomainBaseUrl;
-    
-
+    config.baseURL = import.meta.env.VITE_API_SUBDOMAIN_URL.replace("{subdomain}", subdomain);
     return config;
   },
-  (err) => Promise.reject(err)
+  (error) => Promise.reject(error)
 );
 
-subdomainInterceptors.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    const originalRequest = err.config;
+// Response Interceptor (Token Refresh Logic)
+subdomainAxios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-    if (err.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
+      const { refreshToken, subdomain } = getAuthContext();
+      const role = store.getState().auth.role;
+
+      if (!refreshToken || !subdomain) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
+
       try {
-        const refreshToken = localStorage.getItem("refresh_token");
-        let subdomain = localStorage.getItem("subdomain");
-        const state = store.getState();
-        const role = state.auth.role;
-
-        // Extract subdomain from URL token if not in localStorage
-        if (!subdomain) {
-          const accessTokenFromUrl = new URLSearchParams(window.location.search).get("access");
-          if (accessTokenFromUrl) {
-            try {
-              const { jwtDecode } = await import("jwt-decode");
-              const decoded = jwtDecode(accessTokenFromUrl);
-              subdomain = decoded.subdomain || decoded.tenant;
-            } catch (decodeError) {
-              
-            }
-          }
-        }
-
-        if (!refreshToken || !subdomain) {
-          
-          localStorage.clear();
-          window.location.href = "/login";
-          return Promise.reject(err);
-        }
-
         const baseUrl = import.meta.env.VITE_API_SUBDOMAIN_URL.replace("{subdomain}", subdomain);
-        let refreshUrl = `${baseUrl}/api/token/refresh/`;
-        if (role !=='owner'){
-          refreshUrl = `${baseUrl}/api/token/employee_refresh/`;
-        }
-        const refreshResponse = await axios.post(refreshUrl, {
-          refresh: refreshToken,
-        });
+        const refreshUrl =
+          role === "owner"
+            ? `${baseUrl}/api/token/refresh/`
+            : `${baseUrl}/api/token/employee_refresh/`;
 
-        if (refreshResponse.data.access) {
-          const newAccessToken = refreshResponse.data.access;
-          localStorage.setItem("access_token", newAccessToken);
+        const res = await axios.post(refreshUrl, { refresh: refreshToken });
 
-          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        if (res.data?.access) {
+          localStorage.setItem("access_token", res.data.access);
+
+          originalRequest.headers.Authorization = `Bearer ${res.data.access}`;
           originalRequest.baseURL = baseUrl;
 
-          return subdomainInterceptors(originalRequest);
+          return subdomainAxios(originalRequest);
         }
-
-        
+      } catch (refreshErr) {
         localStorage.clear();
         window.location.href = "/login";
-        return Promise.reject(new Error("Token refresh failed"));
-      } catch (refreshError) {
-        
-        localStorage.clear();
-        window.location.href = "/login";
-        return Promise.reject(refreshError);
+        return Promise.reject(refreshErr);
       }
     }
 
-    return Promise.reject(err);
+    return Promise.reject(error);
   }
 );
 
-// Manual baseURL update
+// Update baseURL manually (optional)
 export const updateSubdomainBaseUrl = () => {
-  const subdomain = localStorage.getItem("subdomain");
+  const { subdomain } = getAuthContext();
   if (subdomain) {
-    const newBaseUrl = import.meta.env.VITE_API_SUBDOMAIN_URL.replace("{subdomain}", subdomain);
-    subdomainInterceptors.defaults.baseURL = newBaseUrl;
-    
-    return newBaseUrl;
+    const baseUrl = import.meta.env.VITE_API_SUBDOMAIN_URL.replace("{subdomain}", subdomain);
+    subdomainAxios.defaults.baseURL = baseUrl;
+    return baseUrl;
   }
   return null;
 };
 
-// Utility for waiting for subdomain
-export const subdomainReady = () => waitForSubdomain();
-
-export default subdomainInterceptors;
+export default subdomainAxios;

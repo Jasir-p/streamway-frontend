@@ -8,7 +8,7 @@ export const CategoryDropdown = ({ isOpen, onSelect, onClose }) => {
   ];
 
   const dropdownRef = useRef(null);
-  const [loading, setLoading] = useState(false); // optional if you simulate loading
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -31,9 +31,15 @@ export const CategoryDropdown = ({ isOpen, onSelect, onClose }) => {
   return (
     <div
       ref={dropdownRef}
-      className="absolute top-12 mt-1 w-64 bg-white rounded-lg shadow-lg text-gray-800 z-10 py-2"
+      className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 text-gray-800 z-50 py-2"
+      style={{
+        // Ensure dropdown doesn't go off-screen
+        transform: 'translateX(0)',
+        maxWidth: 'calc(100vw - 2rem)',
+        minWidth: '200px'
+      }}
     >
-      <div className="px-3 py-2 text-sm font-medium text-gray-500 border-b">
+      <div className="px-3 py-2 text-sm font-medium text-gray-500 border-b border-gray-100">
         Select category
       </div>
 
@@ -47,8 +53,9 @@ export const CategoryDropdown = ({ isOpen, onSelect, onClose }) => {
             CATEGORY_CHOICES.map(([value, label]) => (
               <div
                 key={value}
-                className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors duration-150 truncate"
                 onClick={() => onSelect(value)}
+                title={label} // Show full text on hover if truncated
               >
                 {label}
               </div>

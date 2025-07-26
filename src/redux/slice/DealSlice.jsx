@@ -5,23 +5,38 @@ import { fixPaginationUrl } from '../../components/utils/fixPaginationUrl';
 // Fetch all deals
 export const fetchDeals = createAsyncThunk(
   'deals/fetchDeals',
-  async ({ role, userId, url }, { rejectWithValue }) => {
-    
-    
+  async ({ role, userId, url, search = '', filters = {}, sortBy = 'created_at', sortOrder = 'desc' }, { rejectWithValue }) => {
     try {
       let requestUrl = url || '/api/deals/';
+      const params = new URLSearchParams();
 
-      // Append userId if the user is not owner and userId exists
+      // Only include userId if not owner
       if (!url && role !== 'owner' && userId) {
-        const params = new URLSearchParams({ userId });
+        params.append('userId', userId);
+      }
+
+      // Search
+      if (search) {
+        params.append('search', search);
+      }
+
+      for (const [key, value] of Object.entries(filters)) {
+        if (value) {
+          params.append(key, value);
+        }
+      }
+
+      // Final URL
+      if (!url) {
         requestUrl += `?${params.toString()}`;
       }
+      console.log(params);
       
-      
+
       const response = await subdomainInterceptors.get(requestUrl);
-      const data = response.data
-      data.next = fixPaginationUrl(data.next)
-      data.previous= fixPaginationUrl(data.previous)
+      const data = response.data;
+      data.next = fixPaginationUrl(data.next);
+      data.previous = fixPaginationUrl(data.previous);
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);

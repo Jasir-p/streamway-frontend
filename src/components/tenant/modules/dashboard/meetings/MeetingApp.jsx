@@ -7,16 +7,20 @@ import { addMeeting, fetchMeeting,deleteMeeting,patchMeeting } from '../../../..
 import Swal from 'sweetalert2';
 import ConfirmationModal from './components/ConfirmationModal';
 import { useMeetingPermissions } from '../../../authorization/useMeetingPermissions';
+import { useDebounce } from '../../../../../hooks/useDebounce';
 
 
 const MeetingApp = () => {
   const dispatch = useDispatch();
   const role = useSelector((state) =>state.auth.role)
   const userId = useSelector((state) =>state.profile.id)
+  const [searchQuery, setSearchQuery] = useState('');
 
   const meetings = useSelector((state) => state.meeting.meetings || []);
   const loading = useSelector((state) => state.meeting.loading);
   const error = useSelector((state) => state.meeting.error);
+   const debouncedSearchQuery = useDebounce(searchQuery, 500)
+   const [statusFilter, setStatusFilter] = useState('all');
 
   const [currentView, setCurrentView] = useState('list');
   const [editingMeeting, setEditingMeeting] = useState(null);
@@ -29,9 +33,14 @@ const [confirmModalData, setConfirmModalData] = useState({
 
 
 
-  useEffect(() => {
-    dispatch(fetchMeeting(role==='owner'? null:userId));
-  }, [dispatch]);
+useEffect(() => {
+  const filters = buildFilterParams();
+    if (role !== 'owner') {
+    filters.userId = userId;
+  }
+  dispatch(fetchMeeting( filters)); 
+}, [dispatch, debouncedSearchQuery, statusFilter,userId,role]);
+
 
   const handleCreateNew = () => {
     setEditingMeeting(null);
@@ -67,7 +76,20 @@ const handleSave = (meetingId, meetingData) => {
   }
 };
 
+  const buildFilterParams = () => {
+  const params = {};
 
+  if (debouncedSearchQuery.trim()) {
+    params.search = debouncedSearchQuery.trim();
+  }
+
+
+  if (statusFilter !== 'all') {
+    params.status = statusFilter;
+  }
+
+  return params;
+};
 
 const handleDelete = (meetingId) => {
   Swal.fire({
@@ -136,16 +158,18 @@ const handleDelete = (meetingId) => {
 
   return (
     <DashboardLayout>
-      {loading ? (
-        <div className="text-center py-10 text-gray-500">Loading meetings...</div>
-      ) : currentView === 'list' ? (
+      {currentView === 'list' ? (
         <MeetingsList 
           meetings={meetings}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onCreateNew={handleCreateNew}
           onStatusChange={handleStatusChange}
-        onAssigneeChange={handleAssigneeChange}
+          onAssigneeChange={handleAssigneeChange} 
+          searchQuery = {searchQuery}
+          setSearchQuery={setSearchQuery}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
         />
       ) : (
         <MeetingForm 

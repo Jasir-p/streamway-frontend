@@ -117,7 +117,8 @@ const [formData, setFormData] = useState(initialFormData);
     
     const selectedDate = new Date(`${formData.date}T${formData.time}`);
     if (selectedDate < new Date()) {
-      newErrors.date = 'Meeting date cannot be in the past';
+      newErrors.date = 'Meeting date and time cannot be in the past';
+      newErrors.time = 'Meeting date and time cannot be in the past';
     }
 
     setErrors(newErrors);
@@ -188,14 +189,14 @@ const [formData, setFormData] = useState(initialFormData);
                 <Input
                   label="Date"
                   type="date"
-                  value={meeting ? formData.date : today}
+                  value={formData.date}
                   onChange={(e) => handleChange('date', e.target.value)}
-                  min={today}
+                  // min={today}
                   required
                 />
                 {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date}</p>}
               </div>
-
+              <div>
               <Input
                 label="Time"
                 type="time"
@@ -203,7 +204,8 @@ const [formData, setFormData] = useState(initialFormData);
                 onChange={(e) => handleChange('time', e.target.value)}
                 required
               />
-
+              {errors.time && <p className="text-red-500 text-sm mt-1">{errors.time}</p>}
+              </div>
               <Select
                 label="Duration"
                 value={formData.duration}
@@ -273,6 +275,7 @@ const [formData, setFormData] = useState(initialFormData);
                       {formData.account ? 'Select contact...' : 'Select account first'}
                     </span>
                   )}
+                  {errors.contact && <p className="text-red-500 text-sm mt-1">{errors.date}</p>}
                 </div>
                 <ContactDropdown
                   isOpen={isContactDropdownOpen}

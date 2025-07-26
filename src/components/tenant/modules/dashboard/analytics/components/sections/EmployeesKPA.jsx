@@ -125,25 +125,9 @@ const safeRadarData = Array.isArray(radarData) ? radarData : [];
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         {/* Radar Chart */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Employee Performance Comparison</h3>
-          {hasRadarData ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={safeRadarData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="subject" />
-                <PolarRadiusAxis />
-                <Radar name="John Smith" dataKey="A" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.6} />
-                <Radar name="Sarah Johnson" dataKey="B" stroke="#10B981" fill="#10B981" fillOpacity={0.6} />
-                <Tooltip />
-              </RadarChart>
-            </ResponsiveContainer>
-          ) : (
-            <EmptyDataMessage message="No performance comparison data available" />
-          )}
-        </div>
+        
 
         {/* Top Performers */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">

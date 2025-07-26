@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Eye, Trash2, UserPlus, Search } from 'lucide-react';
 import DashboardLayout from '../../../dashboard/DashbordLayout';
 import { deleteEnquiry, fetchEnquiry } from '../../../../../redux/slice/EnquirySlice';
@@ -13,7 +13,7 @@ import { useEnquiryPermissions } from '../../../authorization/useEnquiryPermissi
 
 const WebEnquirerComponent = () => {
   const dispatch = useDispatch();
-  const { data } = useSelector((state) => state.enquiry);
+  const { data, loading } = useSelector((state) => state.enquiry);
   const role = useSelector((state) => state.auth.role);
   const profile = useSelector((state) => state.profile);
   const [user, setUser] = useState([]);
@@ -25,15 +25,78 @@ const WebEnquirerComponent = () => {
   const [currentEnquiry, setCurrentEnquiry] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [isEnquiryDetails, setIsEnquiryDetails] = useState(false);
-  const {canAdd,canEdit,canDelete,canView}=useEnquiryPermissions()
+  const {canAdd, canEdit, canDelete, canView} = useEnquiryPermissions();
+
+  // Refs for cleanup
+  const debounceTimerRef = useRef(null);
+  const abortControllerRef = useRef(null);
+
+  // Custom debounce hook
+  const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debouncedValue;
+  };
+
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  const fetchEnquiriesWithSearch = useCallback(async (search = '') => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
+    try {
+      setIsSearching(true);
+        
+      await dispatch(fetchEnquiry(search)).unwrap();
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Search failed:', error);
+        showError('Failed to search enquiries');
+      }
+    } finally {
+      setIsSearching(false);
+    }
+  }, [dispatch, showError]);
 
 
   useEffect(() => {
-    dispatch(fetchEnquiry());
-  }, [dispatch, change]);
+    fetchEnquiriesWithSearch();
+  }, [change]);
 
+  useEffect(() => {
+    if (debouncedSearch !== debouncedSearchTerm) {
+      setDebouncedSearchTerm(debouncedSearch);
+      fetchEnquiriesWithSearch(debouncedSearch);
+    }
+  }, [debouncedSearch, debouncedSearchTerm, fetchEnquiriesWithSearch]);
 
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Fetch users
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -42,7 +105,7 @@ const WebEnquirerComponent = () => {
           setUser(response);
         }
       } catch (error) {
-        
+        console.error('Failed to fetch users:', error);
       }
     };
 
@@ -51,6 +114,23 @@ const WebEnquirerComponent = () => {
     }
   }, [role, profile?.id]);
 
+
+  const handleSearchChange = useCallback((e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value.trim() !== debouncedSearchTerm) {
+      setIsSearching(true);
+    }
+  }, [debouncedSearchTerm]);
+
+  const clearSearch = useCallback(() => {
+    setSearchTerm('');
+    setDebouncedSearchTerm('');
+    if (debouncedSearchTerm) {
+      fetchEnquiriesWithSearch('');
+    }
+  }, [debouncedSearchTerm, fetchEnquiriesWithSearch]);
 
   const toggleSelection = (id) => {
     if (selectedEnquiries.includes(id)) {
@@ -66,7 +146,7 @@ const WebEnquirerComponent = () => {
     dispatch(deleteAction)
       .unwrap()
       .then((response) => {
-        setChange(true);
+        setChange(prev => !prev);
         if (!id) setSelectedEnquiries([]);
         showSuccess(response?.message || "Enquiry deleted successfully");
       })
@@ -94,58 +174,51 @@ const WebEnquirerComponent = () => {
       showWarning('Please select a user');
       return;
     }
-    if (currentEnquiry) {
-
-      const data = {
-        "form_data": [currentEnquiry.web_id],
-        "employee": selectedUser.id,
-        "granted_by": role === "owner" ? null : profile.id
-      };
-      
-      dispatch(addLeads(data))
-        .unwrap()
-        .then((response) => {
-          setChange(true);
-          showSuccess(response.message || response.data?.message);
-        })
-        .catch((error) => {
-          showError(error);
-        });
-    } else {
-      const data = {
-        "form_data": selectedEnquiries,
-        "employee": selectedUser.id,
-        "granted_by": role === "owner" ? null : profile.id
-      };
-      
-      dispatch(addLeads(data))
-        .unwrap()
-        .then((response) => {
-          setChange(true);
-          showSuccess(response.message);
-        })
-        .catch((error) => {
-          showError(error);
-        });
-    }
     
-    setSelectedEnquiries([]);
-    setCurrentEnquiry(null);
-    setSelectedUser(null);
-    setShowAssignModal(false);
+    const requestData = currentEnquiry ? {
+      "form_data": [currentEnquiry.web_id],
+      "employee": selectedUser.id,
+      "granted_by": role === "owner" ? null : profile.id
+    } : {
+      "form_data": selectedEnquiries,
+      "employee": selectedUser.id,
+      "granted_by": role === "owner" ? null : profile.id
+    };
+    
+    dispatch(addLeads(requestData))
+      .unwrap()
+      .then((response) => {
+        setChange(prev => !prev);
+        showSuccess(response.message || response.data?.message);
+        
+        // Reset modal state
+        setSelectedEnquiries([]);
+        setCurrentEnquiry(null);
+        setSelectedUser(null);
+        setShowAssignModal(false);
+      })
+      .catch((error) => {
+        showError(error);
+      });
   };
-  
-  const filteredEnquiries = data.filter(enquiry => 
-    enquiry.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    enquiry.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    enquiry.phone_number.includes(searchTerm)
-  );
+
+
+  const displayData = useMemo(() => {
+
+    if (!debouncedSearchTerm.trim()) return data;
+    
+    return data.filter(enquiry => 
+      enquiry.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      enquiry.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      enquiry.phone_number.includes(debouncedSearchTerm)
+    );
+  }, [data, debouncedSearchTerm]);
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-50 min-h-screen p-6">
-        <div className="max-w-[95%] mx-auto">
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+
+
+          
             {/* Header */}
             <div className="border-b border-gray-200 p-6">
               <h1 className="text-2xl font-semibold text-gray-800">Web Enquiries</h1>
@@ -155,49 +228,71 @@ const WebEnquirerComponent = () => {
             {/* Toolbar */}
             <div className="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                {canAdd &&(<button
-                  onClick={() => handleCreateLeads()}
-                  disabled={selectedEnquiries.length === 0 || selectedEnquiries.some(id => {
-                    const enquiry = filteredEnquiries.find(e => e.web_id === id);
-                    return enquiry && enquiry.lead_created === true;
-                  })}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md ${
-                    selectedEnquiries.length > 0 && !selectedEnquiries.some(id => {
-                      const enquiry = filteredEnquiries.find(e => e.web_id === id);
+                {canAdd && (
+                  <button
+                    onClick={() => handleCreateLeads()}
+                    disabled={selectedEnquiries.length === 0 || selectedEnquiries.some(id => {
+                      const enquiry = displayData.find(e => e.web_id === id);
                       return enquiry && enquiry.lead_created === true;
-                    })
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  <UserPlus size={16} />
-                  Create Lead
-                </button>)}
+                    })}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md ${
+                      selectedEnquiries.length > 0 && !selectedEnquiries.some(id => {
+                        const enquiry = displayData.find(e => e.web_id === id);
+                        return enquiry && enquiry.lead_created === true;
+                      })
+                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    <UserPlus size={16} />
+                    Create Lead
+                  </button>
+                )}
                 
-                {canDelete &&(<button 
-                  onClick={() => handleDelete()}
-                  disabled={selectedEnquiries.length === 0}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md ${
-                    selectedEnquiries.length > 0 
-                      ? 'bg-red-600 text-white hover:bg-red-700' 
-                      : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  <Trash2 size={16} />
-                  Delete
-                </button>)}
-                
+                {canDelete && (
+                  <button 
+                    onClick={() => handleDelete()}
+                    disabled={selectedEnquiries.length === 0}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md ${
+                      selectedEnquiries.length > 0 
+                        ? 'bg-red-600 text-white hover:bg-red-700' 
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                )}
               </div>
 
+              {/* Enhanced Search Input */}
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search 
+                  size={16} 
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+                    isSearching ? 'text-blue-500 animate-pulse' : 'text-gray-400'
+                  }`} 
+                />
                 <input
                   type="text"
                   placeholder="Search enquiries..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-10 pr-10 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearchChange}
                 />
+                {searchTerm && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                )}
+                {isSearching && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -210,10 +305,10 @@ const WebEnquirerComponent = () => {
                       <input 
                         type="checkbox"
                         className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        checked={selectedEnquiries.length === data.length && data.length > 0}
+                        checked={selectedEnquiries.length === displayData.length && displayData.length > 0}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedEnquiries(data.map(item => item.web_id));
+                            setSelectedEnquiries(displayData.map(item => item.web_id));
                           } else {
                             setSelectedEnquiries([]);
                           }
@@ -225,15 +320,24 @@ const WebEnquirerComponent = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned By</th>
+                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned By</th> */}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredEnquiries.length > 0 ? (
-                    filteredEnquiries.map((enquiry) => (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={10} className="px-6 py-8 text-center">
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full mr-2"></div>
+                          Loading enquiries...
+                        </div>
+                      </td>
+                    </tr>
+                  ) : displayData.length > 0 ? (
+                    displayData.map((enquiry) => (
                       <tr key={enquiry.web_id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <input 
@@ -248,7 +352,7 @@ const WebEnquirerComponent = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-gray-500">{enquiry.email}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-500">{enquiry.phone_number}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-500">{enquiry.source}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                        {/* <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                           <div className="flex items-center space-x-1">
                             <img
                               src={userprofile}
@@ -259,7 +363,7 @@ const WebEnquirerComponent = () => {
                               {enquiry.granted_by?.name || enquiry.employee ? "Owner" : "-"}
                             </div>
                           </div>
-                        </td>
+                        </td> */}
                         <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                           <div className="flex items-center space-x-1">
                             <img
@@ -275,7 +379,7 @@ const WebEnquirerComponent = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-gray-500">{formatTimeAgo(enquiry.created_at)}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex items-center space-x-3">
-                            {!enquiry.lead_created && canAdd &&(
+                            {!enquiry.lead_created && canAdd && (
                               <button 
                                 className="text-blue-600 hover:text-blue-900 flex items-center"
                                 onClick={() => handleCreateLeads(enquiry.web_id)}
@@ -283,12 +387,14 @@ const WebEnquirerComponent = () => {
                                 <UserPlus size={16} />
                               </button>
                             )}
-                            {canDelete &&(<button 
-                              className="text-red-600 hover:text-red-900 flex items-center"
-                              onClick={() => handleDelete(enquiry.web_id)}
-                            >
-                              <Trash2 size={16} />
-                            </button>)}
+                            {canDelete && (
+                              <button 
+                                className="text-red-600 hover:text-red-900 flex items-center"
+                                onClick={() => handleDelete(enquiry.web_id)}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
                             <button 
                               className="text-blue-500 hover:text-blue-700 flex items-center"
                               onClick={() => {
@@ -301,13 +407,23 @@ const WebEnquirerComponent = () => {
                           </div>
                         </td>
                       </tr>
-                      
                     ))
-                    
                   ) : (
                     <tr>
-                      <td colSpan={10} className="px-6 py-4 text-center text-gray-500">
-                        No enquiries found
+                      <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                        {searchTerm ? (
+                          <div className="space-y-2">
+                            <p>No enquiries found for "{searchTerm}"</p>
+                            <button 
+                              onClick={clearSearch}
+                              className="text-blue-600 hover:text-blue-800 text-sm underline"
+                            >
+                              Clear search
+                            </button>
+                          </div>
+                        ) : (
+                          'No enquiries found'
+                        )}
                       </td>
                     </tr>
                   )}
@@ -318,8 +434,13 @@ const WebEnquirerComponent = () => {
             {/* Pagination */}
             <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
               <div className="text-sm text-gray-700">
-                Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredEnquiries.length}</span> of{' '}
-                <span className="font-medium">{filteredEnquiries.length}</span> results
+                Showing <span className="font-medium">1</span> to <span className="font-medium">{displayData.length}</span> of{' '}
+                <span className="font-medium">{displayData.length}</span> results
+                {searchTerm && (
+                  <span className="ml-2 text-gray-500">
+                    (filtered from {data.length} total)
+                  </span>
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -330,12 +451,12 @@ const WebEnquirerComponent = () => {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+          
+        
         
         {/* Assign Modal */}
         {showAssignModal && (
-          <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
               <div className="p-6 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-800">Assign Lead{currentEnquiry ? '' : 's'}</h3>
@@ -392,10 +513,15 @@ const WebEnquirerComponent = () => {
             </div>
           </div>
         )}
-      </div>
+
+      
       {isEnquiryDetails && currentEnquiry && (
-              <EnquiryDetails isOpen={isEnquiryDetails} details={currentEnquiry} onClose={() => setIsEnquiryDetails(false)} />
-            )}
+        <EnquiryDetails 
+          isOpen={isEnquiryDetails} 
+          details={currentEnquiry} 
+          onClose={() => setIsEnquiryDetails(false)} 
+        />
+      )}
     </DashboardLayout>
   );
 };

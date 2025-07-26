@@ -6,6 +6,7 @@ import { addField, fetchFields, deleteField,updateField } from '../../../../redu
 import { Pencil, Trash2 } from 'lucide-react';
 import isEqual from 'lodash/isEqual';;
 import { useToast } from '../../../common/ToastNotification';
+import { validateCustomFieldName } from '../../../../utils/ValidateFunctions';
 
 const FormBuilder = () => {
   const [activeTab, setActiveTab] = useState('builder');
@@ -16,6 +17,7 @@ const FormBuilder = () => {
   const { field, loading, error } = useSelector((state) => state.fields);
   const [originaField, setOriginaField]=useState()
   const { showSuccess, showError, showWarning } = useToast();
+  const [fieldError , setFieldError] = useState(null);
 
 
   useEffect(() => {
@@ -64,8 +66,12 @@ const FormBuilder = () => {
   });
 
   const handleAddField = async () => {
-    if (!newField.field_name) return;
+    const fieldNameError = validateCustomFieldName(newField.field_name)
+    if (fieldNameError) {
+      setFieldError(fieldNameError)}
 
+    if (fieldNameError) return;
+    setFieldError("")
     const updatedOptions = newField.field_type === 'select' ? newField.options : [];
 
     try {
@@ -128,14 +134,14 @@ const FormBuilder = () => {
   };
 
   const handleDeleteField = async (fieldId) => {
-    if (window.confirm('Are you sure you want to delete this field?')) {
+    
       try {
         await dispatch(deleteField(fieldId)).unwrap();
         setChangeTracker(prev => !prev);
       } catch (error) {
         
       }
-    }
+    
   };
 
   const handleCancelEdit = () => {
@@ -301,6 +307,7 @@ const FormBuilder = () => {
                       className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="e.g. Job Title"
                     />
+                    {fieldError && <div className="text-red-500 text-sm">{fieldError}</div>}
                   </div>
 
                   <div>

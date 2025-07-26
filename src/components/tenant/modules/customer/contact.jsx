@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardLayout from '../../dashboard/DashbordLayout';
 
@@ -124,7 +123,7 @@ const ContactView = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-white rounded-lg shadow-lg p-6 max-l w-full">
+      <div className="bg-white rounded-lg shadow-lg p-6 max-w-full ">
         {/* Header */}
         <ContactHeader onAddContact={contactModal} />
 
@@ -146,13 +145,32 @@ const ContactView = () => {
             </div>
           </div>
 
-          {/* Bulk Actions */}
-          <BulkActions
-            selectedCount={selectedContacts.length}
-            dropdownOpen={bulkActionsDropdown.isOpen}
-            setDropdownOpen={bulkActionsDropdown.toggle}
-            onActionClick={handleActionClick}
-          />
+          {/* Bulk Actions with integrated dropdowns */}
+          <div className="relative">
+            <BulkActions
+              selectedCount={selectedContacts.length}
+              dropdownOpen={bulkActionsDropdown.isOpen}
+              setDropdownOpen={bulkActionsDropdown.toggle}
+              onActionClick={handleActionClick}
+            />
+            
+            {/* Position dropdowns right after BulkActions */}
+            {userDropdown.isOpen && (
+              <UserDropdown
+                isOpen={userDropdown.isOpen}
+                onSelect={handleUserSelect}
+                onClose={userDropdown.closeModal}
+              />
+            )}
+            
+            {categoryDropdown.isOpen && (
+              <CategoryDropdown
+                isOpen={categoryDropdown.isOpen}
+                onSelect={handleCategorySelect}
+                onClose={categoryDropdown.closeModal}
+              />
+            )}
+          </div>
         </div>
 
         {/* Contact Table */}
@@ -166,7 +184,7 @@ const ContactView = () => {
           onToggleFavorite={toggleFavorite}
           showActionDropdown={showActionDropdown}
           setShowActionDropdown={setShowActionDropdown}
-          onChange = {refreshContacts}
+          onChange={refreshContacts}
           onEdit={contactModal}
         />
 
@@ -180,7 +198,7 @@ const ContactView = () => {
           onPrevious={handlePrevious}
         />
 
-        {/* Modals and Dropdowns */}
+        {/* Modals */}
         {contactModal.isOpen && (
           <ContactForm 
             isOpen={contactModal.isOpen} 
@@ -188,15 +206,6 @@ const ContactView = () => {
             onChange={refreshContacts}
             contact={contactModal.contact}
             isEdit={contactModal.isEdit}
-          />
-        )}
-
-
-        {categoryDropdown.isOpen && (
-          <CategoryDropdown
-            isOpen={categoryDropdown.isOpen}
-            onSelect={handleCategorySelect}
-            onClose={categoryDropdown.closeModal}
           />
         )}
 

@@ -32,56 +32,76 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {}, 
       connect(token, subdomain);
 
       const messageCleanup = addMessageHandler((data) => {
+  console.log('Received WebSocket data:', data);
+  try {
+    const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+    console.log('Parsed data:', parsedData);
 
-        try {
-          const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+    const messageType = parsedData.message_type || 'new_notification';
+    const notifications = parsedData.notifications || parsedData;
 
-
-          if (Array.isArray(parsedData)) {
-            let unreadCount = 0;
-            
-            parsedData.forEach((notification) => {
+        if (messageType === 'notifications_updated') {
+          // This is an updated list after mark as read - REPLACE
+          const processedNotifications = notifications.map(notification => {
+            const isRead = notification.is_read || false;
+            return {
+              id: notification.id,
+              type: (notification.type || 'task').toLowerCase(),
+              title: notification.message || 'New notification',
+              message: notification.message || '',
+              user: notification.user || null,
+              time: notification.timestamp || 'Just now',
+              read: isRead,
+            };
+          });
+          
+          setNotifications(processedNotifications);
+          const unreadCount = processedNotifications.filter(n => !n.read).length;
+          setCount(unreadCount);
+          
+        } else if (messageType === 'new_notification') {
+          // This is a new notification - ADD
+          if (Array.isArray(notifications)) {
+            // Initial load
+            const processedNotifications = notifications.map(notification => {
               const isRead = notification.is_read || false;
-              if (!isRead) unreadCount += 1;
-              
-              const newNotification = {
+              return {
                 id: notification.id,
-                type: (notification.type || 'task').toLowerCase(), // Normalize type to lowercase
+                type: (notification.type || 'task').toLowerCase(),
                 title: notification.message || 'New notification',
                 message: notification.message || '',
                 user: notification.user || null,
                 time: notification.timestamp || 'Just now',
                 read: isRead,
               };
-              
-              setNotifications((prev) => [newNotification, ...prev]);
             });
             
+            setNotifications(processedNotifications);
+            const unreadCount = processedNotifications.filter(n => !n.read).length;
             setCount(unreadCount);
-          } else if (parsedData && typeof parsedData === 'object') {
-            // Handle single notification object
-            const isRead = parsedData.is_read || false;
+          } else {
+            // Single new notification
+            const isRead = notifications.is_read || false;
             const newNotification = {
-              id: parsedData.id,
-              type: (parsedData.type || 'task').toLowerCase(),
-              title: parsedData.message || 'New notification',
-              message: parsedData.message || '',
-              user: parsedData.user || null,
-              time: parsedData.timestamp || 'Just now',
+              id: notifications.id,
+              type: (notifications.type || 'task').toLowerCase(),
+              title: notifications.message || 'New notification',
+              message: notifications.message || '',
+              user: notifications.user || null,
+              time: notifications.timestamp || 'Just now',
               read: isRead,
             };
             
-            
             setNotifications((prev) => [newNotification, ...prev]);
-            
             if (!isRead) {
               setCount((prevCount) => prevCount + 1);
             }
           }
-        } catch (error) {
-          
         }
-      });
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    });
 
       // Optional: Add connection status handler
       const connectionCleanup = addConnectionHandler((event) => {
@@ -132,12 +152,12 @@ const markAsRead = (id) => {
   });
 
 
-  setNotifications((prev) =>
-    prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-  );
+  // setNotifications((prev) =>
+  //   prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+  // );
 
   // Decrease unread count safely
-  setCount((prevCount) => Math.max(0, prevCount - 1));
+  // setCount((prevCount) => Math.max(0, prevCount - 1));
 };
 
 
@@ -152,8 +172,10 @@ const markAsRead = (id) => {
   };
 
   const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    setCount(0); 
+    sendMessage({
+    type: "mark_all_read",
+    
+  });
   };
 
   const getIcon = (type) => {
@@ -229,8 +251,8 @@ const markAsRead = (id) => {
               <option value="all">All notifications</option>
               <option value="unread">Unread only</option>
               <option value="task">Task updates</option>
-              <option value="chat">Messages</option>
-              <option value="due">Due dates</option>
+              <option value="meeting">Meeting updates</option>
+              <option value="enquiery">Enquiery</option>
             </select>
             {unreadCount > 0 && (
               <button

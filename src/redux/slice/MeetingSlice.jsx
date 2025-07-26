@@ -4,18 +4,18 @@ import subdomainInterceptors from '../../Intreceptors/getSubdomainInterceptors';
 
 export const fetchMeeting = createAsyncThunk(
   'meeting/fetchMeeting',
-  async (userId, { rejectWithValue }) => {
+  async (filters = {}, { rejectWithValue }) => {
     try {
-
-      const params = userId ? { params: { userId } } : {};
-
-      const response = await subdomainInterceptors.get('/api/meeting/', params);
+      const response = await subdomainInterceptors.get('/api/meeting/', {
+        params: filters,
+      });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
+
 
 
 

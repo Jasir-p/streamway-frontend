@@ -58,3 +58,12 @@ export const addLeadNote = async (data)=>{
             return null
             }
             }
+
+export const deleteLeadNote = async (data)=>{
+    try{
+        const response =await subdomainInterceptors.delete("/api/lead-note/",{data:data})
+        return response
+        } catch (error) {
+            return null
+            }
+            }

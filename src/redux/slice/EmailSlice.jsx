@@ -6,26 +6,29 @@ import { fixPaginationUrl } from "../../components/utils/fixPaginationUrl";
 
 export const fetchEmails = createAsyncThunk(
   "emails/fetchEmails",
-  async ({ userID = null, url}, { rejectWithValue }) => {
-    console.log(url);
-    
-    try {
-      const params = {};
-      
-      if (userID) {
-        params.user_id = userID; 
-      }
+  async ({ userID = null, url, ...filterParams }, { rejectWithValue }) => {
+  try {
+    const params = {};
 
-      const response = await subdomainInterceptors.get(url, { params });
-      const data = response.data
-      data.next = fixPaginationUrl(data.next)
-      data.previous= fixPaginationUrl(data.previous)
-      return data;
-    } catch (error) {
-      
-      return rejectWithValue(error.response?.data || error.message);
+    if (userID && !url.includes('?')) {
+      params.user_id = userID;
     }
+
+    Object.keys(filterParams).forEach(key => {
+      if (filterParams[key] !== undefined && filterParams[key] !== null && filterParams[key] !== '') {
+        params[key] = filterParams[key];
+      }
+    });
+
+    const response = await subdomainInterceptors.get(url, { params });
+    const data = response.data;
+    data.next = fixPaginationUrl(data.next);
+    data.previous = fixPaginationUrl(data.previous);
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || error.message);
   }
+}
 );
 
 
