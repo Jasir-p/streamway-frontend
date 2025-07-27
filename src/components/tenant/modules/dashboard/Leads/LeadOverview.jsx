@@ -10,6 +10,7 @@ import ComposeEmailModal from '../email/AddMail';
 import { useDropdown } from '../../customer/contact/hooks/Contactshooks';
 import { useLeadPermissions } from '../../../authorization/LeadPermissions';
 import { validateEmail, validateName, validatePhone,validateNotes } from '../../../../../utils/ValidateFunctions';
+import userprofile from "../../../../../assets/user-profile.webp";
 
 const fetchLeadById = async (lead_id) => {
     try {
@@ -297,11 +298,15 @@ export default function LeadDetailPage() {
               <div className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center">
-                    <div className="w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center text-xl font-bold mr-4">
-                      {leads?.avatar}
-                    </div>
+                    
+                      <img
+                          src={userprofile}
+                          alt="User Profile"
+                          className="w-16 h-16 rounded-full object-cover mr-4"
+                        />
+                    
                     <div>
-                      <h2 className="text-xl font-bold text-gray-800">{leads?.name}</h2>
+                      <h2 className="text-xl font-bold text-gray-800">{leads?.name.charAt(0).toUpperCase() + leads?.name.slice(1)}</h2>
                     </div>
                   </div>
                   <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">

@@ -7,12 +7,17 @@ import ConversionOptionsPopup from './ConvertPopup';
 import { useSelector } from 'react-redux';
 
 
-export default function StatusUpdateConfirmation({ selectedLeads, onUpdateComplete, onCancel }) {
+export default function StatusUpdateConfirmation({ selectedLeads,selectedLeadStatus, onUpdateComplete, onCancel }) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("new");
   const [showConversionPopup, setShowConversionPopup] = useState(false);
 
  const {canAdd}=useCustomerPermissions()
+ const hasConvertedLead = selectedLeadStatus.some((status) => status=== 'converted');
+const allSameStatus = selectedLeadStatus.every((status) => status === selectedLeadStatus[0]);
+const defaultStatus = allSameStatus ? selectedLeadStatus[0] : '';
+
+
 
    const canAddcustomer = canAdd
   
@@ -96,9 +101,11 @@ export default function StatusUpdateConfirmation({ selectedLeads, onUpdateComple
                   value={selectedStatus}
                   onChange={handleStatusChange}
                 >
-                  {statusOptions.map((status) => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}
+                 {statusOptions
+                        .filter(status => !(hasConvertedLead && status === "converted")) 
+                        .map((status) => (
+                          <option key={status} value={status}>{status}</option>
+                      ))}
                 </select>
               </div>
             </div>

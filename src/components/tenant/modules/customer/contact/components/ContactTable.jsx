@@ -6,8 +6,7 @@ import ContactRow from './ContactRow';
 const ContactTable = ({ 
   filteredContacts,
   selectedContacts,
-  sortBy,
-  onSort,
+
   onToggleSelectAll,
   onToggleSelect,
   onToggleFavorite,
@@ -20,8 +19,6 @@ const ContactTable = ({
     <div className="border border-gray-50 rounded-lg  shadow-sm">
       <table className="min-w-full divide-y divide-gray-200">
         <ContactTableHeader
-          sortBy={sortBy}
-          onSort={onSort}
           selectedContacts={selectedContacts}
           filteredContacts={filteredContacts}
           onToggleSelectAll={onToggleSelectAll}

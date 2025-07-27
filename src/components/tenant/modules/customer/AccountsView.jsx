@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Search, Plus, ChevronDown, User, Phone, Mail, ExternalLink, MoreVertical, Check, Trash2, MailIcon, UserPlus, X, AlertTriangle } from 'lucide-react';
 import DashboardLayout from '../../dashboard/DashbordLayout';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchAccounts, deleteAccounts } from '../../../../redux/slice/AccountsSlice';
+import { fetchAccounts, deleteAccounts,updateAccount } from '../../../../redux/slice/AccountsSlice';
 import userprofile from "../../../../assets/user-profile.webp";
 import { useNavigate } from 'react-router-dom';
 import { UserDropdown } from '../../../common/ToolBar';
@@ -46,8 +46,8 @@ const ACTION_CONFIGS = {
 const getStatusBadgeStyle = (status) => {
   const styles = {
     active: 'bg-green-100 text-green-800',
-    inactive: 'bg-gray-100 text-gray-800', 
-    prospect: 'bg-blue-100 text-blue-800'
+    inactive: 'bg-red-100 text-red-800', 
+    prospect: 'bg-yellow-100 text-yellow-800'
   };
   return styles[status] || 'bg-gray-100 text-gray-800';
 };
@@ -272,6 +272,17 @@ export default function AccountList() {
     setShowConfirmation(false);
     setActionToConfirm(null);
   };
+  const handleStatusChange = (account_id,status) => {
+    const account = {
+      id: account_id,
+      status: status
+    }
+    dispatch(updateAccount(account))
+    setOpenDropdownId(null)
+    setChange(!change);
+
+
+    }
 
   const handleAccountDetail = (account) => {
     navigate(`/${subdomain}/dashboard/customer/accounts/${account.id}/`);
@@ -461,7 +472,7 @@ export default function AccountList() {
                                   onClick={() => handleStatusChange(account.id, status)}
                                   className={`w-full text-left px-4 py-2 text-sm capitalize hover:bg-gray-100 ${STATUS_COLORS[status]}`}
                                 >
-                                                              Mark as {status}
+                                {status}
                               </button>
                             ))}
                           </div>

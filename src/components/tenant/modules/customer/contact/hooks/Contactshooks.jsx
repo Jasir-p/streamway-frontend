@@ -7,7 +7,7 @@ import { MassMail } from '../../../../../../Intreceptors/MassMailapi';
 import { useToast } from '../../../../../common/ToastNotification';
 
 
-export const useContacts = () => {
+export const useContacts = ({debouncedSearchQuery,searchQuery,statusFilter}) => {
   const dispatch = useDispatch();
   const { contacts, error, next, previous, loading } = useSelector(state => state.contacts);
   const userId = useSelector((state) => state.profile.id);
@@ -18,8 +18,17 @@ export const useContacts = () => {
 
   useEffect(() => {
     const payload = role === 'owner' ? {} : {userId }
+    if (searchQuery.trim()) {
+      payload.search = searchQuery.trim()
+      }
+    if (statusFilter!=='All'){
+      payload.status = statusFilter.toLowerCase()
+    }
+   
+      
+
     dispatch(fetchContacts(payload));
-  }, [dispatch, change]);
+  }, [dispatch, change,debouncedSearchQuery,statusFilter]);
 
   const handleNext = () => {
     const payload = role === 'owner' ? { url: next } : { url: next, userId }

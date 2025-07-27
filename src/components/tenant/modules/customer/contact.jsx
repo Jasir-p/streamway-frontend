@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import DashboardLayout from '../../dashboard/DashbordLayout';
 
 import { useContactFilters,useContactSelection,useContacts,useDropdown,useModal } from './contact/hooks/Contactshooks';
@@ -14,8 +14,25 @@ import BulkActions from './contact/components/BulkActioms';
 import ContactTable from './contact/components/ContactTable';
 import Pagination from './contact/components/Pagination';
 import ConfirmationModal from './contact/components/ConfirmationModal';
+import { useDebounce } from '../../../../hooks/useDebounce';
 
 const ContactView = () => {
+
+  const contactModal = useModal();
+  const statusDropdown = useDropdown();
+  const bulkActionsDropdown = useDropdown();
+  const userDropdown = useModal();
+  const categoryDropdown = useModal();
+  const confirmationModal = useModal();
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const [statusFilter, setStatusFilter] = useState('All');
+
+  // Action states
+  const [actionToConfirm, setActionToConfirm] = useState(null);
+  const [assignedTo, setAssignedTo] = useState();
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [showActionDropdown, setShowActionDropdown] = useState(null);
   // Custom hooks for clean state management
   const { 
     contacts, 
@@ -26,18 +43,7 @@ const ContactView = () => {
     handlePrevious, 
     handleBulkAction,
     refreshContacts 
-  } = useContacts();
-
-  const {
-    searchTerm,
-    setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    sortBy,
-    sortOrder,
-    filteredContacts,
-    handleSort
-  } = useContactFilters(contacts);
+  } = useContacts({debouncedSearchQuery,searchQuery,statusFilter});
 
   const {
     selectedContacts,
@@ -47,19 +53,7 @@ const ContactView = () => {
     hasSelection
   } = useContactSelection();
 
-  // Modal and dropdown states
-  const contactModal = useModal();
-  const statusDropdown = useDropdown();
-  const bulkActionsDropdown = useDropdown();
-  const userDropdown = useModal();
-  const categoryDropdown = useModal();
-  const confirmationModal = useModal();
 
-  // Action states
-  const [actionToConfirm, setActionToConfirm] = useState(null);
-  const [assignedTo, setAssignedTo] = useState();
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [showActionDropdown, setShowActionDropdown] = useState(null);
 
   // Event handlers
   const handleActionClick = (action) => {
@@ -111,15 +105,15 @@ const ContactView = () => {
     
   };
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">Loading contacts...</div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <DashboardLayout>
+  //       <div className="flex items-center justify-center h-64">
+  //         <div className="text-gray-500">Loading contacts...</div>
+  //       </div>
+  //     </DashboardLayout>
+  //   );
+  // }
 
   return (
     <DashboardLayout>
@@ -130,8 +124,8 @@ const ContactView = () => {
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <ContactSearch 
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
+            searchTerm={searchQuery}
+            onSearchChange={setSearchQuery}
           />
           
           <div className="relative">
@@ -175,11 +169,9 @@ const ContactView = () => {
 
         {/* Contact Table */}
         <ContactTable
-          filteredContacts={filteredContacts}
+          filteredContacts={contacts}
           selectedContacts={selectedContacts}
-          sortBy={sortBy}
-          onSort={handleSort}
-          onToggleSelectAll={() => toggleSelectAll(filteredContacts)}
+          onToggleSelectAll={() => toggleSelectAll(contacts)}
           onToggleSelect={toggleSelectContact}
           onToggleFavorite={toggleFavorite}
           showActionDropdown={showActionDropdown}
@@ -190,7 +182,7 @@ const ContactView = () => {
 
         {/* Pagination */}
         <Pagination
-          currentCount={filteredContacts.length}
+          currentCount={contacts.length}
           totalCount={contacts.length}
           hasNext={!!next}
           hasPrevious={!!previous}

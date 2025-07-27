@@ -4,31 +4,43 @@ import axios from "axios";
 import { fixPaginationUrl } from "../../components/utils/fixPaginationUrl";
 
 
-
 export const fetchTask = createAsyncThunk(
-    'task/fetchTask',
-    async ({ role, userID, url }, { rejectWithValue }) => {
-        
-        
-      try {
-        let requestUrl = url || '/api/tasks/';
-        
-  
-        if (!url && role !== 'owner' && userID) {
-          const params = new URLSearchParams({ userID });
-          requestUrl += `?${params.toString()}`;
-        }
-  
-        const response = await subdomainInterceptors.get(requestUrl);
-        const data = response.data
-        data.next = fixPaginationUrl(data.next)
-        data.previous= fixPaginationUrl(data.previous)
-        return data;
-      } catch (error) {
-        return rejectWithValue(error.message);
+  'task/fetchTask',
+  async ({ role, userID, url, search,priority,status }, { rejectWithValue }) => {
+    try {
+      let requestUrl = url || '/api/tasks/';
+      const params = new URLSearchParams();
+
+      if (!url && role !== 'owner' && userID) {
+        params.append('userID', userID);
       }
+
+      if (search?.trim()) {
+        params.append('search', search.trim());
+      }
+      if (priority?.trim()) {
+        params.append('priority', priority.trim());
+      }
+      if (status?.trim()) {
+        params.append('status', status.trim());
+      }
+
+      if ([...params].length > 0) {
+        requestUrl += `?${params.toString()}`;
+      }
+
+      const response = await subdomainInterceptors.get(requestUrl);
+      const data = response.data;
+      data.next = fixPaginationUrl(data.next);
+      data.previous = fixPaginationUrl(data.previous);
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
     }
-  );
+  }
+);
+
 
 export const  addTask =  createAsyncThunk('task/addTask', async (taskData, {rejectWithValue}) => {
     try {

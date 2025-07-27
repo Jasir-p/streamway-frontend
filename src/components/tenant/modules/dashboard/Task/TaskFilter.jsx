@@ -15,8 +15,6 @@ const TaskFilters = ({
   const [filters, setFilters] = useState({
     priorities: [],
     statuses: [],
-    assignedUsers: [],
-    assignedTeams: [],
     ...initialFilters
   });
 
@@ -184,25 +182,5 @@ const TaskFilters = ({
   );
 };
 
-// Apply Filters Helper
-export const applyTaskFilters = (tasks, filters) => {
-  if (!tasks || tasks.length === 0) return [];
-
-  return tasks.filter(task => {
-    if (filters.priorities?.length > 0 && !filters.priorities.includes(task.priority)) return false;
-    if (filters.statuses?.length > 0 && !filters.statuses.includes(task.status)) return false;
-
-    if (filters.assignedUsers?.length > 0) {
-      const taskUserIds = task.assignees?.filter(a => a.role !== 'Team').map(a => a.id) || [];
-      if (!filters.assignedUsers.some(id => taskUserIds.includes(id))) return false;
-    }
-
-    if (filters.assignedTeams?.length > 0) {
-      if (!task.assigned_to_team || !filters.assignedTeams.includes(task.assigned_to_team.id)) return false;
-    }
-
-    return true;
-  });
-};
 
 export default TaskFilters;

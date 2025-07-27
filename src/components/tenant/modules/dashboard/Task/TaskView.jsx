@@ -8,11 +8,12 @@ import {
 import DashboardLayout from '../../../dashboard/DashbordLayout';
 import TaskForm from './TaskForm';
 import TaskDetailView from './TaskDetail';
-import TaskFilters, { applyTaskFilters } from './TaskFilter';
+import TaskFilters from './TaskFilter';
 import { fetchTask, deleteTask } from '../../../../../redux/slice/TaskSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import DashbordLoading from '../../../../common/DashbordLoading';
 import { useTaskPermissions } from '../../../authorization/useTaskPermissions';
+import { useDebounce } from '../../../../../hooks/useDebounce';
 
 const initialColumns = [
   { id: 'backlog', title: 'Backlog', color: 'bg-gray-300', tasks: [] },
@@ -52,6 +53,7 @@ const TaskManagement = () => {
   const [filteredColumns, setFilteredColumns] = useState(initialColumns);
   const [showDetailView, setShowDetailView] = useState(false);
   const [change, setChange] = useState(false);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
   const [activeFilters, setActiveFilters] = useState({
     priorities: [],
     statuses: [],
@@ -71,10 +73,21 @@ const TaskManagement = () => {
 
   // Fetch tasks
   useEffect(() => {
-    dispatch(fetchTask({ role, userID }));
-  }, [dispatch, change, userID, role]);
+    const params = {
+      role,
+      userID,
+      search: debouncedSearchQuery
+    };
+    if (activeFilters.priorities.length > 0) {
+      params.priority = activeFilters.priorities.join(',');
+    }
+    
+    if (activeFilters.statuses.length > 0) {
+      params.status = activeFilters.statuses.join(',');
+    };
+    dispatch(fetchTask(params));
+  }, [dispatch, change, userID, role,debouncedSearchQuery,activeFilters]);
 
-  // Convert tasks to UI format
   const convertTasksToUIFormat = (tasks) => {
     if (!tasks) return [];
     
@@ -108,7 +121,7 @@ const TaskManagement = () => {
       timeEstimate: '1h',
       tags: [task.priority ? task.priority.toLowerCase() : 'medium'],
       subtasks: task.subtasks || [],
-      attachment: task.attachment,
+     
       created_by: task.created_by ? { 
         id: task.created_by.id, 
         name: task.created_by.name, 
@@ -150,41 +163,7 @@ const TaskManagement = () => {
   }, [tasks, change]);
 
   // Apply filters and search
-  useEffect(() => {
-    let allTasks = [];
-    columns.forEach(column => {
-      allTasks = [...allTasks, ...column.tasks];
-    });
 
-    // Apply search filter
-    if (searchQuery.trim() !== '') {
-      const query = searchQuery.toLowerCase();
-      allTasks = allTasks.filter(task => 
-        task.title.toLowerCase().includes(query) ||
-        task.description?.toLowerCase().includes(query) ||
-        task.lead?.name?.toLowerCase().includes(query) ||
-        task.account?.name?.toLowerCase().includes(query) ||
-        task.assignees?.some(assignee => assignee.name?.toLowerCase().includes(query))
-      );
-    }
-
-    // Apply advanced filters
-    const filteredTasks = applyTaskFilters(allTasks, activeFilters);
-
-    // Group filtered tasks back into columns
-    const newFilteredColumns = initialColumns.map(col => ({ ...col, tasks: [] }));
-    
-    filteredTasks.forEach(task => {
-      const columnId = mapStatusToColumnId(task.status);
-      const columnIndex = newFilteredColumns.findIndex(col => col.id === columnId);
-      
-      if (columnIndex !== -1) {
-        newFilteredColumns[columnIndex].tasks.push(task);
-      }
-    });
-
-    setFilteredColumns(newFilteredColumns);
-  }, [searchQuery, columns, activeFilters]);
 
   // Handle filter changes
   const handleFiltersChange = (filters) => {
@@ -213,9 +192,6 @@ const TaskManagement = () => {
   };
 
   const TaskCard = ({ task, columnId }) => {
-    const completedSubtasks = task.subtasks?.filter(subtask => subtask.completed).length || 0;
-    const totalSubtasks = task.subtasks?.length || 0;
-
     const handleTaskClick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -278,30 +254,7 @@ const TaskManagement = () => {
           </div>
         </div>
         
-        {totalSubtasks > 0 ? (
-          <>
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full" 
-                style={{ width: `${(completedSubtasks / totalSubtasks) * 100}%` }}
-              ></div>
-            </div>
-            <div className="flex justify-between items-center text-xs text-gray-500">
-              <div className="flex items-center space-x-2">
-                <Calendar size={12} />
-                <span>{task.dueDate || 'N/A'}</span>
-              </div>
-              <div className="text-xs">{completedSubtasks}/{totalSubtasks} subtasks</div>
-            </div>
-          </>
-        ) : (
-          <div className="flex justify-between items-center text-xs text-gray-500">
-            <div className="flex items-center space-x-2">
-              <Calendar size={12} />
-              <span>Created: {new Date(task.created_at).toLocaleDateString()}</span>
-            </div>
-          </div>
-        )}
+        
       </div>
     );
   };
@@ -341,8 +294,6 @@ const TaskManagement = () => {
       });
 
       setColumns(newColumns);
-      // TODO: Uncomment when updateTaskStatus action is available
-      // dispatch(updateTaskStatus({ taskId, status: newStatus }));
     }
     
     dragItem.current = null;
@@ -400,16 +351,8 @@ const TaskManagement = () => {
     }
   };
 
-  const hasAnyTasks = filteredColumns.some(column => column.tasks.length > 0);
+  const hasAnyTasks = columns.some(column => column.tasks.length > 0);
   const allTasks = columns.flatMap(column => column.tasks);
-
-  if (loading) {
-    return (
-      
-        <DashbordLoading />
-     
-    );
-  }
 
   return (
     <DashboardLayout>
@@ -502,7 +445,7 @@ const TaskManagement = () => {
         {/* Board View */}
         {!error && viewMode === 'board' && hasAnyTasks && (
           <div className="grid grid-cols-4 gap-4">
-            {filteredColumns.map((column) => (
+            {columns.map((column) => (
               <div 
                 key={column.id} 
                 className="bg-gray-100 rounded-lg p-4" 
@@ -555,7 +498,7 @@ const TaskManagement = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredColumns.flatMap(column => column.tasks).map(task => (
+                {columns.flatMap(column => column.tasks).map(task => (
                   <tr 
                     key={task.id} 
                     onClick={() => handleTaskClick(task)} 

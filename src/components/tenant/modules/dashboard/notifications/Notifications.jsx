@@ -32,16 +32,16 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {}, 
       connect(token, subdomain);
 
       const messageCleanup = addMessageHandler((data) => {
-  console.log('Received WebSocket data:', data);
+  
   try {
     const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-    console.log('Parsed data:', parsedData);
 
     const messageType = parsedData.message_type || 'new_notification';
     const notifications = parsedData.notifications || parsedData;
+    
 
         if (messageType === 'notifications_updated') {
-          // This is an updated list after mark as read - REPLACE
+          
           const processedNotifications = notifications.map(notification => {
             const isRead = notification.is_read || false;
             return {
@@ -60,7 +60,7 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {}, 
           setCount(unreadCount);
           
         } else if (messageType === 'new_notification') {
-          // This is a new notification - ADD
+
           if (Array.isArray(notifications)) {
             // Initial load
             const processedNotifications = notifications.map(notification => {
@@ -80,7 +80,7 @@ export default function NotificationsModal({ isOpen = true, onClose = () => {}, 
             const unreadCount = processedNotifications.filter(n => !n.read).length;
             setCount(unreadCount);
           } else {
-            // Single new notification
+
             const isRead = notifications.is_read || false;
             const newNotification = {
               id: notifications.id,
@@ -151,13 +151,6 @@ const markAsRead = (id) => {
     notification_ids: [id], 
   });
 
-
-  // setNotifications((prev) =>
-  //   prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-  // );
-
-  // Decrease unread count safely
-  // setCount((prevCount) => Math.max(0, prevCount - 1));
 };
 
 

@@ -236,7 +236,7 @@ const TaskDetailView = ({
   const handleNavigation = useCallback((type, id) => {
     try {
       const route = NAVIGATION_ROUTES[type](id);
-      navigate(`/${subdomain}/route`);
+      navigate(`/${subdomain}${route}`, { replace: false });
       onClose();
     } catch (error) {
       
@@ -453,12 +453,16 @@ const TaskDetailView = ({
 
               {/* Related Entities */}
               {task.lead && (
-                <DetailField label="Lead" onClick={navigationHandlers.viewLead}>
-                  <p className="text-sm font-medium text-blue-600 hover:text-blue-800">
-                    {task.lead.lead_id}
-                  </p>
-                </DetailField>
-              )}
+                  <DetailField label="Lead" onClick={navigationHandlers.viewLead}>
+                    <p className="text-sm font-medium text-blue-600 hover:text-blue-800">
+                      {task.lead.name
+                        ? `${task.lead.name.charAt(0).toUpperCase()}${task.lead.name.slice(1)}`
+                        : 'Unnamed Lead'}{' '}
+                      (ID: {task.lead.lead_id})
+                    </p>
+                  </DetailField>
+                )}
+
 
               {task.contact && (
                 <DetailField label="Contact" onClick={navigationHandlers.viewContact}>
@@ -479,38 +483,6 @@ const TaskDetailView = ({
           </div>
         </div>
         
-        {/* Subtasks */}
-        {task.subtasks?.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-md font-semibold mb-3">Subtasks ({task.subtasks.length})</h3>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <ul className="space-y-2">
-                {task.subtasks.map(subtask => (
-                  <li key={subtask.id} className="flex items-center">
-                    <input 
-                      type="checkbox" 
-                      checked={subtask.completed || false}
-                      className="mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                      readOnly
-                    />
-                    <span className={`text-sm ${subtask.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
-                      {subtask.title}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {/* Attachments */}
-        {task.attachment?.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-md font-semibold mb-3">Attachments</h3>
-            <AttachmentViewer selectedTask={task} />
-          </div>
-        )}
-
         {/* Activity */}
         <div>
           <h3 className="text-md font-semibold mb-3">Activity</h3>

@@ -21,11 +21,12 @@ const MondayStyleLeadsTable = () => {
   const navigate = useNavigate();
   const { leads, loading, error, next, previous } = useSelector((state) => state.leads);
   const [selectedLeads, setSelectedLeads] = useState([]);
+
   const userId = useSelector((state) => state.profile.id);
   const [search, setSearch] = useState("");
   const [change, setChange] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("New");
+  const [selectedStatus, setSelectedStatus] = useState([]);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceTimer = useRef(null);
   const filterTimer = useRef(null);
@@ -117,6 +118,7 @@ const MondayStyleLeadsTable = () => {
       }));
     }
     setSelectedLeads([]);
+    setSelectedStatus([])
   }, [dispatch, role, userId, debouncedSearch, filters]);
 
   // Effect for search changes
@@ -149,6 +151,7 @@ const MondayStyleLeadsTable = () => {
   const updateLeadStatus = (success) => {
     if (success) {
       setSelectedLeads([]);
+      setSelectedStatus([])
       setChange(!change);
     }
     setShowStatusPopup(false);
@@ -158,13 +161,22 @@ const MondayStyleLeadsTable = () => {
     setChange(!change);
   };
 
-  const handleCheckboxChange = (leadId) => {
+  const handleCheckboxChange = (leadId,status) => {
     setSelectedLeads((prev) =>
       prev.includes(leadId)
         ? prev.filter((id) => id !== leadId)
         : [...prev, leadId]
     );
+    setSelectedStatus((prev) =>
+      prev.includes(status)
+        ? selectedLeads.includes(leadId) 
+          ? prev.filter((s) => s !== status)
+          : prev
+        : [...prev, status]
+  );
+
   };
+
   
   const getStatusColor = (status) => {
     const statusColors = {
@@ -188,7 +200,8 @@ const MondayStyleLeadsTable = () => {
         // based on your backend implementation
         dispatch(fetchLeadsEmployee({ userId, url: next }));
       }
-      setSelectedLeads([]);
+      setSelectedLeads([])
+      setSelectedStatus([])
     }
   };
 
@@ -199,7 +212,8 @@ const MondayStyleLeadsTable = () => {
       } else {
         dispatch(fetchLeadsEmployee({ userId, url: previous }));
       }
-      setSelectedLeads([]);
+      setSelectedLeads([])
+      setSelectedStatus([])
     }
   };
 
@@ -229,9 +243,18 @@ const MondayStyleLeadsTable = () => {
 
   const activeFilterCount = Object.values(filters).filter(value => value !== '').length;
 
-  const handleSelectAllChange = (event) => {
-    setSelectedLeads(event.target.checked ? leads.map((lead) => lead.lead_id) : []);
-  };
+const handleSelectAllChange = (event) => {
+  if (event.target.checked) {
+    const allLeadIds = leads.map((lead) => lead.lead_id);
+    const allStatuses = leads.map((lead) => lead.status);
+    setSelectedLeads(allLeadIds);
+    setSelectedStatus(allStatuses);
+  } else {
+    setSelectedLeads([]);
+    setSelectedStatus([]);
+  }
+};
+
 
   return (
     <DashboardLayout>
@@ -261,6 +284,7 @@ const MondayStyleLeadsTable = () => {
               {showStatusPopup && (
                 <StatusUpdateConfirmation 
                   selectedLeads={selectedLeads}
+                  selectedLeadStatus={selectedStatus}
                   onUpdateComplete={updateLeadStatus}
                   onCancel={() => setShowStatusPopup(false)}
                 />
@@ -434,7 +458,7 @@ const MondayStyleLeadsTable = () => {
                         type="checkbox"
                         className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                         checked={selectedLeads?.includes(lead.lead_id)}
-                        onChange={() => handleCheckboxChange(lead.lead_id)}
+                        onChange={() => handleCheckboxChange(lead.lead_id,lead.status)}
                       />
                     </td>
                     

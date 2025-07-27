@@ -2,8 +2,7 @@ import React from 'react';
 import { ArrowUpDown } from 'lucide-react';
 
 const ContactTableHeader = ({ 
-  sortBy, 
-  onSort, 
+
   selectedContacts, 
   filteredContacts, 
   onToggleSelectAll 
@@ -27,9 +26,7 @@ const ContactTableHeader = ({
             onClick={() => onSort('name')}
           >
             Name
-            {sortBy === 'name' && (
-              <ArrowUpDown size={14} className="ml-1 text-gray-400" />
-            )}
+            
           </button>
         </th>
         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -41,9 +38,7 @@ const ContactTableHeader = ({
             onClick={() => onSort('status')}
           >
             Status
-            {sortBy === 'status' && (
-              <ArrowUpDown size={14} className="ml-1 text-gray-400" />
-            )}
+            
           </button>
         </th>
         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
