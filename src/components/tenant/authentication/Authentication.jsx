@@ -2,6 +2,7 @@
 import api from "../../../api";
 import defaultInterceptor from "../../../Intreceptors/defaultInterceptors";
 import subdomainInterceptors from "../../../Intreceptors/getSubdomainInterceptors";
+import { persistor } from "../../../redux/store";
 
 
 
@@ -33,9 +34,10 @@ import subdomainInterceptors from "../../../Intreceptors/getSubdomainInterceptor
 
         // Clear stored tokens
         const subdomain = localStorage.getItem("subdomain");
+        await persistor.purge();
         localStorage.clear();
         if (role==="owner"){
-            navigate('/login')
+            window.location.href = '/login';
         }
         else{
             navigate(`/${subdomain}/signin`)}
