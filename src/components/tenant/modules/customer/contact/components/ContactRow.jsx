@@ -141,7 +141,7 @@ const ContactRow = ({
       </td> */}
       <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium relative">
         <div className="flex items-center justify-end space-x-2">
-          {isEditable &&(<button 
+          {isEditable && canEdit &&(<button 
             className="p-1 text-indigo-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50"
             onClick={handleEditClick}
             title="Edit Contact"

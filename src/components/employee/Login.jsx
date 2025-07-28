@@ -93,7 +93,7 @@ const Login = () => {
               <input
                 id="email"
                 type="email"
-                autoComplete="email"
+                autoComplete="off"
                 {...register("email", {
                   required: "Email is required",
                   pattern: {
@@ -120,7 +120,7 @@ const Login = () => {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete="off"
                 {...register("password", { required: "Password is required" })}
                 className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 text-sm"
                 placeholder="Enter your password"
