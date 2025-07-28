@@ -98,28 +98,20 @@ const handleClick = (item) => {
           <Sparkles className="h-6 w-6 text-yellow-400" />
           <span className="text-lg font-semibold text-white">StreamWay</span>
         </div>
-        <div className="flex space-x-1">
-          <button className="p-1 rounded-full hover:bg-white/10 text-white/80 hover:text-white">
-            <Search className="h-4 w-4" />
-          </button>
-          <button className="p-1 rounded-full hover:bg-white/10 text-white/80 hover:text-white relative">
-            <Bell className="h-4 w-4" />
-            <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
-          </button>
-        </div>
+       
       </div>
 
       {/* Quick stats */}
       <div className="px-4 py-3 bg-blue-800/30 border-b border-blue-600/30">
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-white/10 backdrop-blur-sm p-2 rounded-md border border-white/20">
+          {/* <div className="bg-white/10 backdrop-blur-sm p-2 rounded-md border border-white/20">
             <p className="text-xs text-blue-100">New Leads</p>
             <p className="text-lg font-semibold text-white">24</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm p-2 rounded-md border border-white/20">
+          </div> */}
+          {/* <div className="bg-white/10 backdrop-blur-sm p-2 rounded-md border border-white/20">
             <p className="text-xs text-blue-100">Open Tasks</p>
             <p className="text-lg font-semibold text-white">7</p>
-          </div>
+          </div> */}
         </div>
       </div>
 
