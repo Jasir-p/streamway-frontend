@@ -137,7 +137,7 @@ const onSubmit = async (data) => {
                 <input
                   id="email"
                   type="email"
-                  autoComplete="off"
+                  autoComplete="nope"
                   disabled={isLoading}
                   {...register("email", {
                     required: "Email is required",
@@ -165,7 +165,7 @@ const onSubmit = async (data) => {
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete="off"
+                  autoComplete="nope"
                   disabled={isLoading}
                   {...register("password", { required: "Password is required" })}
                   className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 text-sm disabled:bg-gray-50 disabled:text-gray-500"
