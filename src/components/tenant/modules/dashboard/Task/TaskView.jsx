@@ -432,13 +432,16 @@ const TaskManagement = () => {
                 ? "No tasks match your search criteria or filters." 
                 : "You haven't created any tasks yet."}
             </p>
-            <button 
+            {canAdd &&(
+              <button 
               className="bg-blue-600 text-white px-4 py-2 rounded-lg inline-flex items-center space-x-2 hover:bg-blue-700" 
               onClick={handleAddTask}
             >
               <Plus size={16} />
               <span>Create your first task</span>
             </button>
+            )}
+            
           </div>
         )}
 
