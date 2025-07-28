@@ -157,7 +157,8 @@ const handleDeleteDeal = (dealId) => {
               {activeFiltersCount > 0 && ` (${activeFiltersCount} filters applied)`}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          {canAddDeal &&(
+            <div className="flex items-center gap-3">
             <button 
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               onClick={() => setIsOpen(true)}
@@ -168,6 +169,8 @@ const handleDeleteDeal = (dealId) => {
             <ActionButton icon={Download} />
             <ActionButton icon={RefreshCw} onClick={refreshDeals} />
           </div>
+          )}
+          
         </div>
 
         {/* Search and Filters */}
@@ -200,6 +203,7 @@ const handleDeleteDeal = (dealId) => {
             hasFilters={searchTerm || activeFiltersCount > 0}
             onClearFilters={clearFilters}
             onCreateDeal={() => setIsOpen(true)}
+            canAddDeal={canAddDeal}
           />
         ) : (
           <>
@@ -210,6 +214,8 @@ const handleDeleteDeal = (dealId) => {
               onSelectAll={() => selectAllDeals(paginatedDeals)}
               onEdit={handleEditDeal}
               onDelete={handleDeleteDeal}
+              canEditDeal = {canEditDeal}
+              canDeleteDeal = {canDeleteDeal}
             />
             
             {/* Pagination */}

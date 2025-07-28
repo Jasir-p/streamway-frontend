@@ -1,7 +1,7 @@
 import React from 'react';
 import { Search, Plus, X } from 'lucide-react';
 
-export const EmptyState = ({ hasFilters, onClearFilters, onCreateDeal }) => (
+export const EmptyState = ({ hasFilters, onClearFilters, onCreateDeal,canAddDeal }) => (
   <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
       <Search className="w-8 h-8 text-gray-400" />
@@ -21,13 +21,16 @@ export const EmptyState = ({ hasFilters, onClearFilters, onCreateDeal }) => (
         Clear Filters
       </button>
     ) : (
-      <button 
+      canAddDeal &&(
+        <button 
         onClick={onCreateDeal}
         className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
         <Plus className="w-4 h-4" />
         Create First Deal
       </button>
+      )
+      
     )}
   </div>
 );

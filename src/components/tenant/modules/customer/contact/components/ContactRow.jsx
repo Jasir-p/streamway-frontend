@@ -15,7 +15,8 @@ const ContactRow = ({
   showActionDropdown, 
   onShowActionDropdown,
   onChange,
-  onEdit // New prop for handling edit
+  onEdit,
+  canEdit // New prop for handling edit
 }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -159,7 +160,8 @@ const ContactRow = ({
 
             {showActionDropdown === contact.id && (
               <div className="absolute right-0 mt-2 z-20 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1">
-                <button 
+                {canEdit &&(
+                  <button 
                   className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
                     contact.status === 'active' ? 'text-red-600' : 'text-green-600'
                   }`} 
@@ -167,6 +169,8 @@ const ContactRow = ({
                 >
                   {contact.status === 'active' ? 'Inactive' : 'Active'}
                 </button>
+                )}
+                
                 <button 
                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
                   onClick={toggle}
@@ -179,7 +183,7 @@ const ContactRow = ({
                 >
                   Schedule Meeting
                 </button>
-                {isEditable &&(<button 
+                {isEditable && canEdit &&(<button 
                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
                   onClick={handleEditClick}
                 >

@@ -5,7 +5,8 @@ const BulkActions = ({
   selectedCount, 
   dropdownOpen, 
   setDropdownOpen, 
-  onActionClick 
+  onActionClick,
+  canDelete
 }) => {
   if (selectedCount === 0) return null;
 
@@ -28,12 +29,15 @@ const BulkActions = ({
           >
             <Mail size={14} className="mr-2" /> Mass Email
           </button>
-          <button 
+          {canDelete && (
+            <button 
             onClick={() => onActionClick('delete')}
             className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
           >
             <Trash size={14} className="mr-2" /> Delete
           </button>
+          )}
+          
         </div>
       )}
     </div>

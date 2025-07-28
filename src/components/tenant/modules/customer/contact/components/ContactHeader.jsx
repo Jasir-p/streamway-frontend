@@ -1,14 +1,15 @@
 import React from 'react';
 import { Download, UserPlus } from 'lucide-react';
 
-const ContactHeader = ({ onAddContact }) => {
+const ContactHeader = ({ onAddContact,canAdd }) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <div>
         <h2 className="text-2xl font-bold text-gray-800">Contacts</h2>
         <p className="text-gray-500 mt-1">Manage your contacts and leads</p>
       </div>
-      <div className="flex items-center gap-2">
+      {canAdd &&(
+        <div className="flex items-center gap-2">
         
         <button 
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
@@ -18,6 +19,8 @@ const ContactHeader = ({ onAddContact }) => {
           Add Contact
         </button>
       </div>
+      )}
+      
     </div>
   );
 };

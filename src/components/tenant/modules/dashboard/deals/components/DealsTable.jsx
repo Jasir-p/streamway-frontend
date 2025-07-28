@@ -12,7 +12,9 @@ export const DealsTable = ({
   onSelectAll,
   onView,
   onEdit,
-  onDelete
+  onDelete,
+  canEditDeal,
+  canDeleteDeal,
 }) => {
     const navigate = useNavigate();
     const subdomain = localStorage.getItem("subdomain")
@@ -150,16 +152,21 @@ export const DealsTable = ({
                       color="blue" 
                       onClick={() => onView && onView(deal.deal_id)}
                     />
-                    <ActionButton 
+                    {canEditDeal &&(
+                      <ActionButton 
                       icon={Edit3} 
                       color="green" 
                        onClick={(e) => handleActionClick(e, onEdit, deal.deal_id)}
                     />
-                    <ActionButton 
+                    )}
+                    {canDeleteDeal &&(
+                      <ActionButton 
                       icon={Trash2} 
                       color="red" 
                       onClick={(e) => handleActionClick(e, onDelete,deal.deal_id)}
                     />
+                    )}
+                    
                   </div>
                 </td>
               </tr>

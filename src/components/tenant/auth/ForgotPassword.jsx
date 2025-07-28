@@ -102,7 +102,7 @@ try {
                 Sending...
               </div>
             ) : (
-              'Send Reset Link'
+              'Send Otp'
             )}
           </button>
         </div>

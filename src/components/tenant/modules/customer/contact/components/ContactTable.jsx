@@ -13,7 +13,8 @@ const ContactTable = ({
   showActionDropdown,
   setShowActionDropdown,
   onChange,
-  onEdit
+  onEdit,
+  canEdit
 }) => {
   return (
     <div className="border border-gray-50 rounded-lg  shadow-sm">
@@ -36,6 +37,7 @@ const ContactTable = ({
                 onShowActionDropdown={setShowActionDropdown}
                 onChange = {onChange}
                 onEdit={onEdit}
+                canEdit={canEdit}
 
               />
             ))

@@ -15,6 +15,7 @@ import ContactTable from './contact/components/ContactTable';
 import Pagination from './contact/components/Pagination';
 import ConfirmationModal from './contact/components/ConfirmationModal';
 import { useDebounce } from '../../../../hooks/useDebounce';
+import { useCustomerPermissions } from '../../authorization/useCustomerPermissions';
 
 const ContactView = () => {
 
@@ -33,6 +34,8 @@ const ContactView = () => {
   const [assignedTo, setAssignedTo] = useState();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showActionDropdown, setShowActionDropdown] = useState(null);
+
+  const {canAdd,canDelete,canEdit}= useCustomerPermissions();
   // Custom hooks for clean state management
   const { 
     contacts, 
@@ -119,7 +122,7 @@ const ContactView = () => {
     <DashboardLayout>
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-full ">
         {/* Header */}
-        <ContactHeader onAddContact={contactModal} />
+        <ContactHeader onAddContact={contactModal} canAdd={canAdd} />
 
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -146,6 +149,7 @@ const ContactView = () => {
               dropdownOpen={bulkActionsDropdown.isOpen}
               setDropdownOpen={bulkActionsDropdown.toggle}
               onActionClick={handleActionClick}
+              canDelete ={canDelete}
             />
             
             {/* Position dropdowns right after BulkActions */}
@@ -178,6 +182,7 @@ const ContactView = () => {
           setShowActionDropdown={setShowActionDropdown}
           onChange={refreshContacts}
           onEdit={contactModal}
+          canEdit={canEdit}
         />
 
         {/* Pagination */}
