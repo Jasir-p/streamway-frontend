@@ -138,6 +138,9 @@ const onSubmit = async (data) => {
                   id="email"
                   type="email"
                   autoComplete="nope"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                   disabled={isLoading}
                   {...register("email", {
                     required: "Email is required",
