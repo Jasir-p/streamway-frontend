@@ -33,9 +33,9 @@ function Landingmain() {
               <img src={logo1} className="h-12 w-auto" alt="CRM Pro Logo" />
             </div>
             <div className="hidden md:flex items-center space-x-8">
-              <a href="features" className="text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">Features</a>
-              <a href="pricing" className="text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">Pricing</a>
-              <a href="contact" className="text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">Contact</a>
+              <a href="#features" className="text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">Features</a>
+              <a href="#pricing" className="text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">Pricing</a>
+              <a href="#contact" className="text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">Contact</a>
               <a href="/login" className="flex items-center text-white hover:text-blue-200 font-medium text-sm uppercase tracking-wide transition-colors">
                 <LogIn className="w-4 h-4 mr-1" />
                 Login
@@ -48,7 +48,7 @@ function Landingmain() {
               <a href="/login" className="text-white hover:text-blue-200 transition-colors">
                 <LogIn className="w-5 h-5" />
               </a>
-              <a href="register" className="bg-white text-blue-700 px-4 py-2 rounded-md font-semibold text-sm shadow-lg">
+              <a href="#register" className="bg-white text-blue-700 px-4 py-2 rounded-md font-semibold text-sm shadow-lg">
                 Try Free
               </a>
             </div>
