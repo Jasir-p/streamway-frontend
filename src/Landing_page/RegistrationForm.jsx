@@ -158,8 +158,8 @@ const RegistrationForm = () => {
                       placeholder="Your Company"
                       aria-describedby="company-error"
                     />
-                    {errors.company && (
-                      <span id="company-error" className="text-red-500 text-sm">{errors.company.message}</span>
+                    {errors.name && (
+                      <span id="company-error" className="text-red-500 text-sm">{errors.name.message}</span>
                     )}
                   </div>
                 </div>
