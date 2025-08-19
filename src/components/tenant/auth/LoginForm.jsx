@@ -229,7 +229,7 @@ const onSubmit = async (data) => {
           {/* Sign up link */}
           <p className="mt-8 text-center text-sm text-gray-600">
             Don't have an account?{" "}
-            <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+            <a href="/" className="font-medium text-blue-600 hover:text-blue-500">
               Sign up for free
             </a>
           </p>
