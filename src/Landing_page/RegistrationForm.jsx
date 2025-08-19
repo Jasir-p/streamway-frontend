@@ -82,17 +82,22 @@ const RegistrationForm = () => {
                       type="text"
                       id="fullName"
                       {...register("owner_name", {
-                            required: "Name is required",
-                            validate: (value) => {
-                                const trimmed = value.trim();
-                                if (!trimmed) return "Name cannot be empty";
-                                if (!/[A-Za-z]/.test(trimmed)) return "Name must contain at least one letter";
-                                if (/^[^A-Za-z0-9]+$/.test(trimmed)) return "Name cannot be only special characters";
-                                if (/^[^A-Za-z]+/.test(trimmed)) return "Name cannot start with special characters";
-                                return true;
-                              }
-                          })}
+                        required: "Name is required",
+                        validate: (value) => {
+                          const trimmed = value.trim();
+                          if (!trimmed) return "Name cannot be empty";
+                          const validPattern = /^[A-Za-z0-9 ]+$/;
 
+                          if (!validPattern.test(trimmed)) {
+                            return "Please enter a valid name (no special characters)";
+                          }
+                          if (!/[A-Za-z]/.test(trimmed)) {
+                            return "Name must contain at least one letter";
+                          }
+
+                          return true;
+                        }
+                      })}
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                       placeholder="John Doe"
                       aria-describedby="name-error"
