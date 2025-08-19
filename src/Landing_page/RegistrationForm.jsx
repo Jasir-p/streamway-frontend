@@ -27,7 +27,7 @@ const RegistrationForm = () => {
   const navigate = useNavigate()
   const onSubmit = async (data) => {
   try {
-    const response = await defaultInterceptor.post('/action/', data);
+    const response = await defaultInterceptor.post('/tenants/', data);
 
     if (response.status === 200) {
       dispatch(setTenantEmail(data.email));

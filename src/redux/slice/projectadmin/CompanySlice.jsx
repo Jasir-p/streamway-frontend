@@ -9,7 +9,7 @@ const fixPaginationUrl = (url) => {
 
 export const fetchallTenants = createAsyncThunk(
   'tenants/fetchallTenants',
-  async (url = '/action/', { rejectWithValue }) => {
+  async (url = '/tenants/', { rejectWithValue }) => {
     try {
       const response = await defaultInterceptor.get(url);
       const data = response.data;
@@ -28,7 +28,7 @@ export const editTenants = createAsyncThunk(
     
     
     try {
-      const response = await defaultInterceptor.put("/action/", data, {
+      const response = await defaultInterceptor.put("/tenants/", data, {
         params: { tenant_id }
       });
       return response.data;
