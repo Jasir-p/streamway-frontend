@@ -86,8 +86,7 @@ const RegistrationForm = () => {
                         validate: (value) => {
                           const trimmed = value.trim();
                           if (!trimmed) return "Name cannot be empty";
-                          const validPattern = /^[A-Za-z0-9 ]+$/;
-
+                          const validPattern = /^(?!-)(?!.*--)([A-Za-z0-9]+(-[A-Za-z0-9]+)*)$/
                           if (!validPattern.test(trimmed)) {
                             return "Please enter a valid name (no special characters)";
                           }
